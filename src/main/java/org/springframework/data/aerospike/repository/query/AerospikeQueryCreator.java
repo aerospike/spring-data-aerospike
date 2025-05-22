@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;

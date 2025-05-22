@@ -896,10 +896,10 @@ public interface AerospikeOperations {
      * @param targetClass The class to map the record to.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The matching records mapped to targetClass's type if provided (otherwise to entityClass's type), or an
-     * empty list if no documents found.
+     * empty stream if no documents found.
      */
-    <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                       @Nullable Query query);
+    <T, S> Stream<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                         @Nullable Query query);
 
     /**
      * Find records by ids within the given set.
@@ -913,10 +913,10 @@ public interface AerospikeOperations {
      * @param setName     Set name to use.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The matching records mapped to targetClass's type if provided (otherwise to entityClass's type), or an
-     * empty list if no documents found.
+     * empty stream if no documents found.
      */
-    <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
-                                       @Nullable Query query);
+    <T, S> Stream<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
+                                         @Nullable Query query);
 
     /**
      * Find records in the given entityClass's set using a query and map them to the given class type.
@@ -1162,7 +1162,7 @@ public interface AerospikeOperations {
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return quantity of matching records.
      */
-    <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+    <T> long countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
 
     /**
      * Count existing records by ids and a query using the given entityClass within the set.
@@ -1174,6 +1174,10 @@ public interface AerospikeOperations {
      * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return quantity of matching records.
      */
+    long countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
+
+    <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
     long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**

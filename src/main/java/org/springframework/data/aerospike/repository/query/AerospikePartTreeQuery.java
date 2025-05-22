@@ -28,12 +28,14 @@ import org.springframework.data.repository.query.QueryMethodValueEvaluationConte
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
  * @author Peter Milne
@@ -64,12 +66,14 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Qualifier criteria = query.getCriteriaObject();
             // only for id EQ, id LIKE queries get SimpleProperty query creator
             if (criteria.hasSingleId()) {
-                return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null);
+                // Query only with ids
+                return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null, accessor.getPageable());
             } else {
+                // Combined query with ids
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     return runQueryWithIdsEquality(targetClass, getIdValue(idQualifier),
-                        new Query(excludeIdQualifier(criteria)));
+                        getQueryWithExcludedIdQualifier(query, criteria), accessor.getPageable());
                 }
             }
         }
@@ -96,28 +100,80 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             "supported");
     }
 
-    protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query) {
+    private Query getQueryWithExcludedIdQualifier(Query query, Qualifier criteria) {
+        Query newQuery = new Query(excludeIdQualifier(criteria));
+        newQuery.setSort(query.getSort());
+        newQuery.setOffset(query.getOffset());
+        newQuery.setRows(query.getRows());
+        newQuery.setDistinct(query.isDistinct());
+        return newQuery;
+    }
+
+    protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query, Pageable pageable) {
         if (isExistsQuery(queryMethod)) {
             return operations.existsByIdsUsingQuery(ids, entityClass, query);
         } else if (isCountQuery(queryMethod)) {
-            return operations.countByIdsUsingQuery(ids, entityClass, query);
+            return operations.countExistingByIdsUsingQuery(ids, entityClass, query);
         } else if (isDeleteQuery(queryMethod)) {
             operations.deleteByIdsUsingQuery(ids, entityClass, query);
             return Optional.empty();
         } else {
-            return operations.findByIdsUsingQuery(ids, entityClass, targetClass, query);
+            if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+                return processPaginatedIdQuery(targetClass, ids, pageable, query);
+            }
+            return operations.findByIdsUsingQuery(ids, entityClass, targetClass, query)
+                .filter(Objects::nonNull)
+                .toList();
         }
+    }
+
+    private Object processPaginatedIdQuery(Class<?> targetClass, List<Object> ids, Pageable pageable, Query query) {
+        if (!queryCriteriaIsNotNull(query) && !pageable.isUnpaged() && query.getSort() == null) {
+            // Paginated queries with offset and no sorting (i.e. original order)
+            // are only allowed for purely id queries, and not for other queries
+            // Limit by page size + 1 to be able to initialize SliceImpl, apply post-processing beforehand
+            List<Object> idsPagedPlusOne = ids.stream()
+                .skip(pageable.getOffset()) // query offset
+                .limit(pageable.getPageSize() + 1) // query rows
+                .toList(); // no custom sorting in this case, which allows to prepare for reading just page size + 1
+
+            Stream<?> pagedResultsPlusOne =
+                operations.findByIdsUsingQuery(idsPagedPlusOne, entityClass, targetClass, query);
+            return processPagedQueryWithIdsOnly(ids, pagedResultsPlusOne, pageable);
+        }
+        // Purely id queries with pageable.isUnpaged() get processed here
+        Stream<?> unprocessedResultsStream =
+            operations.findByIdsUsingQuery(ids, entityClass, targetClass, query);
+            return processPagedQuery(unprocessedResultsStream, pageable, query);
     }
 
     private Object processPaginatedQuery(Class<?> targetClass, Pageable pageable, Query query) {
         Stream<?> unprocessedResultsStream =
             operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
+        return processPagedQuery(unprocessedResultsStream, pageable, query);
+    }
+
+    private Object processPagedQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         if (queryMethod.isSliceQuery()) {
             return processSliceQuery(unprocessedResultsStream, pageable, query);
         }
         return processPageQuery(unprocessedResultsStream, pageable, query);
     }
 
+    private Object processPagedQueryWithIdsOnly(List<Object> ids, Stream<?> pagedResultsPlusOne, Pageable pageable) {
+        if (queryMethod.isSliceQuery()) {
+            return processSliceQueryWithIdsOnly(pagedResultsPlusOne, pageable);
+        }
+        return processPageQueryWithIdsOnly(ids, pagedResultsPlusOne.limit(pageable.getPageSize()), pageable);
+    }
+
+    /**
+     * Creates new SliceImpl based on given parameters.
+     * This method is used for paginated regular and combined queries, and for purely id queries where
+     * pageable.isUnpaged() is true.
+     * <br>
+     * The case of paginated purely id queries is processed within {@link #processSliceQueryWithIdsOnly(Stream, Pageable)}
+     */
     private Object processSliceQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         if (pageable.isUnpaged()) {
             return new SliceImpl<>(unprocessedResultsStream.toList(), pageable, false);
@@ -128,26 +184,57 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             .collect(Collectors.toList());
 
         boolean hasNext = modifiedResults.size() > pageable.getPageSize();
-        return new SliceImpl<>(hasNext ? modifiedResults.subList(0, pageable.getPageSize()) : modifiedResults,
-            pageable, hasNext);
+        if (hasNext) modifiedResults = modifiedResults.subList(0, pageable.getPageSize());
+        return new SliceImpl<>(modifiedResults, pageable, hasNext);
     }
 
+    /**
+     * Creates new SliceImpl based on given parameters.
+     * This method is used for paginated purely id queries.
+     * <br>
+     * The case when pageable.isUnpaged() is true is processed within {@link #processSliceQuery(Stream, Pageable, Query)}
+     */
+    private Object processSliceQueryWithIdsOnly(Stream<?> pagedResultsPlusOne, Pageable pageable) {
+        List<Object> results = pagedResultsPlusOne.collect(Collectors.toList());
+        boolean hasNext = results.size() > pageable.getPageSize();
+        if (hasNext) results = results.subList(0, pageable.getPageSize());
+        return new SliceImpl<>(results, pageable, hasNext);
+    }
+
+    /**
+     * Creates new PageImpl based on given parameters.
+     * This method is used for paginated regular and combined queries, and for purely id queries where
+     * pageable.isUnpaged() is true.
+     * <br>
+     * The case of paginated purely id queries is processed within {@link #processPageQueryWithIdsOnly(List, Stream, Pageable)}
+     */
     private Object processPageQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         long numberOfAllResults;
         List<?> resultsPage;
-        if (operations.getQueryMaxRecords() > 0) {
+//        if (operations.getQueryMaxRecords() > 0) {
             // Assuming there is enough memory
             // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
             List<?> unprocessedResults = unprocessedResultsStream.toList();
             numberOfAllResults = unprocessedResults.size();
             resultsPage = pageable.isUnpaged() ? unprocessedResults : applyPostProcessing(unprocessedResults.stream(),
                 query).toList();
-        } else {
-            numberOfAllResults = operations.count(query, entityClass);
-            resultsPage = pageable.isUnpaged() ? unprocessedResultsStream.toList()
-                : applyPostProcessing(unprocessedResultsStream, query).toList();
-        }
+//        } else {
+//            numberOfAllResults = operations.count(query, entityClass);
+//            resultsPage = pageable.isUnpaged() ? unprocessedResultsStream.toList()
+//                : applyPostProcessing(unprocessedResultsStream, query).toList();
+//        }
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
+    }
+
+    /**
+     * Creates new PageImpl based on given parameters.
+     * This method is used for paginated purely id queries.
+     * <br>
+     * The case when pageable.isUnpaged() is true is processed within {@link #processPageQuery(Stream, Pageable, Query)}
+     */
+    private Object processPageQueryWithIdsOnly(List<Object> ids, Stream<?> pagedResults, Pageable pageable) {
+        List<?> resultsPage = pagedResults.toList();
+        return new PageImpl<>(resultsPage, pageable, ids.size());
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {

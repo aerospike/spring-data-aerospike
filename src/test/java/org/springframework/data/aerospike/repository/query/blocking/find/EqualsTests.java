@@ -15,7 +15,13 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonId;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.util.TestUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -231,6 +237,44 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findAllByIds_paginatedQuery() {
+        List<String> ids = allPersons.stream().map(Person::getId).toList();
+        Page<Person> result = repository.findAllById(ids, Pageable.ofSize(11));
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result).hasSameElementsAs(allPersons);
+
+        Page<Person> result2 = repository.findAllById(ids, PageRequest.ofSize(10));
+        assertThat(result2.getTotalPages()).isEqualTo(2);
+
+        Page<Person> result3 = repository.findAllById(ids, PageRequest.of(1, 2, Sort.by("firstName")));
+        assertThat(result3.getTotalPages()).isEqualTo(6);
+        Iterator<Person> iterator = result3.iterator();
+        assertThat(iterator.next()).isEqualTo(carter);
+        assertThat(iterator.next()).isEqualTo(dave);
+        assertThat(iterator.hasNext()).isFalse();
+
+        Page<Person> result4 = repository.findAllById(ids, Pageable.unpaged());
+        assertThat(result4.getTotalPages()).isEqualTo(1);
+        assertThat(result4.getTotalElements()).isEqualTo(11);
+    }
+
+    @Test
+    void findAllByIds_paginatedQuery_originalOrder_withOffset() {
+        List<String> ids = allPersons.stream().map(Person::getId).toList();
+        assertThat(allPersons.indexOf(oliver)).isEqualTo(2);
+        assertThat(allPersons.indexOf(alicia)).isEqualTo(3);
+
+        // Paginated queries with offset and no sorting (i.e. original order in ids collection)
+        // are only allowed for purely id queries
+        Page<Person> result1 = repository.findAllById(ids, PageRequest.of(1, 2));
+        assertThat(result1.getTotalPages()).isEqualTo(6);
+        Iterator<Person> iterator = result1.iterator();
+        assertThat(iterator.next()).isEqualTo(oliver);
+        assertThat(iterator.next()).isEqualTo(alicia);
+        assertThat(iterator.hasNext()).isFalse();
+    }
+
+    @Test
     void findAllByIds_AND_simpleProperty() {
         QueryParam ids1 = of(List.of(dave.getId(), boyd.getId()));
         QueryParam name1 = of(dave.getFirstName());
@@ -241,6 +285,26 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam name2 = of(carter.getFirstName());
         List<Person> persons2 = repository.findAllByIdAndFirstName(ids2, name2);
         assertThat(persons2).isEmpty();
+    }
+
+    @Test
+    void findAllByIds_AND_simpleProperty_Paginated() {
+        QueryParam ids = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam names = of(List.of(dave.getFirstName(), boyd.getFirstName()));
+        Slice<Person> persons1 = repository.findAllByIdAndFirstNameIn(ids, names, Pageable.ofSize(1));
+        assertThat(persons1.getSize()).isEqualTo(1);
+        assertThat(persons1.getContent()).containsOnly(dave);
+        assertThat(persons1.hasNext()).isTrue();
+
+        Slice<Person> persons2 = repository.findAllByIdAndFirstNameIn(ids, names, Pageable.unpaged());
+        assertThat(persons2.getSize()).isEqualTo(2);
+        assertThat(persons2.getContent()).containsExactlyInAnyOrder(boyd, dave);
+        assertThat(persons2.hasNext()).isFalse();
+
+        Slice<Person> persons3 = repository.findAllByIdAndFirstNameIn(ids, names, PageRequest.of(1, 1, Sort.by("firstName")));
+        assertThat(persons3.getSize()).isEqualTo(1);
+        assertThat(persons3.getContent()).containsOnly(dave); // it is the second result out of the given two
+        assertThat(persons3.hasNext()).isFalse();
     }
 
     @Test
@@ -583,6 +647,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(leroi2.getAge());
         QueryParam lastName = of(carter.getLastName());
+        // The query is divided by OrParts by Spring Data Commons,
+        // with OR combination being the upper level: OR(AND(firstName, age), lastName)
         List<Person> persons = repository.findByFirstNameAndAgeOrLastName(firstName, age, lastName);
         assertThat(persons).containsExactlyInAnyOrder(leroi2, carter);
     }
@@ -592,6 +658,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(carter.getAge());
         QueryParam lastName = of(carter.getLastName());
+        // The query is divided by OrParts by Spring Data Commons,
+        // with OR combination being the upper level: OR(firstName, AND(age, lastName))
         List<Person> persons = repository.findByFirstNameOrAgeAndLastName(firstName, age, lastName);
         assertThat(persons).containsExactlyInAnyOrder(leroi, leroi2, carter);
     }

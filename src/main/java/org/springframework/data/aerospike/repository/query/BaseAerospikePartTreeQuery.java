@@ -21,6 +21,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContext;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
@@ -162,12 +163,13 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     private <T> Comparator<T> getPropertyComparator(Sort.Order order) {
-        boolean ignoreCase = true;
+        boolean ignoreCase = order.isIgnoreCase();
         boolean ascending = order.getDirection().isAscending();
         return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
     }
 
-    protected abstract Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query);
+    protected abstract Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query,
+                                                      Pageable isPagedQuery);
 
     protected boolean isExistsQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("existsBy");

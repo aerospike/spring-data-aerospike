@@ -73,8 +73,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare with
      */
     List<P> findByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
@@ -82,8 +82,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find if there are entities that satisfy the condition "have primary key in the given list and first name equal to
      * the specified string".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare with
      */
     boolean existsByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
@@ -91,8 +91,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Count all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare with
      */
     long countByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
@@ -100,8 +100,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Delete all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare with
      */
     void deleteByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
@@ -109,8 +109,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have primary key satisfy th given string pattern
      * and first name equal to the specified string".
      *
-     * @param idPattern Primary key pattern, only for String primary keys
-     * @param firstName String to compare with
+     * @param idPattern Contains Primary key pattern, only for String primary keys
+     * @param firstName Contains String to compare with
      */
     List<P> findByIdLikeAndFirstName(QueryParam idPattern, QueryParam firstName);
 
@@ -118,27 +118,32 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have primary key satisfy th given string pattern
      * and have primary key in the given list".
      *
-     * @param idPattern Primary key pattern, only for String primary keys
-     * @param ids       List of primary keys
+     * @param idPattern Contains Primary key pattern, only for String primary keys
+     * @param ids       Contains List of primary keys
      */
     List<P> findByIdLikeAndId(QueryParam idPattern, QueryParam ids);
+
+    // Paginated query
+    Page<P> findAllById(Iterable<String> ids, Pageable pageable);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare with
      */
     List<P> findAllByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    Slice<P> findAllByIdAndFirstNameIn(QueryParam ids, QueryParam firstName, Pageable pageable);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
      * the specified string or age equal to the specified integer".
      *
-     * @param ids       List of primary keys
-     * @param firstName String to compare firstName with
-     * @param age       integer to compare age with
+     * @param ids       Contains List of primary keys
+     * @param firstName Contains String to compare firstName with
+     * @param age       Contains integer to compare age with
      */
     List<P> findByIdAndFirstNameAndAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
@@ -173,8 +178,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param idPattern Regex to find matching ids
      */
     List<P> findByIdLike(String idPattern);
-
-    List<P> findByIdLike(int idPattern);
 
     /**
      * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to

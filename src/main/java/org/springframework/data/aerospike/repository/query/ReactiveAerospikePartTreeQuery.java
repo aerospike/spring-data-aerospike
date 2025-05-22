@@ -65,12 +65,12 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Qualifier criteria = query.getCriteriaObject();
             // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
-                return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null);
+                return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null, accessor.getPageable());
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     return runQueryWithIdsEquality(targetClass, getIdValue(idQualifier),
-                        new Query(excludeIdQualifier(criteria)));
+                        new Query(excludeIdQualifier(criteria)), accessor.getPageable());
                 }
             }
         }
@@ -116,7 +116,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             "supported");
     }
 
-    protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query) {
+    protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query, Pageable isPagedQuery) {
         if (isExistsQuery(queryMethod)) {
             return operations.existsByIdsUsingQuery(ids, entityClass, query);
         } else if (isCountQuery(queryMethod)) {

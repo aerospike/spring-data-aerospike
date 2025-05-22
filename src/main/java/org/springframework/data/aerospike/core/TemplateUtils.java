@@ -17,6 +17,8 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionResourceHolder;
 import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.transaction.NoTransactionException;
@@ -31,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
