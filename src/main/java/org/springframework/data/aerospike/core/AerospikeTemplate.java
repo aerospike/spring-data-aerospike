@@ -627,8 +627,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
 
         if (results.records == null) {
-            throw new AerospikeException.BatchRecordArray(results.records,
-                new AerospikeException("Errors during batch delete"));
+            throw new AerospikeException.BatchRecordArray(null,
+                new AerospikeException("Errors during batch delete: resulting records are null"));
         }
         for (int i = 0; i < results.records.length; i++) {
             BatchRecord record = results.records[i];
@@ -1002,8 +1002,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T, S> Stream<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                                 Query query) {
-        return findByIdsUsingQuery(ids, entityClass, targetClass, getSetName(entityClass), query)
-            .filter(Objects::nonNull);
+        return findByIdsUsingQuery(ids, entityClass, targetClass, getSetName(entityClass), query);
     }
 
     @Override
@@ -1011,6 +1010,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                                 String setName, Query query) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
+
+        Key[] keys = getKeys(ids, setName);
+        String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, mappingContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query);
+
+        return IntStream.range(0, keys.length)
+            .mapToObj(index -> mapToEntity(keys[index], getTargetClass(entityClass, targetClass), records[index]));
+    }
+
+    private Record[] findByKeysUsingQuery(Key[] keys, @Nullable String[] binNames, String setName,
+                                          @Nullable Query query) {
+        Assert.notNull(keys, "Keys must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
         if (queryCriteriaIsNotNull(query)) {
             // Paginated queries with offset and no sorting (i.e. original order)
@@ -1018,56 +1029,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         }
 
-        if (ids.isEmpty()) {
-            return Stream.empty();
+        if (keys.length == 0) {
+            return new Record[]{};
         }
 
         try {
-            Key[] keys = getKeys(ids, setName);
             BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, getBatchPolicyFilterExp(query));
-            Class<?> target;
             Record[] aeroRecords;
-            if (targetClass != null && targetClass != entityClass) {
-                String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
+            if (binNames != null) {
                 aeroRecords = client.get(batchPolicy, keys, binNames);
-                target = targetClass;
             } else {
                 aeroRecords = client.get(batchPolicy, keys);
-                target = entityClass;
             }
-
-            return IntStream.range(0, keys.length)
-                .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]));
+            return aeroRecords;
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
     /**
-     * Returns IntStream of indexes of non-null records found, maximal size equals the size of given Collection of ids
+     * Returns IntStream of indexes of the records found
      */
-    public IntStream findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
+    private Stream<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
-
-        try {
-            Key[] keys;
-            if (ids == null || ids.isEmpty()) {
-                keys = new Key[0];
-            } else {
-                keys = ids.stream()
-                    .map(id -> getKey(id, setName))
-                    .toArray(Key[]::new);
-            }
-
-            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, getBatchPolicyFilterExp(query));
-            Record[] aeroRecords;
-            aeroRecords = getAerospikeClient().get(batchPolicy, keys);
-
-            return IntStream.range(0, keys.length)
-                .filter(index -> aeroRecords[index] != null);
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
+        Key[] keys = getKeys(ids, setName);
+        Record[] records = findByKeysUsingQuery(keys, null, setName, query);
+        return Arrays.stream(records);
     }
 
     @Override
@@ -1215,7 +1202,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findKeyRecordsUsingQuery(setName, query).findAny().isPresent();
+        return findExistingKeyRecordsUsingQuery(setName, query).findAny().isPresent();
     }
 
     @Override
@@ -1263,10 +1250,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public long count(Query query, String setName) {
-        return findKeyRecordsUsingQuery(setName, query).count();
+        return findExistingKeyRecordsUsingQuery(setName, query).count();
     }
 
-    private Stream<KeyRecord> findKeyRecordsUsingQuery(String setName, Query query) {
+    private Stream<KeyRecord> findExistingKeyRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
@@ -1274,8 +1261,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
-                return findByIdsWithoutPostProcessing(getIdValue(idQualifier), setName, null,
-                    new Query(excludeIdQualifier(qualifier))).stream();
+                return findExistingByIds(getIdValue(idQualifier), setName, null,
+                    new Query(excludeIdQualifier(qualifier)));
             }
         }
 
@@ -1543,8 +1530,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query for id equality
-                return findByIdsWithoutPostProcessing(getIdValue(idQualifier), setName, targetClass,
-                    new Query(excludeIdQualifier(qualifier))).stream();
+                return findExistingByIds(getIdValue(idQualifier), setName, targetClass,
+                    new Query(excludeIdQualifier(qualifier)));
             }
         }
 
@@ -1566,30 +1553,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             });
     }
 
-    private List<KeyRecord> findByIdsWithoutPostProcessing(Collection<?> ids, String setName, Class<?> targetClass,
-                                                           Query query) {
+    private Stream<KeyRecord> findExistingByIds(Collection<?> ids, String setName, Class<?> targetClass, Query query) {
         Assert.notNull(ids, "Ids must not be null");
         if (ids.isEmpty()) {
-            return Collections.emptyList();
+            return Stream.empty();
         }
 
-        try {
-            Key[] keys = getKeys(ids, setName);
-            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, getBatchPolicyFilterExp(query));
-            Record[] aeroRecords;
-            if (targetClass != null) {
-                String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
-                aeroRecords = client.get(batchPolicy, keys, binNames);
-            } else {
-                aeroRecords = client.get(batchPolicy, keys);
-            }
-
-            return IntStream.range(0, keys.length)
-                .filter(index -> aeroRecords[index] != null)
-                .mapToObj(index -> new KeyRecord(keys[index], aeroRecords[index]))
-                .collect(Collectors.toList());
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
+        Key[] keys = getKeys(ids, setName);
+        Record[] records =
+            findByKeysUsingQuery(keys, getBinNamesFromTargetClass(targetClass, mappingContext), setName, query);
+        return IntStream.range(0, records.length)
+            .filter(index -> records[index] != null)
+            .mapToObj(index -> new KeyRecord(keys[index], records[index]));
     }
 }

@@ -41,6 +41,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
+
 /**
  * @author Peter Milne
  * @author Jean Mercier
@@ -141,6 +143,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     protected <T> Stream<T> applyPostProcessing(Stream<T> results, Query query) {
+        if (query == null) return results;
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = getComparator(query);
             results = results.sorted(comparator);
@@ -192,5 +195,14 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
      */
     protected boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
         return queryMethod.getEntityInformation().getJavaType().isAssignableFrom(queryMethod.getReturnedObjectType());
+    }
+
+    protected Query getQueryWithExcludedIdQualifier(Query query, Qualifier criteria) {
+        Query newQuery = new Query(excludeIdQualifier(criteria));
+        newQuery.setSort(query.getSort());
+        newQuery.setOffset(query.getOffset());
+        newQuery.setRows(query.getRows());
+        newQuery.setDistinct(query.isDistinct());
+        return newQuery;
     }
 }

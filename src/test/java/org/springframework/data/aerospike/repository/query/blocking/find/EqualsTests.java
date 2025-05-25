@@ -259,7 +259,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findAllByIds_paginatedQuery_originalOrder_withOffset() {
+    void findAllByIds_paginatedQuery_originalOrder_withOffset_unsorted() {
         List<String> ids = allPersons.stream().map(Person::getId).toList();
         assertThat(allPersons.indexOf(oliver)).isEqualTo(2);
         assertThat(allPersons.indexOf(alicia)).isEqualTo(3);
@@ -272,6 +272,18 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(iterator.next()).isEqualTo(oliver);
         assertThat(iterator.next()).isEqualTo(alicia);
         assertThat(iterator.hasNext()).isFalse();
+    }
+
+    @Test
+    void findAllByIds_sorted() {
+        List<String> ids = allPersons.stream().map(Person::getId).toList();
+        List<Person> result = repository.findAllById(ids, Sort.by(Sort.Direction.DESC, "firstName"));
+        assertThat(result).hasSameElementsAs(allPersons);
+        assertThat(result.iterator().next()).isEqualTo(stefan);
+
+        List<Person> result2 = repository.findAllById(ids, Sort.by(Sort.Direction.ASC, "firstName"));
+        assertThat(result2).hasSameElementsAs(allPersons);
+        assertThat(result2.iterator().next()).isEqualTo(alicia);
     }
 
     @Test
@@ -288,7 +300,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findAllByIds_AND_simpleProperty_Paginated() {
+    void findAllByIds_AND_simpleProperty_paginated() {
         QueryParam ids = of(List.of(dave.getId(), boyd.getId()));
         QueryParam names = of(List.of(dave.getFirstName(), boyd.getFirstName()));
         Slice<Person> persons1 = repository.findAllByIdAndFirstNameIn(ids, names, Pageable.ofSize(1));
@@ -305,6 +317,17 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(persons3.getSize()).isEqualTo(1);
         assertThat(persons3.getContent()).containsOnly(dave); // it is the second result out of the given two
         assertThat(persons3.hasNext()).isFalse();
+    }
+
+    @Test
+    void findAllByIds_AND_simpleProperty_sorted() {
+        QueryParam ids = of(List.of(douglas.getId(), dave.getId(), boyd.getId()));
+        QueryParam names = of(List.of(douglas.getFirstName(), dave.getFirstName(), boyd.getFirstName()));
+        List<Person> persons = repository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.DESC, "firstName"));
+        assertThat(persons.get(0)).isEqualTo(douglas);
+
+        List<Person> persons2 = repository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.ASC, "firstName"));
+        assertThat(persons2.get(0)).isEqualTo(boyd);
     }
 
     @Test

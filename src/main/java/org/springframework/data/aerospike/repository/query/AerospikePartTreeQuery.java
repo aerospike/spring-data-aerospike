@@ -64,9 +64,10 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
             Qualifier criteria = query.getCriteriaObject();
-            // only for id EQ, id LIKE queries get SimpleProperty query creator
+            // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
-                // Query only with ids
+                // Read id only
+                // It cannot have sorting, offset, rows limited or be distinct, thus query is not transferred
                 return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null, accessor.getPageable());
             } else {
                 // Combined query with ids
@@ -100,15 +101,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             "supported");
     }
 
-    private Query getQueryWithExcludedIdQualifier(Query query, Qualifier criteria) {
-        Query newQuery = new Query(excludeIdQualifier(criteria));
-        newQuery.setSort(query.getSort());
-        newQuery.setOffset(query.getOffset());
-        newQuery.setRows(query.getRows());
-        newQuery.setDistinct(query.isDistinct());
-        return newQuery;
-    }
-
     protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query, Pageable pageable) {
         if (isExistsQuery(queryMethod)) {
             return operations.existsByIdsUsingQuery(ids, entityClass, query);
@@ -121,9 +113,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
                 return processPaginatedIdQuery(targetClass, ids, pageable, query);
             }
-            return operations.findByIdsUsingQuery(ids, entityClass, targetClass, query)
-                .filter(Objects::nonNull)
-                .toList();
+            Stream<?> results = operations.findByIdsUsingQuery(ids, entityClass, targetClass, query)
+                .filter(Objects::nonNull);
+            return applyPostProcessing(results, query);
         }
     }
 
@@ -179,13 +171,13 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             return new SliceImpl<>(unprocessedResultsStream.toList(), pageable, false);
         }
 
-        Query modifiedQuery = query.limit(pageable.getPageSize() + 1);
-        List<Object> modifiedResults = applyPostProcessing(unprocessedResultsStream, modifiedQuery)
+        Query limitedQueryPlusOne = query.limit(pageable.getPageSize() + 1);
+        List<Object> limitedResultsPlusOne = applyPostProcessing(unprocessedResultsStream, limitedQueryPlusOne)
             .collect(Collectors.toList());
 
-        boolean hasNext = modifiedResults.size() > pageable.getPageSize();
-        if (hasNext) modifiedResults = modifiedResults.subList(0, pageable.getPageSize());
-        return new SliceImpl<>(modifiedResults, pageable, hasNext);
+        boolean hasNext = limitedResultsPlusOne.size() > pageable.getPageSize();
+        if (hasNext) limitedResultsPlusOne = limitedResultsPlusOne.subList(0, pageable.getPageSize());
+        return new SliceImpl<>(limitedResultsPlusOne, pageable, hasNext);
     }
 
     /**
@@ -211,18 +203,10 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private Object processPageQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         long numberOfAllResults;
         List<?> resultsPage;
-//        if (operations.getQueryMaxRecords() > 0) {
-            // Assuming there is enough memory
-            // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
             List<?> unprocessedResults = unprocessedResultsStream.toList();
             numberOfAllResults = unprocessedResults.size();
             resultsPage = pageable.isUnpaged() ? unprocessedResults : applyPostProcessing(unprocessedResults.stream(),
                 query).toList();
-//        } else {
-//            numberOfAllResults = operations.count(query, entityClass);
-//            resultsPage = pageable.isUnpaged() ? unprocessedResultsStream.toList()
-//                : applyPostProcessing(unprocessedResultsStream, query).toList();
-//        }
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
     }
 

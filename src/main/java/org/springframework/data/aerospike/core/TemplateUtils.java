@@ -17,10 +17,9 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionResourceHolder;
 import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.reactive.TransactionContextManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -33,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
@@ -117,9 +115,23 @@ public class TemplateUtils {
         }
     }
 
+    public <T, S> Class<?> getTargetClass(Class<T> entityClass, Class<S> targetClass) {
+        if (targetClass != null && targetClass != entityClass) {
+            return targetClass;
+        }
+        return entityClass;
+    }
+
+    public String[] getBinNamesFromTargetClassOrNull(Class<?> entityClass, @Nullable Class<?> targetClass,
+                       MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext) {
+        if (targetClass == null || targetClass == entityClass) {
+            return null;
+        }   
+        return getBinNamesFromTargetClass(targetClass, mappingContext);
+    }
+
     public String[] getBinNamesFromTargetClass(Class<?> targetClass,
-                                                      MappingContext<BasicAerospikePersistentEntity<?>,
-                                                          AerospikePersistentProperty> mappingContext) {
+                      MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext) {
         AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
 
         List<String> binNamesList = new ArrayList<>();

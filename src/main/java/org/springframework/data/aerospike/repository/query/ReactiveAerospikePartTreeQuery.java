@@ -65,12 +65,15 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Qualifier criteria = query.getCriteriaObject();
             // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
+                // Read id only
+                // It cannot have sorting, offset, rows limited or be distinct, thus query is not transferred
                 return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null, accessor.getPageable());
             } else {
+                // Combined query with ids
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     return runQueryWithIdsEquality(targetClass, getIdValue(idQualifier),
-                        new Query(excludeIdQualifier(criteria)), accessor.getPageable());
+                        getQueryWithExcludedIdQualifier(query, criteria), accessor.getPageable());
                 }
             }
         }
