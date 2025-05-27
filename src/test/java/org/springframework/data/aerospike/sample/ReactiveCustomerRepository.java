@@ -17,6 +17,9 @@ package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -71,6 +74,16 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     Flux<Customer> findByIdLikeAndFirstName(QueryParam idPattern, QueryParam firstName);
 
     Flux<Customer> findByIdLikeAndId(QueryParam idPattern, QueryParam ids);
+
+    // Paginated query
+    Mono<Page<Customer>> findAllById(Iterable<String> ids, Pageable pageable);
+
+    // Sorted query
+    Flux<Customer> findAllById(Iterable<String> ids, Sort sort);
+
+    Mono<Slice<Customer>>findAllByIdAndFirstNameIn(QueryParam ids, QueryParam firstName, Pageable pageable);
+
+    Flux<Customer> findAllByIdAndFirstNameIn(QueryParam ids, QueryParam firstName, Sort sort);
 
     Flux<Customer> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName);
 

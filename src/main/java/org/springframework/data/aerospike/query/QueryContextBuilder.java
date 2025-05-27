@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.query.FilterOperation.AND;
 import static org.springframework.data.aerospike.query.FilterOperation.dualFilterOperations;
-import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
 import static org.springframework.data.aerospike.util.Utils.logQualifierDetails;
 
 @Slf4j
@@ -66,7 +66,7 @@ public class QueryContextBuilder {
         }
 
         Qualifier processedParentQualifier = null;
-        if (queryCriteriaIsNotNull(query)) {
+        if (isQueryCriteriaNotNull(query)) {
             // logging query
             logQualifierDetails(query.getCriteriaObject(), log);
             // Process qualifier and apply filters

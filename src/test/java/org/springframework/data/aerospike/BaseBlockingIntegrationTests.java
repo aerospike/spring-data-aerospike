@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getBinNames;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getEntityClass;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasAssertBinsAreIndexedAnnotation;
-import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
+import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.LAST_UPDATE_TIME;
 
 @SpringBootTest(

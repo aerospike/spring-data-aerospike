@@ -35,7 +35,7 @@ import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsPr
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getEntityClass;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasAssertBinsAreIndexedAnnotation;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasNoindexAnnotation;
-import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
+import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.LAST_UPDATE_TIME;
 
 @SpringBootTest(
