@@ -141,7 +141,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         AerospikeWriteData data = writeData(document, setName, templateContext);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy writePolicy = PolicyUtils.expectGenerationCasAwarePolicy(data, templateContext.writePolicyDefault);
+            WritePolicy writePolicy = PolicyUtils.expectGenerationCasAwarePolicy(data,
+                templateContext.writePolicyDefault);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             doPersistWithVersionAndHandleCasError(document, data, writePolicy, true, SAVE_OPERATION, templateContext);
@@ -808,7 +809,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
 
-        Key[] keys = BatchUtils.getKeys(ids, setName, templateContext);
+        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext);
         String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, mappingContext);
         Record[] records = BatchUtils.findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
 

@@ -135,7 +135,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(document, setName, templateContext);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy writePolicy = PolicyUtils.expectGenerationCasAwarePolicy(data, templateContext.writePolicyDefault);
+            WritePolicy writePolicy = PolicyUtils.expectGenerationCasAwarePolicy(data,
+                templateContext.writePolicyDefault);
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
                 Operation.array(Operation.delete()));
@@ -1030,12 +1031,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
-        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
+    public <T> Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return countExistingByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+    public Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return findByIdsUsingQueryWithoutMappingReactively(ids, setName, query, templateContext)
             .filter(Objects::nonNull)
             .count();

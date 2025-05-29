@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.MappingUtils.convertIfNecessary;
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
@@ -97,7 +98,7 @@ public class TemplateUtils {
             writePolicy = (WritePolicy) PolicyUtils.enrichPolicyWithTransaction(templateContext.client, writePolicy);
             return templateContext.client.delete(writePolicy, data.getKey());
         } catch (AerospikeException e) {
-            throw ExceptionUtils.translateCasError(e, "Failed to delete record due to versions mismatch",
+            throw ExceptionUtils.translateCasException(e, "Failed to delete record due to versions mismatch",
                 templateContext.exceptionTranslator);
         }
     }
@@ -207,7 +208,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
-                return BatchUtils.findExistingByIdsWithoutMapping(
+                return BatchUtils.findExistingByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
                     null,
@@ -248,7 +249,7 @@ public class TemplateUtils {
             Record newAeroRecord = putAndGetHeader(data, writePolicy, firstlyDeleteBins, templateContext);
             updateVersion(document, newAeroRecord, templateContext);
         } catch (AerospikeException e) {
-            throw ExceptionUtils.translateCasError(e, "Failed to " + operationType.toString() + " record due to versions mismatch",
+            throw ExceptionUtils.translateCasException(e, "Failed to " + operationType.toString() + " record due to versions mismatch",
                 templateContext.exceptionTranslator);
         }
     }
@@ -284,14 +285,15 @@ public class TemplateUtils {
     static <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query,
                                                         TemplateContext templateContext) {
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
+        String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query for id equality
-                return BatchUtils.findExistingByIdsWithoutMapping(
+                return BatchUtils.findExistingByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
-                    targetClass,
+                    binNames,
                     new Query(excludeIdQualifier(qualifier)),
                     templateContext
                 );
@@ -299,8 +301,7 @@ public class TemplateUtils {
         }
 
         KeyRecordIterator recIterator;
-        if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass, templateContext.mappingContext);
+        if (binNames != null) {
             recIterator = templateContext.queryEngine.select(templateContext.namespace, setName, binNames, query);
         } else {
             recIterator = templateContext.queryEngine.select(templateContext.namespace, setName, query);
@@ -368,7 +369,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
-                return findExistingByIdsWithoutMappingReactively(
+                return findExistingByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
                     null,
@@ -397,7 +398,7 @@ public class TemplateUtils {
         return PolicyUtils.enrichPolicyWithTransaction(templateContext.reactorClient, writePolicy)
             .flatMap(writePolicyEnriched -> putAndGetHeaderForReactive(data, (WritePolicy) writePolicyEnriched, operations, templateContext))
             .map(newRecord -> updateVersion(document, newRecord, templateContext))
-            .onErrorMap(AerospikeException.class, i -> ExceptionUtils.translateCasError(i,
+            .onErrorMap(AerospikeException.class, i -> ExceptionUtils.translateCasException(i,
                 "Failed to " + operationType.toString() + " record due to versions mismatch",
                 templateContext.exceptionTranslator));
     }
@@ -483,7 +484,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query for id equality
-                return findExistingByIdsWithoutMappingReactively(
+                return findExistingByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
                     targetClass,
@@ -501,9 +502,9 @@ public class TemplateUtils {
     }
 
     // Without mapping results to entities
-    static <T> Flux<KeyRecord> findExistingByIdsWithoutMappingReactively(Collection<?> ids, String setName,
-                                                                         Class<T> targetClass, Query query,
-                                                                         TemplateContext templateContext) {
+    static <T> Flux<KeyRecord> findExistingByIdsWithoutEntityMappingReactively(Collection<?> ids, String setName,
+                                                                               Class<T> targetClass, Query query,
+                                                                               TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 

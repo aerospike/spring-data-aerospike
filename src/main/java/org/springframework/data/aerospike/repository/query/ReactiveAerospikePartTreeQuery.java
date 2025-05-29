@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -29,19 +28,14 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
-import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.QualifierUtils.getIdValue;
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
 
@@ -133,7 +127,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (isExistsQuery(queryMethod)) {
             return template.existsByIdsUsingQuery(ids, entityClass, query);
         } else if (isCountQuery(queryMethod)) {
-            return template.countByIdsUsingQuery(ids, entityClass, query);
+            return template.countExistingByIdsUsingQuery(ids, entityClass, query);
         } else if (isDeleteQuery(queryMethod)) {
             return template.deleteByIdsUsingQuery(ids, entityClass, query);
         } else {

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.policy.Policy;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
@@ -33,7 +32,17 @@ public final class PostProcessingUtils {
         throw new UnsupportedOperationException("Utility class PostProcessingUtils cannot be instantiated");
     }
 
-    static <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
+    /**
+     * Applies post-processing operations (sorting, offset, limit) to a given {@link Stream} based on the provided
+     * {@link Query} object. If the query specifies sorting, the stream is sorted using a comparator derived from the
+     * query. If an offset is present, elements are skipped. If a limit (rows) is present, the stream is truncated.
+     *
+     * @param <T>     The type of elements in the stream
+     * @param results The input {@link Stream} of results
+     * @param query   The {@link Query} object specifying criteria. Can be {@code null}
+     * @return A new {@link Stream} with post-processing operations applied
+     */
+    static <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, @Nullable Query query) {
         if (query != null) {
             if (query.getSort() != null && query.getSort().isSorted()) {
                 Comparator<T> comparator = TemplateUtils.getComparator(query);
@@ -49,6 +58,19 @@ public final class PostProcessingUtils {
         return results;
     }
 
+    /**
+     * Applies post-processing operations (sorting, offset, limit) to a given {@link Stream} using explicit sort,
+     * offset, and limit parameters. If sorting is specified, the stream is sorted using a comparator derived from the
+     * {@link Sort} object. If offset is greater than 0, elements are skipped. If limit is greater than 0, the stream is
+     * truncated.
+     *
+     * @param <T>     The type of elements in the stream
+     * @param results The input {@link Stream} of results
+     * @param sort    The {@link Sort} object specifying sorting criteria. Can be {@code null}
+     * @param offset  The number of elements to skip from the beginning of the stream
+     * @param limit   The maximum number of elements to retain in the stream
+     * @return A new {@link Stream} with post-processing operations applied
+     */
     static <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Sort sort, long offset, long limit) {
         if (sort != null && sort.isSorted()) {
             Comparator<T> comparator = TemplateUtils.getComparator(sort);
@@ -65,6 +87,16 @@ public final class PostProcessingUtils {
         return results;
     }
 
+    /**
+     * Applies post-processing operations (sorting, offset, limit) to a given {@link Flux} of results based on the
+     * provided {@link Query} object. If the query specifies sorting, the flux is sorted. If an offset is present,
+     * elements are skipped. If a limit (rows) is present, the flux is truncated.
+     *
+     * @param <T>     The type of elements in the flux
+     * @param results The input {@link Flux} of results
+     * @param query   The {@link Query} object containing criteria. Can be {@code null}
+     * @return A new {@link Flux} with post-processing operations applied
+     */
     static <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, @Nullable Query query) {
         if (query == null) return results;
         if (query.getSort() != null && query.getSort().isSorted()) {
@@ -81,6 +113,18 @@ public final class PostProcessingUtils {
         return results;
     }
 
+    /**
+     * Applies post-processing operations (sorting, offset, limit) to a given {@link Flux} of results using explicit
+     * sort, offset, and limit parameters. If sorting is specified, the flux is sorted. If offset is greater than 0,
+     * elements are skipped. If limit is greater than 0, the flux is truncated.
+     *
+     * @param <T>     The type of elements in the flux
+     * @param results The input {@link Flux} of results
+     * @param sort    The {@link Sort} object specifying sorting criteria. Can be {@code null}
+     * @param offset  The number of elements to skip from the beginning of the flux
+     * @param limit   The maximum number of elements to retain in the flux
+     * @return A new {@link Flux} with post-processing operations applied
+     */
     static <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Sort sort, long offset, long limit) {
         if (sort != null && sort.isSorted()) {
             Comparator<T> comparator = TemplateUtils.getComparator(sort);
