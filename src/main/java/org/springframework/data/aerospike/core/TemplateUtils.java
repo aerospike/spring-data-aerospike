@@ -1077,42 +1077,35 @@ public class TemplateUtils {
     static Key getKey(Object id, String setName, TemplateContext templateContext) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Key key;
+
         // Choosing whether to preserve id type based on the configuration
         if (templateContext.converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             if (id instanceof Byte || id instanceof Short || id instanceof Integer || id instanceof Long) {
-                key = new Key(
+                return new Key(
                     templateContext.namespace,
                     setName,
                     convertIfNecessary(templateContext.converter, ((Number) id).longValue(), Long.class)
                 );
             } else if (id instanceof Character) {
-                key = new Key(
+                return new Key(
                     templateContext.namespace,
                     setName,
                     convertIfNecessary(templateContext.converter, id, Character.class)
                 );
             } else if (id instanceof byte[]) {
-                key = new Key(
+                return new Key(
                     templateContext.namespace,
                     setName,
                     convertIfNecessary(templateContext.converter, id, byte[].class)
                 );
-            } else {
-                key = new Key(
-                    templateContext.namespace,
-                    setName,
-                    convertIfNecessary(templateContext.converter, id, String.class)
-                );
             }
-            return key;
-        } else {
-            return new Key(
-                templateContext.namespace,
-                setName,
-                convertIfNecessary(templateContext.converter, id, String.class)
-            );
         }
+
+        return new Key(
+            templateContext.namespace,
+            setName,
+            convertIfNecessary(templateContext.converter, id, String.class)
+        );
     }
 
     /**
