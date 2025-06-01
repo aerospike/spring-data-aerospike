@@ -683,7 +683,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouchReactively(key, entity.getExpiration(), null, null, templateContext)
+            return touchAndGetReactively(key, entity.getExpiration(), null, null, templateContext)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record, templateContext.converter))
                 .onErrorResume(
@@ -716,7 +716,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouchReactively(key, entity.getExpiration(), binNames, null, templateContext)
+            return touchAndGetReactively(key, entity.getExpiration(), binNames, null, templateContext)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record, templateContext.converter))
                 .onErrorResume(
@@ -794,7 +794,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouchReactively(key, entity.getExpiration(), binNames, query, templateContext)
+            return touchAndGetReactively(key, entity.getExpiration(), binNames, query, templateContext)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record, templateContext.converter))
                 .onErrorResume(

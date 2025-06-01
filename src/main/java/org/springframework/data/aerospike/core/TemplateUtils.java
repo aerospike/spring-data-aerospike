@@ -17,6 +17,7 @@ import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.support.PropertyComparator;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -68,12 +69,38 @@ public class TemplateUtils {
         throw new UnsupportedOperationException("Utility class TemplateUtils cannot be instantiated");
     }
 
+    /**
+     * Retrieves a {@link ConvertingPropertyAccessor} for a given entity and source object. This accessor allows setting
+     * properties on the source object with type conversion, leveraging the provided {@link MappingAerospikeConverter}.
+     *
+     * @param <T>       The type of the source object
+     * @param entity    The {@link AerospikePersistentEntity} representing the entity's metadata
+     * @param source    The source object whose properties are to be accessed
+     * @param converter The {@link MappingAerospikeConverter} used for type conversions
+     * @return A {@link ConvertingPropertyAccessor} instance that can be used to set properties on the source object
+     * with appropriate type conversions
+     */
     static <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source,
                                                                  MappingAerospikeConverter converter) {
         PersistentPropertyAccessor<T> accessor = entity.getPropertyAccessor(source);
         return new ConvertingPropertyAccessor<>(accessor, converter.getConversionService());
     }
 
+    /**
+     * Updates the version property of a document based on the generation of a new Aerospike record. This method is
+     * typically called after a successful write operation to synchronize the document's in-memory version with the
+     * actual generation value stored in the Aerospike database.
+     *
+     * @param <T>                The type of the document
+     * @param document           The document object whose version needs to be updated. This object will be modified
+     * @param newAeroRecord      The new {@link Record} returned from Aerospike after a write operation, which contains
+     *                           the updated generation value
+     * @param templateParameters The {@link TemplateContext} providing necessary services like mapping context and
+     *                           converter to access and update the version property
+     * @return The updated document object with its version property set to the {@code newAeroRecord.generation}
+     * @throws IllegalStateException if the entity does not have a required version property defined, which is essential
+     *                               for optimistic locking
+     */
     static <T> T updateVersion(T document, Record newAeroRecord,
                                TemplateContext templateParameters) {
         AerospikePersistentEntity<?> entity =
@@ -85,15 +112,40 @@ public class TemplateUtils {
         return document;
     }
 
-    static void logEmptyItems(Logger log, String iterableDescription) {
-        log.debug("{} are empty", iterableDescription);
+    /**
+     * Logs a debug message indicating that a specific set of items is empty.
+     *
+     * @param log              The {@link Logger} instance to use for logging the debug message
+     * @param itemsDescription A descriptive string identifying the items that are empty
+     */
+    static void logEmptyItems(Logger log, String itemsDescription) {
+        log.debug("{} are empty", itemsDescription);
     }
 
+    /**
+     * Attempts to delete a record from Aerospike with optimistic locking (version checking). This method uses a
+     * {@link WritePolicy} configured with {@link RecordExistsAction#UPDATE_ONLY} and expects a specific generation to
+     * be present. If the record's generation in the database does not match the expected version in {@code data}, an
+     * {@link AerospikeException} is caught, translated into a Spring Data
+     * {@link org.springframework.dao.OptimisticLockingFailureException} and rethrown.
+     *
+     * @param data            The {@link AerospikeWriteData} object containing the {@link Key} of the record to be
+     *                        deleted and its expected version for optimistic locking
+     * @param templateContext The {@link TemplateContext} providing the Aerospike client, default write policy, and an
+     *                        exception translator
+     * @return {@code true} if the record was successfully deleted with the matching version; {@code false} otherwise
+     * (though typically an exception would be thrown on mismatch)
+     * @throws org.springframework.dao.OptimisticLockingFailureException if a version mismatch occurs during the delete
+     *                                                                   operation (CAS error)
+     * @throws org.springframework.dao.DataAccessException               for other Aerospike-related errors that occur
+     *                                                                   during deletion
+     */
     static boolean doDeleteWithVersionAndHandleCasError(AerospikeWriteData data,
                                                         TemplateContext templateContext) {
         try {
             WritePolicy writePolicy =
-                PolicyUtils.expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY, templateContext.writePolicyDefault);
+                PolicyUtils.expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY,
+                    templateContext.writePolicyDefault);
             //noinspection DataFlowIssue
             writePolicy = (WritePolicy) PolicyUtils.enrichPolicyWithTransaction(templateContext.client, writePolicy);
             return templateContext.client.delete(writePolicy, data.getKey());
@@ -103,6 +155,19 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Attempts to delete a record from Aerospike, ignoring any version checks. This method configures the
+     * {@link WritePolicy} to disregard the generation (version) of the record during deletion. Any
+     * {@link AerospikeException} encountered during the deletion process is caught, translated into a Spring Data
+     * {@link org.springframework.dao.DataAccessException} and rethrown.
+     *
+     * @param data            The {@link AerospikeWriteData} object containing the {@link Key} of the record to be
+     *                        deleted
+     * @param templateContext The {@link TemplateContext} providing the Aerospike client, default write policy, and an
+     *                        exception translator
+     * @return {@code true} if the record was successfully deleted; {@code false} otherwise
+     * @throws org.springframework.dao.DataAccessException for any Aerospike-related errors that occur during deletion
+     */
     static boolean doDeleteIgnoreVersionAndTranslateError(AerospikeWriteData data, TemplateContext templateContext) {
         try {
             WritePolicy policy = PolicyUtils.ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY,
@@ -115,12 +180,30 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Retrieves a record based on the entity's configuration, including "touch on read" behavior. If "touch on read" is
+     * enabled for the entity, this method attempts to update the record's expiration time upon retrieval. It also
+     * handles optional query filters.
+     *
+     * @param entity          The {@link AerospikePersistentEntity} representing the entity's metadata, used to
+     *                        determine "touch on read" behavior and expiration property
+     * @param key             The {@link Key} of the record to retrieve
+     * @param query           An optional {@link Query} object that can contain filter expressions to be applied during
+     *                        the retrieval. Can be {@code null}
+     * @param templateContext The {@link TemplateContext} providing the Aerospike client, default read policy, and query
+     *                        engine
+     * @return The {@link Record} retrieved from Aerospike, or {@code null} if the record is not found
+     * @throws IllegalStateException                       if "touch on read" is enabled for the entity but the entity
+     *                                                     does not have an expiration property defined, which is
+     *                                                     required for touching
+     * @throws org.springframework.dao.DataAccessException for any Aerospike-related errors that occur during retrieval
+     */
     static Record getRecord(AerospikePersistentEntity<?> entity, Key key, @Nullable Query query,
                             TemplateContext templateContext) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-            aeroRecord = getAndTouch(key, entity.getExpiration(), templateContext, null, null);
+            aeroRecord = touchAndGet(key, entity.getExpiration(), templateContext, null, null);
         } else {
             Policy policy = PolicyUtils.enrichPolicyWithTransaction(
                 templateContext.client,
@@ -130,13 +213,33 @@ public class TemplateUtils {
         return aeroRecord;
     }
 
-    static <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
+    /**
+     * Retrieves a record, potentially touching it (updating TTL), and then maps the retrieved {@link Record} to an
+     * instance of the specified {@code targetClass}. This method handles "touch on read" logic, applies optional query
+     * filters, and retrieves only the necessary bins based on the target class's mapping.
+     *
+     * @param <T>             The target class type to which the record will be mapped
+     * @param entity          The {@link AerospikePersistentEntity} representing the entity's metadata, used for "touch
+     *                        on read" and bin name resolution
+     * @param key             The {@link Key} of the record to retrieve
+     * @param targetClass     The {@link Class} to which the Aerospike record should be mapped
+     * @param query           An optional {@link Query} object that can contain filter expressions to be applied during
+     *                        the retrieval. Can be {@code null}
+     * @param templateContext The {@link TemplateContext} providing the Aerospike client, policies, mapping context, and
+     *                        converter for mapping the record
+     * @return An object of type {@code T} mapped from the Aerospike record, or {@code null} if the record is not found
+     * @throws IllegalStateException                       if "touch on read" is enabled for the entity but the entity
+     *                                                     does not have an expiration property defined
+     * @throws org.springframework.dao.DataAccessException for any Aerospike-related errors that occur during retrieval
+     *                                                     or mapping
+     */
+    static <T> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<T> targetClass,
                                                 @Nullable Query query, TemplateContext templateContext) {
         Record aeroRecord;
         String[] binNames = getBinNamesFromTargetClass(targetClass, templateContext.mappingContext);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-            aeroRecord = getAndTouch(key, entity.getExpiration(), templateContext, binNames, query);
+            aeroRecord = touchAndGet(key, entity.getExpiration(), templateContext, binNames, query);
         } else {
             Policy policy = PolicyUtils.enrichPolicyWithTransaction(
                 templateContext.client,
@@ -147,7 +250,19 @@ public class TemplateUtils {
         return MappingUtils.mapToEntity(key, targetClass, aeroRecord, templateContext.converter);
     }
 
-    static Record getAndTouch(Key key, int expiration, TemplateContext templateContext, String[] binNames, @Nullable Query query) {
+    /**
+     * Touches a record (updates its expiration time) and retrieves its contents.
+     *
+     * @param key             The {@link Key} of the record to retrieve and touch
+     * @param expiration      The new expiration time for the record (in seconds from now)
+     * @param templateContext The {@link TemplateContext} providing the Aerospike client
+     * @param binNames        An optional array of bin names to retrieve. If {@code null}, all bins are retrieved
+     * @param query           An optional {@link Query} to apply a filter expression during retrieval. Can be
+     *                        {@code null}
+     * @return The {@link Record} retrieved
+     */
+    static Record touchAndGet(Key key, int expiration, TemplateContext templateContext, @Nullable String[] binNames,
+                              @Nullable Query query) {
         WritePolicyBuilder writePolicyBuilder =
             WritePolicyBuilder.builder(templateContext.client.copyWritePolicyDefault()).expiration(expiration);
 
@@ -178,27 +293,75 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Finds records of a specified type within a given set. This method maps the retrieved key records to entities of
+     * the target class.
+     *
+     * @param <T>             The type of the target class
+     * @param targetClass     The class of the entities to be returned
+     * @param setName         The name of the set to query
+     * @param templateContext The context containing necessary components
+     * @return A {@link Stream} of entities of the specified type
+     * @throws AerospikeException if an error occurs during reading
+     */
     static <T> Stream<T> find(Class<T> targetClass, String setName, TemplateContext templateContext) {
         return findRecordsUsingQuery(setName, targetClass, null, templateContext)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
 
+    /**
+     * Finds records with post-processing applied based on the provided query. This method first retrieves records and
+     * then applies additional processing.
+     *
+     * @param <T>             The type of the target class
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities to be returned
+     * @param query           The query to execute, potentially containing sorting, offset, and post-processing
+     *                        instructions
+     * @param templateContext The context containing necessary components
+     * @return A {@link Stream} of entities of the specified type after post-processing
+     * @throws IllegalArgumentException if the query is unsorted combined with an offset
+     */
     static <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query,
-                                                 TemplateContext templateContext) {
+                                                TemplateContext templateContext) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Stream<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass, getDistinctPredicate(query),
             query, templateContext);
         return PostProcessingUtils.applyPostProcessingOnResults(results, query);
     }
 
+    /**
+     * Finds records using a query and applies a distinct predicate to filter the results. The key records are then
+     * mapped to entities of the target class.
+     *
+     * @param <T>               The type of the target class
+     * @param setName           The name of the set to query
+     * @param targetClass       The class of the entities to be returned
+     * @param distinctPredicate A predicate to apply for filtering distinct key records
+     * @param query             The query to execute
+     * @param templateContext   The context containing necessary templates and converters
+     * @return A {@link Stream} of entities of the specified type after filtering by the distinct predicate
+     */
     static <T> Stream<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
-                                                                     Predicate<KeyRecord> distinctPredicate,
-                                                                     Query query, TemplateContext templateContext) {
+                                                             Predicate<KeyRecord> distinctPredicate,
+                                                             Query query, TemplateContext templateContext) {
         return findRecordsUsingQuery(setName, targetClass, query, templateContext)
             .filter(distinctPredicate)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
 
+    /**
+     * Finds existing {@link KeyRecord}s using a query within a specified set. This method handles queries with ID
+     * qualifiers separately as they have a different retrieval mechanism. The returned stream is closed automatically
+     * when the stream is consumed or when an error occurs.
+     *
+     * @param setName         The name of the set to query. Must not be null
+     * @param query           The query to execute
+     * @param templateContext The {@link TemplateContext} containing the query engine and other necessary components
+     * @return A {@link Stream} of existing {@link KeyRecord}s
+     * @throws IllegalArgumentException if the set name is null
+     * @throws AerospikeException       if an error occurs during the batch read
+     */
     static Stream<KeyRecord> findExistingKeyRecordsUsingQuery(String setName, Query query,
                                                               TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
@@ -230,6 +393,19 @@ public class TemplateUtils {
             });
     }
 
+    /**
+     * Executes a write operation and handles any potential errors. This method enriches the provided write policy with
+     * transaction details before performing the operation.
+     *
+     * @param data            The {@link AerospikeWriteData}, including the key and bins to write
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform on the record
+     * @param templateContext The {@link TemplateContext} containing the Aerospike client and exception translator
+     * @return The {@link Record} after the write operation
+     * @throws AerospikeException if an Aerospike-specific error occurs during the operation, translated into a more
+     *                            specific exception by the {@code exceptionTranslator}
+     */
+    @SuppressWarnings("UnusedReturnValue")
     static Record doPersistAndHandleError(AerospikeWriteData data, WritePolicy writePolicy, Operation[] operations,
                                           TemplateContext templateContext) {
         try {
@@ -241,21 +417,49 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Persists a document with version management and handles CAS errors. This method updates the document's version
+     * based on the Aerospike record's generation.
+     *
+     * @param <T>               The type of the document
+     * @param document          The document to persist
+     * @param data              The {@link AerospikeWriteData}, including the key and bins to write
+     * @param writePolicy       The {@link WritePolicy} to use for the operation
+     * @param firstlyDeleteBins If true, existing bins will be deleted before writing new ones
+     * @param operationType     The type of operation being performed (e.g., INSERT, UPDATE)
+     * @param templateContext   The {@link TemplateContext} containing the Aerospike client, exception translator, and
+     *                          mapping context
+     * @throws AerospikeException                if an error occurs during writing
+     * @throws OptimisticLockingFailureException if a CAS-related error occurs
+     */
     static <T> void doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data,
-                                                                  WritePolicy writePolicy, boolean firstlyDeleteBins,
-                                                                  BaseAerospikeTemplate.OperationType operationType,
-                                                                  TemplateContext templateContext) {
+                                                          WritePolicy writePolicy, boolean firstlyDeleteBins,
+                                                          BaseAerospikeTemplate.OperationType operationType,
+                                                          TemplateContext templateContext) {
         try {
             Record newAeroRecord = putAndGetHeader(data, writePolicy, firstlyDeleteBins, templateContext);
             updateVersion(document, newAeroRecord, templateContext);
         } catch (AerospikeException e) {
-            throw ExceptionUtils.translateCasException(e, "Failed to " + operationType.toString() + " record due to versions mismatch",
+            throw ExceptionUtils.translateCasException(e, "Failed to " + operationType.toString() + " record",
                 templateContext.exceptionTranslator);
         }
     }
 
+    /**
+     * Persists a document with version management and handles errors. This method updates the document's version based
+     * on the Aerospike record's generation.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to persist
+     * @param data            The {@link AerospikeWriteData}, including the key and bins to write
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param templateContext The {@link TemplateContext} containing the Aerospike client, exception translator, and
+     *                        mapping context
+     * @throws AerospikeException                if an error occurs during writing
+     * @throws OptimisticLockingFailureException if a CAS-related error occurs
+     */
     static <T> void doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy writePolicy,
-                                                        TemplateContext templateContext) {
+                                                       TemplateContext templateContext) {
         try {
             Record newAeroRecord = putAndGetHeader(data, writePolicy, false, templateContext);
             updateVersion(document, newAeroRecord, templateContext);
@@ -264,8 +468,19 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Performs a "put" operation and retrieves the record header. This method constructs the necessary operations and
+     * enriches the write policy with transaction details.
+     *
+     * @param data              The {@link AerospikeWriteData}, including the key and bins to write
+     * @param writePolicy       The {@link WritePolicy} to use for the operation
+     * @param firstlyDeleteBins If true, existing bins will be deleted at first
+     * @param templateContext   The {@link TemplateContext} containing the Aerospike client
+     * @return The {@link Record} header after the put operation
+     * @throws AerospikeException if client operate command fails
+     */
     static Record putAndGetHeader(AerospikeWriteData data, WritePolicy writePolicy, boolean firstlyDeleteBins,
-                                          TemplateContext templateContext) {
+                                  TemplateContext templateContext) {
         Key key = data.getKey();
         Operation[] operations = getPutAndGetHeaderOperations(data, firstlyDeleteBins);
         WritePolicy writePolicyEnriched =
@@ -274,6 +489,20 @@ public class TemplateUtils {
         return templateContext.client.operate(writePolicyEnriched, key, operations);
     }
 
+    /**
+     * Finds records of a specified type within a given set and applies post-processing (sorting, offset, and limit).
+     *
+     * @param <T>             The type of the target class
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities to be returned
+     * @param sort            The sort criteria to apply to the results
+     * @param offset          The number of records to skip from the beginning of the result set
+     * @param limit           The maximum number of records to return
+     * @param templateContext The context containing necessary components
+     * @return A {@link Stream} of entities of the specified type after post-processing
+     * @throws IllegalArgumentException if there is no sorting, but an offset is provided
+     * @throws AerospikeException       if an error occurs during reading
+     */
     @SuppressWarnings("SameParameterValue")
     static <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Sort sort, long offset,
                                                 long limit, TemplateContext templateContext) {
@@ -282,8 +511,21 @@ public class TemplateUtils {
         return PostProcessingUtils.applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
+    /**
+     * Finds {@link KeyRecord}s using a query within a specified set and with a specific target class. This method
+     * handles queries with ID qualifiers separately because they have a different retrieval mechanism. The returned
+     * stream is closed automatically when the stream is consumed or when an error occurs.
+     *
+     * @param <T>             The type of the target class (used for determining bin names)
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities, used to determine which bin names to retrieve
+     * @param query           The query to execute
+     * @param templateContext The {@link TemplateContext} containing the query engine, mapping context, and other
+     *                        necessary components
+     * @return A {@link Stream} of {@link KeyRecord}s that match the query
+     */
     static <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query,
-                                                        TemplateContext templateContext) {
+                                                       TemplateContext templateContext) {
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
         if (qualifier != null) {
@@ -317,16 +559,45 @@ public class TemplateUtils {
             });
     }
 
+    /**
+     * Executes Aerospike operations reactively on a given value and maps the result to entity class. This method
+     * performs the operations and then maps the returned {@link KeyRecord} to the entity class of the original
+     * document. Error translation is applied to any {@link AerospikeException} that occurs.
+     *
+     * @param <T>             The type of the document
+     * @param document        The original document
+     * @param data            The {@link AerospikeWriteData}, including the key
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client, converter, and
+     *                        exception translator
+     * @return A {@link Mono} that emits the mapped entity
+     * @throws AerospikeException in case of an error during client operate command
+     */
     static <T> Mono<T> executeOperationsReactivelyOnValue(T document, AerospikeWriteData data,
                                                           WritePolicy writePolicy, Operation[] operations,
                                                           TemplateContext templateContext) {
         return templateContext.reactorClient.operate(writePolicy, data.getKey(), operations)
             .filter(keyRecord -> Objects.nonNull(keyRecord.record))
             .map(keyRecord ->
-                MappingUtils.mapToEntity(keyRecord.key, MappingUtils.getEntityClass(document), keyRecord.record, templateContext.converter))
+                MappingUtils.mapToEntity(keyRecord.key, MappingUtils.getEntityClass(document), keyRecord.record,
+                    templateContext.converter))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
     }
 
+    /**
+     * Finds documents reactively by a collection of IDs within a specified set. This method constructs Aerospike keys
+     * from the provided IDs and uses a reactive batch get operation. The retrieved {@link KeyRecord}s are then mapped
+     * to the target class.
+     *
+     * @param <T>             The type of the target class
+     * @param ids             A collection of IDs to query for
+     * @param targetClass     The class of the entities to be returned
+     * @param setName         The name of the set to query
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and converter
+     * @return A {@link Flux} that emits the found entities
+     * @throws AerospikeException in case of an error during reading
+     */
     static <T> Flux<T> findByIdsReactively(Collection<?> ids, Class<T> targetClass, String setName,
                                            TemplateContext templateContext) {
         Key[] keys = iterableToList(ids).stream()
@@ -334,18 +605,28 @@ public class TemplateUtils {
             .toArray(Key[]::new);
 
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
+        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+                .copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.get((BatchPolicy) batchPolicy, keys))
             .flatMap(kr -> Mono.just(kr.asMap()))
             .flatMapMany(keyRecordMap -> {
                 List<T> entities = keyRecordMap.entrySet().stream()
                     .filter(entry -> entry.getValue() != null)
-                    .map(entry -> MappingUtils.mapToEntity(entry.getKey(), targetClass, entry.getValue(), templateContext.converter))
+                    .map(entry -> MappingUtils.mapToEntity(entry.getKey(), targetClass, entry.getValue(),
+                        templateContext.converter))
                     .collect(Collectors.toList());
                 return Flux.fromIterable(entities);
             });
     }
 
+    /**
+     * Counts the number of objects in a given set across all nodes in the Aerospike cluster. This method accounts for
+     * the replication factor to provide an accurate count in a replicated environment.
+     *
+     * @param setName         The name of the set to count
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and namespace
+     * @return The total number of objects in the set
+     */
     static long countSet(String setName, TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
         String namespace = templateContext.namespace;
@@ -360,6 +641,17 @@ public class TemplateUtils {
         return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
     }
 
+    /**
+     * Finds existing {@link KeyRecord}s reactively using a query within a specified set. This method handles queries
+     * with ID qualifiers separately because they have a different retrieval mechanism.
+     *
+     * @param setName         The name of the set to query. Must not be null
+     * @param query           The query to execute
+     * @param templateContext The {@link TemplateContext} containing the reactive query engine
+     * @return A {@link Flux} that emits the found {@link KeyRecord}s
+     * @throws IllegalArgumentException if the set name is null
+     * @throws AerospikeException       in case of an error during reading
+     */
     static Flux<KeyRecord> findExistingKeyRecordsUsingQueryReactively(String setName, Query query,
                                                                       TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
@@ -381,6 +673,20 @@ public class TemplateUtils {
         return templateContext.reactorQueryEngine.selectForCount(templateContext.namespace, setName, query);
     }
 
+    /**
+     * Persists a document reactively and handles errors. This method enriches the write policy with transaction details
+     * before performing the operation.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to persist
+     * @param data            The {@link AerospikeWriteData}, including the key
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and exception
+     *                        translator
+     * @return A {@link Mono} that emits the original document upon successful persistence
+     * @throws AerospikeException in case of an error during client operate command
+     */
     static <T> Mono<T> doPersistAndHandleErrorReactively(T document, AerospikeWriteData data, WritePolicy writePolicy,
                                                          Operation[] operations, TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
@@ -391,18 +697,50 @@ public class TemplateUtils {
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
     }
 
+    /**
+     * Persists a document reactively with version management and handles CAS errors. This method updates the document's
+     * version based on the Aerospike record's generation after a successful operation.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to persist
+     * @param data            The {@link AerospikeWriteData}, including the key
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform
+     * @param operationType   The type of operation being performed (e.g., INSERT, UPDATE)
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client, exception
+     *                        translator, and mapping context
+     * @return A {@link Mono} that emits the updated document upon successful persistence
+     * @throws AerospikeException                if an error occurs during writing
+     * @throws OptimisticLockingFailureException if a CAS-related error occurs
+     */
     static <T> Mono<T> doPersistWithVersionAndHandleCasErrorReactively(T document, AerospikeWriteData data,
                                                                        WritePolicy writePolicy, Operation[] operations,
                                                                        BaseAerospikeTemplate.OperationType operationType,
                                                                        TemplateContext templateContext) {
         return PolicyUtils.enrichPolicyWithTransaction(templateContext.reactorClient, writePolicy)
-            .flatMap(writePolicyEnriched -> putAndGetHeaderForReactive(data, (WritePolicy) writePolicyEnriched, operations, templateContext))
+            .flatMap(writePolicyEnriched -> putAndGetHeaderForReactive(data, (WritePolicy) writePolicyEnriched,
+                operations, templateContext))
             .map(newRecord -> updateVersion(document, newRecord, templateContext))
             .onErrorMap(AerospikeException.class, i -> ExceptionUtils.translateCasException(i,
                 "Failed to " + operationType.toString() + " record due to versions mismatch",
                 templateContext.exceptionTranslator));
     }
 
+    /**
+     * Persists a document reactively with version management and handles general errors. This method updates the
+     * document's version based on the Aerospike record's generation after a successful operation.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to persist
+     * @param data            The {@link AerospikeWriteData}, including the key
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client, exception
+     *                        translator, and mapping context
+     * @return A {@link Mono} that emits the updated document upon successful persistence
+     * @throws AerospikeException                if an error occurs during writing
+     * @throws OptimisticLockingFailureException if a CAS-related error occurs
+     */
     static <T> Mono<T> doPersistWithVersionAndHandleErrorReactively(T document, AerospikeWriteData data,
                                                                     WritePolicy writePolicy, Operation[] operations,
                                                                     TemplateContext templateContext) {
@@ -413,20 +751,44 @@ public class TemplateUtils {
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
     }
 
-    static Mono<Record> putAndGetHeaderForReactive(AerospikeWriteData data, WritePolicy writePolicy, Operation[] operations,
-                                                   TemplateContext templateContext) {
+    /**
+     * Performs a "put" operation reactively and retrieves the record header.
+     *
+     * @param data            The {@link AerospikeWriteData}, including the key
+     * @param writePolicy     The {@link WritePolicy} to use for the operation
+     * @param operations      An array of {@link Operation}s to perform
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client
+     * @return A {@link Mono} that emits the {@link Record} header after the put operation
+     */
+    static Mono<Record> putAndGetHeaderForReactive(AerospikeWriteData data, WritePolicy writePolicy,
+                                                   Operation[] operations, TemplateContext templateContext) {
         return templateContext.reactorClient.operate(writePolicy, data.getKey(), operations)
             .map(keyRecord -> keyRecord.record);
     }
 
-    static Mono<KeyRecord> getAndTouchReactively(Key key, int expiration, String[] binNames, Query query,
+    /**
+     * Touches a record (updates its expiration time) and retrieves its contents reactively. The expiration time is set
+     * based on the provided {@code expiration} value. If {@code binNames} are provided, only those bins will be
+     * retrieved; otherwise, all bins will be returned. A filter expression can be applied based on the criteria in the
+     * {@code query}.
+     *
+     * @param key             The {@link Key} of the record to touch and get
+     * @param expiration      The new expiration time for the record in seconds from now
+     * @param binNames        An optional array of bin names to retrieve. If null or empty, all bins will be retrieved
+     * @param query           An optional {@link Query} object containing criteria for filtering
+     * @param templateContext The context containing the reactive Aerospike client and query engine
+     * @return A {@link Mono} that emits the {@link KeyRecord} after the touch and get operation
+     * @throws AerospikeException in case of an error during client operate command
+     */
+    static Mono<KeyRecord> touchAndGetReactively(Key key, int expiration, String[] binNames, Query query,
                                                  TemplateContext templateContext) {
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(templateContext.writePolicyDefault)
             .expiration(expiration);
 
         if (isQueryCriteriaNotNull(query)) {
             Qualifier qualifier = query.getCriteriaObject();
-            writePolicyBuilder.filterExp(templateContext.reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier));
+            writePolicyBuilder.filterExp(templateContext.reactorQueryEngine.getFilterExpressionsBuilder()
+                .build(qualifier));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -446,6 +808,19 @@ public class TemplateUtils {
             .flatMap(writePolicyEnriched -> reactorClient.operate((WritePolicy) writePolicyEnriched, key, operations));
     }
 
+    /**
+     * Finds records of a specified type within a given set reactively and applies post-processing based on the provided
+     * query. This method first retrieves records using a distinct predicate and then applies additional processing.
+     *
+     * @param <T>             The type of the target class
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities to be returned
+     * @param query           The {@link Query} to execute, potentially containing post-processing instructions
+     * @param templateContext The {@link TemplateContext} containing necessary components
+     * @return A {@link Flux} of entities of the specified type after post-processing
+     * @throws IllegalArgumentException if the query contains an unsorted sort combined with an offset
+     * @throws AerospikeException       in case of an error during reading
+     */
     static <T> Flux<T> findWithPostProcessingReactively(String setName, Class<T> targetClass, Query query,
                                                         TemplateContext templateContext) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
@@ -455,6 +830,21 @@ public class TemplateUtils {
         return results;
     }
 
+    /**
+     * Finds records of a specified type within a given set reactively and applies post-processing including sorting,
+     * offset, and limit.
+     *
+     * @param <T>             The type of the target class
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities to be returned
+     * @param sort            The sort criteria to apply to the results
+     * @param offset          The number of records to skip from the beginning of the result set
+     * @param limit           The maximum number of records to return
+     * @param templateContext The {@link TemplateContext} containing necessary components
+     * @return A {@link Flux} of entities of the specified type after post-processing
+     * @throws IllegalArgumentException if the sort criteria is unsorted and an offset is provided
+     * @throws AerospikeException       if there is an error during reading
+     */
     @SuppressWarnings("SameParameterValue")
     static <T> Flux<T> findWithPostProcessingReactively(String setName, Class<T> targetClass, Sort sort, long offset,
                                                         long limit, TemplateContext templateContext) {
@@ -464,11 +854,35 @@ public class TemplateUtils {
         return results;
     }
 
+    /**
+     * Finds records of a specified type within a given set reactively. This method maps the retrieved key records to
+     * the target class.
+     *
+     * @param <T>             The type of the target class
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities to be returned
+     * @param templateContext The {@link TemplateContext} containing necessary components
+     * @return A {@link Flux} of entities of the specified type
+     * @throws AerospikeException if there is an error during reading
+     */
     static <T> Flux<T> findReactively(String setName, Class<T> targetClass, TemplateContext templateContext) {
         return findRecordsUsingQueryReactively(setName, targetClass, null, templateContext)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
 
+    /**
+     * Finds records reactively using a query and applies a distinct predicate to filter the results. The key records
+     * are then mapped to the target class.
+     *
+     * @param <T>               The type of the target class
+     * @param setName           The name of the set to query
+     * @param targetClass       The class of the entities to be returned
+     * @param distinctPredicate A predicate to apply for filtering distinct key records
+     * @param query             The {@link Query} to execute
+     * @param templateContext   The {@link TemplateContext} containing necessary components
+     * @return A {@link Flux} of entities of the specified type after filtering by the distinct predicate
+     * @throws AerospikeException if there is an error during reading
+     */
     static <T> Flux<T> findUsingQueryWithDistinctPredicateReactively(String setName, Class<T> targetClass,
                                                                      Predicate<KeyRecord> distinctPredicate,
                                                                      Query query, TemplateContext templateContext) {
@@ -477,6 +891,21 @@ public class TemplateUtils {
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
 
+    /**
+     * Finds {@link KeyRecord}s reactively using a query within a specified set and with a specific target class. This
+     * method handles queries with ID qualifiers separately because they have a different retrieval mechanism. It can
+     * also specify which bin names to retrieve if a {@code targetClass} is provided.
+     *
+     * @param <T>             The type of the target class (used for determining bin names)
+     * @param setName         The name of the set to query
+     * @param targetClass     The class of the entities, used to determine which bin names to retrieve. If {@code null},
+     *                        all bins are retrieved
+     * @param query           The {@link Query} to execute
+     * @param templateContext The {@link TemplateContext} containing the reactive query engine, mapping context, and
+     *                        other necessary components
+     * @return A {@link Flux} of {@link KeyRecord}s that match the query
+     * @throws AerospikeException if there is an error during reading
+     */
     static <T> Flux<KeyRecord> findRecordsUsingQueryReactively(String setName, Class<T> targetClass, Query query,
                                                                TemplateContext templateContext) {
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
@@ -501,7 +930,24 @@ public class TemplateUtils {
         return templateContext.reactorQueryEngine.select(templateContext.namespace, setName, null, query);
     }
 
-    // Without mapping results to entities
+    /**
+     * Finds existing {@link KeyRecord}s reactively by a collection of IDs without mapping the results to entities. This
+     * method uses a batch policy that can include filter expressions from the provided query. It asserts that both
+     * {@code ids} and {@code setName} are not null and returns an empty Flux if {@code ids} is empty.
+     *
+     * @param <T>             The type of the target class (not used for mapping, but for type consistency in other
+     *                        methods)
+     * @param ids             A collection of IDs to query for. Must not be null
+     * @param setName         The name of the set to query. Must not be null
+     * @param targetClass     The class of the entities (used for internal purposes like bin name retrieval in some
+     *                        flows, can be null)
+     * @param query           The {@link Query} object, potentially containing criteria for batch policy filtering
+     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and other necessary
+     *                        components
+     * @return A {@link Flux} of existing {@link KeyRecord}s
+     * @throws IllegalArgumentException if {@code ids} or {@code setName} is null
+     * @throws AerospikeException       in case of an error during reading
+     */
     static <T> Flux<KeyRecord> findExistingByIdsWithoutEntityMappingReactively(Collection<?> ids, String setName,
                                                                                Class<T> targetClass, Query query,
                                                                                TemplateContext templateContext) {
@@ -520,6 +966,15 @@ public class TemplateUtils {
             .filter(keyRecord -> nonNull(keyRecord.record));
     }
 
+    /**
+     * Returns a {@link Comparator} that can be used to sort entities based on the sort orders defined in a
+     * {@link Query}. The comparator is built by chaining comparators for each sort order.
+     *
+     * @param <T>   The type of the entities to compare
+     * @param query The {@link Query} containing the sort orders
+     * @return A {@link Comparator} for the specified type
+     * @throws IllegalStateException if the query's sort orders are empty, as comparator cannot be created
+     */
     static <T> Comparator<T> getComparator(Query query) {
         return query.getSort().stream()
             .map(TemplateUtils::<T>getPropertyComparator)
@@ -527,6 +982,15 @@ public class TemplateUtils {
             .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
     }
 
+    /**
+     * Returns a {@link Comparator} that can be used to sort entities based on the provided {@link Sort} object. The
+     * comparator is built by chaining comparators for each sort order.
+     *
+     * @param <T>  The type of the entities to compare
+     * @param sort The {@link Sort} object containing the sort orders
+     * @return A {@link Comparator} for the specified type
+     * @throws IllegalStateException if the sort orders are empty, as comparator cannot be created
+     */
     static <T> Comparator<T> getComparator(Sort sort) {
         return sort.stream()
             .map(TemplateUtils::<T>getPropertyComparator)
@@ -534,12 +998,30 @@ public class TemplateUtils {
             .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
     }
 
+    /**
+     * Creates a {@link Comparator} for a specific property of an entity based on the provided {@link Sort.Order}. This
+     * comparator supports case-insensitive comparison and can sort in ascending or descending order.
+     *
+     * @param <T>   The type of the entities to compare
+     * @param order The {@link Sort.Order} specifying the property and direction
+     * @return A {@link Comparator} for the specified property
+     */
     private static <T> Comparator<T> getPropertyComparator(Sort.Order order) {
         boolean ignoreCase = true;
         boolean ascending = order.getDirection().isAscending();
         return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
     }
 
+    /**
+     * Creates an {@link AerospikeWriteData} object for a given document and set name. This method converts the document
+     * into Aerospike bins using the configured converter.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to write
+     * @param setName         The name of the Aerospike set
+     * @param templateContext The {@link TemplateContext} containing the namespace and converter
+     * @return An {@link AerospikeWriteData} object containing the key, set name, and bins
+     */
     static <T> AerospikeWriteData writeData(T document, String setName, TemplateContext templateContext) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(templateContext.namespace);
         data.setSetName(setName);
@@ -547,6 +1029,18 @@ public class TemplateUtils {
         return data;
     }
 
+    /**
+     * Creates an {@link AerospikeWriteData} object for a given document, set name, and a specific collection of fields.
+     * This method converts only the specified fields of the document into Aerospike bins.
+     *
+     * @param <T>             The type of the document
+     * @param document        The document to write
+     * @param setName         The name of the Aerospike set
+     * @param fields          A collection of field names to include in the write operation
+     * @param templateContext The {@link TemplateContext} containing the namespace, converter, and other necessary
+     *                        components
+     * @return An {@link AerospikeWriteData} object containing the key, set name, and bins for the specified fields
+     */
     static <T> AerospikeWriteData writeDataWithSpecificFields(T document, String setName, Collection<String> fields,
                                                               TemplateContext templateContext) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(templateContext.namespace);
@@ -556,15 +1050,35 @@ public class TemplateUtils {
         return data;
     }
 
+    /**
+     * Creates an Aerospike {@link Key} from an ID and an {@link AerospikePersistentEntity}. This method delegates to
+     * {@link #getKey(Object, String, TemplateContext)} using the set name from the entity.
+     *
+     * @param id              The ID of the record. Must not be null
+     * @param entity          The {@link AerospikePersistentEntity} from which to derive the set name
+     * @param templateContext The {@link TemplateContext} containing the converter
+     * @return An Aerospike {@link Key}
+     */
     static Key getKey(Object id, AerospikePersistentEntity<?> entity, TemplateContext templateContext) {
         return getKey(id, entity.getSetName(), templateContext);
     }
 
+    /**
+     * Creates an Aerospike {@link Key} from an ID and a set name. The ID type is preserved based on the configuration
+     * of the Aerospike data settings within the converter. If {@code keepOriginalKeyTypes} is false, the ID is
+     * converted to a String.
+     *
+     * @param id              The ID of the record. Must not be null
+     * @param setName         The name of the Aerospike set. Must not be null
+     * @param templateContext The {@link TemplateContext} containing the namespace and converter
+     * @return An Aerospike {@link Key}
+     * @throws IllegalArgumentException if {@code id} or {@code setName} is null
+     */
     static Key getKey(Object id, String setName, TemplateContext templateContext) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
         Key key;
-        // Choosing whether tp preserve id type based on the configuration
+        // Choosing whether to preserve id type based on the configuration
         if (templateContext.converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             if (id instanceof Byte || id instanceof Short || id instanceof Integer || id instanceof Long) {
                 key = new Key(
@@ -601,6 +1115,16 @@ public class TemplateUtils {
         }
     }
 
+    /**
+     * Creates an array of Aerospike client {@link Operation}s for a "put" operation followed by a "get header"
+     * operation. Optionally includes a "delete" operation for existing bins if {@code firstlyDeleteBins} is true.
+     *
+     * @param data              The {@link AerospikeWriteData} containing the bins to put
+     * @param firstlyDeleteBins If true, an {@code Operation.delete()} will be included before the put operation
+     * @return An array of {@link Operation}s
+     * @throws AerospikeException if the document has no bins and the class bin is disabled, as a put operation cannot
+     *                            be performed
+     */
     static Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
         Bin[] bins = data.getBinsAsArray();
 
@@ -613,6 +1137,17 @@ public class TemplateUtils {
             Operation.array(Operation.getHeader()));
     }
 
+    /**
+     * Creates an array of Aerospike client {@link Operation}s from a map of bin names to values. Each entry in the map
+     * is converted into an operation of the specified {@code operationType}. Additional operations can be appended to
+     * the array.
+     *
+     * @param <T>                  The type of the values in the map
+     * @param values               A map where keys are bin names and values are the corresponding data
+     * @param operationType        The type of Aerospike operation to apply to each bin (e.g., PUT, ADD)
+     * @param additionalOperations An array of additional {@link Operation}s to append
+     * @return An array of {@link Operation}s
+     */
     static <T> Operation[] operations(Map<String, T> values,
                                       Operation.Type operationType,
                                       Operation... additionalOperations) {
@@ -629,15 +1164,44 @@ public class TemplateUtils {
         return operations;
     }
 
+    /**
+     * Creates an array of Aerospike client {@link Operation}s from an array of {@link Bin}s using a provided function.
+     * Each {@link Bin} is transformed into an {@link Operation} by the {@code binToOperation} function.
+     *
+     * @param bins           An array of {@link Bin} objects
+     * @param binToOperation A function that converts a {@link Bin} into an {@link Operation}
+     * @return An array of {@link Operation}s
+     */
     static Operation[] operations(Bin[] bins, Function<Bin, Operation> binToOperation) {
         return operations(bins, binToOperation, null, null);
     }
 
+    /**
+     * Creates an array of Aerospike client {@link Operation}s from an array of {@link Bin}s, including operations that
+     * precede the bin operations.
+     *
+     * @param bins                An array of {@link Bin} objects
+     * @param binToOperation      A function that converts a {@link Bin} into an {@link Operation}
+     * @param precedingOperations An array of {@link Operation}s to place before the bin operations. Can be null
+     * @return An array of {@link Operation}s
+     */
     static Operation[] operations(Bin[] bins, Function<Bin, Operation> binToOperation,
                                   Operation[] precedingOperations) {
         return operations(bins, binToOperation, precedingOperations, null);
     }
 
+    /**
+     * Creates an array of Aerospike client {@link Operation}s from an array of {@link Bin}s, including both preceding
+     * and additional operations. Each {@link Bin} is transformed into an {@link Operation} by the
+     * {@code binToOperation} function.
+     *
+     * @param bins                 An array of {@link Bin} objects
+     * @param binToOperation       A function that converts a {@link Bin} into an {@link Operation}
+     * @param precedingOperations  An array of {@link Operation}s to place before the bin operations. Can be null
+     * @param additionalOperations An array of additional {@link Operation}s to place after the bin operations. Can be
+     *                             null
+     * @return An array of {@link Operation}s
+     */
     static Operation[] operations(Bin[] bins,
                                   Function<Bin, Operation> binToOperation,
                                   @Nullable Operation[] precedingOperations,
@@ -665,6 +1229,16 @@ public class TemplateUtils {
         return operations;
     }
 
+    /**
+     * Returns a {@link Predicate} for filtering distinct {@link KeyRecord}s based on a {@link Query}. If the query
+     * specifies a distinct operation, the predicate ensures that only records with unique values in the specified
+     * distinct field are passed. Currently, distinct queries are only supported for top-level object fields (not
+     * dot-path fields).
+     *
+     * @param query The {@link Query} to inspect for distinct criteria
+     * @return A {@link Predicate} that filters for distinct {@link KeyRecord}s
+     * @throws UnsupportedOperationException if a distinct query is attempted on a dot-path field
+     */
     static Predicate<KeyRecord> getDistinctPredicate(Query query) {
         Predicate<KeyRecord> distinctPredicate;
         if (query != null && query.isDistinct()) {

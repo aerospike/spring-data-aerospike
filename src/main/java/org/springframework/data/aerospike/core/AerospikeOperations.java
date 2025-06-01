@@ -1176,8 +1176,28 @@ public interface AerospikeOperations {
      */
     long countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
+    /**
+     * Count records by ids and a query using the given entityClass.
+     * <p>
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return quantity of matching records.
+     */
     <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
 
+    /**
+     * Count records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return quantity of matching records.
+     */
     long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
