@@ -34,12 +34,16 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
 
 /**
  * @author Peter Milne
@@ -140,7 +144,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             .createQuery();
     }
 
-    protected <T> Stream<T> applyPostProcessing(Stream<T> results, Query query) {
+    protected <T> Stream<T> applyPostProcessing(Stream<T> results, @Nullable Query query) {
+        if (query == null) return results;
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = getComparator(query);
             results = results.sorted(comparator);
@@ -192,5 +197,24 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
      */
     protected boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
         return queryMethod.getEntityInformation().getJavaType().isAssignableFrom(queryMethod.getReturnedObjectType());
+    }
+
+    protected static Query getQueryWithExcludedIdQualifier(Query query, Qualifier criteria) {
+        Query newQuery = new Query(excludeIdQualifier(criteria));
+        newQuery.setSort(query.getSort());
+        newQuery.setOffset(query.getOffset());
+        newQuery.setRows(query.getRows());
+        newQuery.setDistinct(query.isDistinct());
+        return newQuery;
+    }
+
+    protected static List<Object> getPagedIdsPlusOne(List<Object> ids, Pageable pageable) {
+        // Paginated queries with offset and no sorting (i.e. original order)
+        // are only allowed for purely id queries, and not for other types
+        // Limit by page size + 1 to set hasNext when initializing SliceImpl
+        return ids.stream()
+            .skip(pageable.getOffset()) // query offset
+            .limit(pageable.getPageSize() + 1) // query rows
+            .toList(); // no custom sorting in this case, which allows to prepare for reading just page size + 1
     }
 }

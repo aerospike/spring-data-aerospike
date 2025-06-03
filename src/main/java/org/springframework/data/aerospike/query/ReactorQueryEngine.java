@@ -34,7 +34,7 @@ import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
 import static org.springframework.data.aerospike.query.QueryEngine.SEC_INDEX_ERROR_RESULT_CODES;
 
 /**
@@ -92,7 +92,7 @@ public class ReactorQueryEngine {
      * @return A Flux<KeyRecord> to iterate over the results
      */
     public Flux<KeyRecord> select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+        Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
 
         /*
          *  query with filters

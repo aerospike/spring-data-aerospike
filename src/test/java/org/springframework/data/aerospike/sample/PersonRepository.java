@@ -126,6 +126,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // Paginated query
     Page<P> findAllById(Iterable<String> ids, Pageable pageable);
 
+    // Sorted query
+    List<P> findAllById(Iterable<String> ids, Sort sort);
+
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
@@ -134,6 +137,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param firstName Contains String to compare with
      */
     List<P> findAllByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    List<P> findAllByIdAndFirstNameIn(QueryParam ids, QueryParam firstName, Sort sort);
 
     Slice<P> findAllByIdAndFirstNameIn(QueryParam ids, QueryParam firstName, Pageable pageable);
 

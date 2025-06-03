@@ -1,0 +1,107 @@
+[[pagination_and_sorting]]
+= Pagination and Sorting in Spring Data Aerospike
+
+Spring Data Aerospike provides support for sorting and pagination of results of repository query methods, allowing to retrieve and display data from database using familiar Spring Data interfaces like `Pageable` and `Slice`, and objects like `Sort` and `PageRequest`.
+
+[[pagination_and_sorting.standalone_sorting]]
+== Standalone Sorting
+
+Spring Data Aerospike supports standalone sorting for repository query methods. This allows to order the results of a query without applying pagination. It can be achieved by simply providing a Spring Data `Sort` object as a parameter to your repository method.
+
+.Example: Standalone Sorting
+[source, java]
+----
+// In your repository interface
+List<Person> findByLastNameStartingWith(String lastNamePrefix, Sort sort);
+
+// Usage example: retrieving persons sorted by last name
+List<Person> persons = repository.findByLastNameStartingWith("M", Sort.by("lastName").ascending());
+// The 'persons' list will contain all matching entities, sorted by their last names in ascending order.
+----
+
+[[pagination_and_sorting.return_types]]
+== Paginated Queries: Returning `Page` and `Slice`
+
+Paginated repository queries in Spring Data allow retrieving a subset of data from a larger result set, along with optional sorting, to manage and display data in manageable chunks.
+
+When performing paginated repository queries, Spring Data Aerospike offers two return types:
+
+* `Page`: This type extends `Slice` and includes additional information about the total number of elements and total pages available. This is useful when you need the full context of your data, such as "Page X of Y" or the total record count.
+
+.Example: `Page` usage
+[source, java]
+----
+// In your repository interface
+Page<Person> findByAgeLessThan(int age, Pageable pageable);
+
+// Usage example for an unpaged query in a test
+Page<Person> page = repository.findByAgeLessThan(40, Pageable.unpaged());
+// Assertions related to content, element count, and total pages/elements etc.
+assertThat(page.hasContent()).isTrue();
+assertThat(page.getNumberOfElements()).isGreaterThan(1);
+----
+
+* `Slice`: This type represents a sub-list of data and provides information about whether there's a next or previous slice available. It can be used for infinite scrolling or continuous loading scenarios where the total count is not immediately required.
+
+.Example: `Slice` usage
+[source, java]
+----
+// In your repository interface
+Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
+
+// Example of using PageRequest in a test
+Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 10));
+// Assertions related to content and next/previous slice availability etc.
+assertThat(slice.hasContent()).isTrue();
+assertThat(slice.hasNext()).isFalse();
+----
+
+[[pagination_and_sorting.page_request]]
+== `PageRequest` for Pagination
+
+The `PageRequest` class is used to specify pagination parameters, typically consisting of a `pageNumber` and `pageSize`.
+
+* `pageNumber`: Represents the requested page. Pages are 0-indexed, meaning `pageNumber = 0` refers to the first page, `pageNumber = 1` to the second, and so on.
+* `pageSize`: Defines the maximum number of records to be returned on a single page.
+
+For instance, `PageRequest.of(1, 4)` would request the second page (offset by 1) containing a maximum of 4 records.
+
+[[pagination_and_sorting.sorting_with_pagination]]
+== Sorting with Pagination
+
+A key consideration in Spring Data Aerospike is that when query methods receive a `PageRequest` with an `offset` (i.e., `pageNumber` greater than 0), they *must* also include `Sort` criteria. This ensures consistent and predictable pagination results, as Aerospike itself does not guarantee natural order across all queries.
+
+The only exception to this rule is for purely ID equality queries, where the inherent order of IDs can be used for offset and limitation.
+
+.Example: Paginated query with sorting
+[source, java]
+----
+// In your repository interface (example similar to findByAgeGreaterThan)
+Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
+
+// Usage example in a test: a regular query method with offset, sorting must be specified
+Slice<Person> last = repository.findByAgeGreaterThan(20, PageRequest.of(4, 2, Sort.by("age")));
+// Assertions on content and navigation etc.
+----
+
+[[pagination_and_sorting.id_based_pagination]]
+=== ID-Based Pagination without Explicit Sorting
+
+For queries that are solely based on ID equality, pagination with an offset is permitted even without explicit sorting. This is because the original order of IDs can be leveraged for applying offset and limit on the application level.
+
+.Example: ID-based pagination
+[source, java]
+----
+// In your repository interface, a method just for IDs equality
+Page<P> findAllById(Iterable<String> ids, Pageable pageable);
+
+// Usage example in a test, the only type of queries without mandatory sorting when offset is given
+Page<Person> result1 = repository.findAllById(ids, PageRequest.of(1, 2));
+// Assertions on total pages and iteration over results etc.
+----
+
+[[pagination_and_sorting.application_level_operations]]
+== Application-Level Operations
+
+It is important to note that sorting and pagination operations in Spring Data Aerospike are performed at the application level. For all query types, except for purely ID-based queries (where offset and limit are applied on the original IDs), Spring Data Aerospike first retrieves all query results and then applies the sorting and/or pagination as a post-processing step within the application.
+

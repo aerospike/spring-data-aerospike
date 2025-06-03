@@ -37,7 +37,7 @@ import static com.aerospike.client.ResultCode.INDEX_NAME_MAXLEN;
 import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
 import static com.aerospike.client.ResultCode.INDEX_NOTREADABLE;
 import static com.aerospike.client.ResultCode.INDEX_OOM;
-import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
 
 /**
  * This class provides a multi-filter query engine that augments the query capability in Aerospike.
@@ -122,7 +122,7 @@ public class QueryEngine {
             if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
                 log.warn("Got secondary index related exception (resultCode: {}), " +
                     "retrying with filter expression only (scan operation)", e.getResultCode());
-                Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+                Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
                 return retryWithFilterExpression(namespace, qualifier, statement);
             }
             throw e;
