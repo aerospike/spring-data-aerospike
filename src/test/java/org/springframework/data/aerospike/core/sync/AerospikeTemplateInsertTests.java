@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core.sync;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -188,6 +189,17 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> template.insert(person))
             .isInstanceOf(DuplicateKeyException.class);
+    }
+
+    @Test
+    public void throwsExceptionForBatchInsertingDuplicateId() {
+        assertThatThrownBy(() -> template.insertAll(
+            List.of(
+                new Person(id, "svenfirstName", 11),
+                new Person(id, "svenfirstName", 11)
+                )
+        ))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class);
     }
 
     @Test

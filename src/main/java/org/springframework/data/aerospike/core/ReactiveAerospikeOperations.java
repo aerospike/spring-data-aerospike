@@ -1144,7 +1144,7 @@ public interface ReactiveAerospikeOperations {
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return Quantity of matching queries.
      */
-    <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+    <T> Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
 
     /**
      * Count existing records by ids and a query using the given entityClass within the set.
@@ -1156,7 +1156,7 @@ public interface ReactiveAerospikeOperations {
      * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return Quantity of matching queries.
      */
-    Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
+    Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Reactively create an index with the specified name in Aerospike.

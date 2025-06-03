@@ -444,7 +444,8 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             .build();
         Query ageEq100Query = new Query(ageEq100);
 
-        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query)).hasSize(2);
+        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query))
+            .hasSize(2);
 
         // creating another query, we are going to add de facto pagination
         Query ageEq100QueryPaginated = new Query(ageEq100);
@@ -455,6 +456,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.deleteByIdsUsingQuery(ids, Person.class, ageEq100QueryPaginated);
 
         // only one record was deleted
-        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query)).hasSize(1);
+        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query))
+            .hasSize(1);
     }
 }

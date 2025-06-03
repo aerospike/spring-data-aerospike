@@ -1788,7 +1788,7 @@ public enum FilterOperation {
     }
 
     private static Exp getMapKeyExp(Object mapKey, boolean keepOriginalKeyTypes) {
-        // choosing whether to preserve map key type based on the configuration
+        // Choosing whether to preserve map key type based on the configuration
         if (keepOriginalKeyTypes) {
             Exp res;
             if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer

@@ -28,12 +28,12 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void countById_AND_simpleProperty() {
-        QueryParam ids = of(dave.getId());
+        QueryParam id = of(dave.getId());
         QueryParam name = of(carter.getFirstName());
-        long persons = repository.countByIdAndFirstName(ids, name);
+        long persons = repository.countByIdAndFirstName(id, name);
         assertThat(persons).isZero();
 
-        ids = of(dave.getId());
+        QueryParam ids = of(dave.getId());
         name = of(dave.getFirstName());
         persons = repository.countByIdAndFirstName(ids, name);
         assertThat(persons).isEqualTo(1);
