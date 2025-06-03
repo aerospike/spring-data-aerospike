@@ -1,7 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
 import com.aerospike.client.Value;
-import com.aerospike.client.query.IndexType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
