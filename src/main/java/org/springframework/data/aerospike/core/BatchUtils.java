@@ -78,7 +78,7 @@ public final class BatchUtils {
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
         if (batchSize <= 0) {
-            // For negative batchSize write records straight away without chunking
+            // For non-positive batchSize, write records straight away without chunking
             batchWriteAllDocuments(iterableToList(documents), setName, operationType, batchPolicy, templateContext);
             return;
         }
@@ -219,7 +219,7 @@ public final class BatchUtils {
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
         if (batchSize <= 0) {
-            // For negative batchSize write records straight away without chunking
+            // For non-positive batchSize, write records straight away without chunking
             doDeleteByIds(iterableToList(ids), setName, skipNonExisting, templateContext);
             return;
         }
@@ -378,7 +378,7 @@ public final class BatchUtils {
      * This method retrieves records based on a collection of {@link Key}s and an array of bin names. It enriches the
      * provided {@link BatchPolicy} with transaction information and reads records in chunks based on the configured
      * batch read size. If the collection of keys is smaller than or equal to the batch size, or if the batch size is
-     * negative, all records are read at once without chunking. Otherwise, the keys are processed in batches to optimize
+     * non-positive, all records are read at once without chunking. Otherwise, the keys are processed in batches to optimize
      * performance.
      *
      * @param batchPolicy     The {@link BatchPolicy} to use for the batch read operation
@@ -393,7 +393,7 @@ public final class BatchUtils {
             batchPolicy);
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
 
-        // For smaller collections of keys or negative batchSize value read records straight away without chunking
+        // For smaller collections of keys or non-positive batchSize, read records straight away without chunking
         if (keys.size() <= batchSize || batchSize <= 0) {
             return batchRead(batchPolicyEnriched, keys.toArray(Key[]::new), binNames, templateContext)
                 .toArray(Record[]::new);
@@ -517,7 +517,7 @@ public final class BatchUtils {
         return Flux.defer(() -> {
             int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
             if (batchSize <= 0) {
-                // For negative batchSize write records straight away without chunking
+                // For non-positive batchSize, write records straight away without chunking
                 return batchWriteAllDocumentsReactively(iterableToList(documents), setName, operationType,
                     templateContext);
             }
@@ -686,7 +686,7 @@ public final class BatchUtils {
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
         if (batchSize <= 0) {
-            // For negative batchSize write records straight away without chunking
+            // For non-positive batchSize, write records straight away without chunking
             return doDeleteByIdsReactively(iterableToList(ids), setName, skipNonExisting, templateContext);
         }
 
@@ -872,7 +872,7 @@ public final class BatchUtils {
         return enrichedPolicyMono
             .flatMapMany(batchPolicyEnriched -> {
                 if (batchSize <= 0) {
-                    // Process all keys in one go without chunking if batchSize value is negative
+                    // Process all keys in one go without chunking if batchSize value is non-positive
                     return batchReadReactively((BatchPolicy) batchPolicyEnriched, keys, targetClass, templateContext)
                         .flatMapIterable(BatchUtils::keysRecordsToList);
                 } else {
@@ -1147,7 +1147,7 @@ public final class BatchUtils {
      * elements.
      *
      * @param source    The source iterable containing elements to batch
-     * @param batchSize The maximum size of each batch
+     * @param batchSize The maximal size of each batch
      * @return A Flux emitting lists of batched elements, or an error in case of an exception found
      */
     private static <T> Flux<List<T>> createNullTolerantBatches(Iterable<? extends T> source, int batchSize) {
