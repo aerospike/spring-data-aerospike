@@ -45,11 +45,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.nonNull;
 import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
+import static org.springframework.data.aerospike.core.MappingUtils.getKeys;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.MappingUtils.convertIfNecessary;
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
@@ -531,7 +530,7 @@ public class TemplateUtils {
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a separate flow for a query for id equality
+                // a separate flow for id equality query
                 return BatchUtils.findExistingByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
@@ -583,40 +582,6 @@ public class TemplateUtils {
                 MappingUtils.mapToEntity(keyRecord.key, MappingUtils.getEntityClass(document), keyRecord.record,
                     templateContext.converter))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
-    }
-
-    /**
-     * Finds documents reactively by a collection of IDs within a specified set. This method constructs Aerospike keys
-     * from the provided IDs and uses a reactive batch get operation. The retrieved {@link KeyRecord}s are then mapped
-     * to the target class.
-     *
-     * @param <T>             The type of the target class
-     * @param ids             A collection of IDs to query for
-     * @param targetClass     The class of the entities to be returned
-     * @param setName         The name of the set to query
-     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and converter
-     * @return A {@link Flux} that emits the found entities
-     * @throws AerospikeException in case of an error during reading
-     */
-    static <T> Flux<T> findByIdsReactively(Collection<?> ids, Class<T> targetClass, String setName,
-                                           TemplateContext templateContext) {
-        Key[] keys = iterableToList(ids).stream()
-            .map(id -> getKey(id, setName, templateContext))
-            .toArray(Key[]::new);
-
-        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-                .copyBatchPolicyDefault())
-            .flatMap(batchPolicy -> reactorClient.get((BatchPolicy) batchPolicy, keys))
-            .flatMap(kr -> Mono.just(kr.asMap()))
-            .flatMapMany(keyRecordMap -> {
-                List<T> entities = keyRecordMap.entrySet().stream()
-                    .filter(entry -> entry.getValue() != null)
-                    .map(entry -> MappingUtils.mapToEntity(entry.getKey(), targetClass, entry.getValue(),
-                        templateContext.converter))
-                    .collect(Collectors.toList());
-                return Flux.fromIterable(entities);
-            });
     }
 
     /**
@@ -912,7 +877,7 @@ public class TemplateUtils {
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a separate flow for a query for id equality
+                // a separate flow for id equality query
                 return findExistingByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
@@ -958,12 +923,11 @@ public class TemplateUtils {
             return Flux.empty();
         }
 
-        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyFilterExpForReactive(query, templateContext);
+        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyForReactive(query, templateContext);
+        Key[] keys = getKeys(iterableToList(ids), setName, templateContext).toArray(Key[]::new);
 
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName, templateContext))
-            .flatMap(key -> BatchUtils.getFromClientReactively(batchPolicy, key, targetClass, templateContext))
-            .filter(keyRecord -> nonNull(keyRecord.record));
+        return BatchUtils.batchReadInChunksReactively(batchPolicy, keys, targetClass, templateContext)
+            .filter(keyRecord -> keyRecord != null && keyRecord.record != null);
     }
 
     /**
@@ -1255,5 +1219,31 @@ public class TemplateUtils {
         }
 
         return distinctPredicate;
+    }
+
+    /**
+     * Finds entities by their IDs using a query and applies post-processing to the results.
+     *
+     * <p>This method retrieves a stream of entities based on an Iterable of IDs, an entity class, and a target class.
+     * It utilizes a provided {@link Query} for filtering and then applies post-processing to the retrieved entities
+     * using {@link PostProcessingUtils#applyPostProcessingOnResults}.</p>
+     *
+     * @param <T>             The type of the entity
+     * @param <S>             The type of the target class to which the entities will be mapped
+     * @param ids             An {@link Iterable} of IDs of the entities to find
+     * @param entityClass     The {@link Class} of the entity
+     * @param targetClass     The {@link Class} to which the retrieved entities will be mapped, can be {@code null}
+     * @param setName         The name of the set where the entities are stored
+     * @param query           A {@link Query} to apply initial filtering or criteria to the search, can be {@code null}
+     * @param templateContext The template context to be used
+     * @return A {@link Stream} of entities, mapped to the target class, after post-processing
+     */
+    static <T, S> Stream<?> findByIdsUsingQueryWithPostProcessing(Iterable<?> ids, Class<T> entityClass,
+                                                                  @Nullable Class<S> targetClass, String setName,
+                                                                  @Nullable Query query,
+                                                                  TemplateContext templateContext) {
+        Stream<?> results = BatchUtils.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, setName, query,
+            templateContext);
+        return PostProcessingUtils.applyPostProcessingOnResults(results, query);
     }
 }

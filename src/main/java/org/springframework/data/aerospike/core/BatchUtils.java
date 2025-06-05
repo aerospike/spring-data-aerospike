@@ -1,19 +1,14 @@
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.BatchRecord;
-import com.aerospike.client.BatchResults;
-import com.aerospike.client.BatchWrite;
-import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Key;
-import com.aerospike.client.Operation;
+import com.aerospike.client.*;
 import com.aerospike.client.Record;
-import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.BatchWritePolicy;
+import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.client.reactor.dto.KeysRecords;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
@@ -31,19 +26,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
-import static org.springframework.data.aerospike.core.TemplateUtils.operations;
+import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
+import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesListFromTargetClass;
+import static org.springframework.data.aerospike.core.MappingUtils.getKeys;
+import static org.springframework.data.aerospike.core.MappingUtils.getTargetClass;
+import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
+import static org.springframework.data.aerospike.core.PolicyUtils.*;
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.core.ValidationUtils.hasOptimisticLockingError;
 import static org.springframework.data.aerospike.core.ValidationUtils.isEmpty;
-import static org.springframework.data.aerospike.core.TemplateUtils.logEmptyItems;
-import static org.springframework.data.aerospike.core.TemplateUtils.updateVersion;
 import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 /**
  * A utility class providing methods to facilitate processing of batch read and write operations.
@@ -56,10 +57,11 @@ public final class BatchUtils {
     }
 
     /**
-     * Applies a buffered batch write operation to a collection of documents. This method chunks the input documents
-     * into batches based on the configured batch write size and performs the specified operation (save, insert, update,
+     * Applies a chunked batch write operation to a collection of documents. This method chunks the input documents into
+     * batches based on the configured batch write size and performs the specified operation (save, insert, update,
      * delete) for each batch. It handles the iteration and batching, delegating the actual write operation to
-     * {@link #batchWriteAllDocuments(Collection, String, BaseAerospikeTemplate.OperationType, TemplateContext)}.
+     * {@link #batchWriteAllDocuments(Collection, String, BaseAerospikeTemplate.OperationType, BatchPolicy,
+     * TemplateContext)}.
      *
      * @param <T>             The type of documents
      * @param documents       Iterable of documents to be written
@@ -68,34 +70,44 @@ public final class BatchUtils {
      * @param templateContext {@link TemplateContext} containing Aerospike client, converter, and other necessary
      *                        components
      */
-    static <T> void applyBufferedBatchWrite(Iterable<T> documents, String setName,
+    static <T> void applyBatchWriteInChunks(Iterable<T> documents, String setName,
                                             BaseAerospikeTemplate.OperationType operationType,
                                             TemplateContext templateContext) {
-        int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-        List<T> docsList = new ArrayList<>();
 
+        BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(templateContext.client,
+            templateContext.client.copyBatchPolicyDefault());
+
+        int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
+        if (batchSize < 0) {
+            // For negative batchSize write records straight away without chunking
+            batchWriteAllDocuments(iterableToList(documents), setName, operationType, batchPolicy, templateContext);
+            return;
+        }
+
+        List<T> docsList = new ArrayList<>();
         for (T doc : documents) {
-            if (batchWriteSizeMatch(batchSize, docsList.size())) {
-                batchWriteAllDocuments(docsList, setName, operationType, templateContext);
+            if (batchSizeMatch(batchSize, docsList.size())) {
+                batchWriteAllDocuments(docsList, setName, operationType, batchPolicy, templateContext);
                 docsList.clear();
             }
             docsList.add(doc);
         }
         if (!docsList.isEmpty()) {
-            batchWriteAllDocuments(docsList, setName, operationType, templateContext);
+            batchWriteAllDocuments(docsList, setName, operationType, batchPolicy, templateContext);
         }
     }
 
     /**
-     * Performs a batch write operation for a given collection of documents. This method prepares the
-     * {@link BatchWriteData} for each document based on the specified {@link BaseAerospikeTemplate.OperationType} and
-     * then executes the batch operation using the Aerospike client. It also includes error checking and version
-     * updating after the batch write completes.
+     * Performs a batch write operation for a given collection of documents. This method also receives {@param setName},
+     * {@link BaseAerospikeTemplate.OperationType}, {@link BatchPolicy} and {@link TemplateContext}, and executes the
+     * batch operation using the Aerospike client. It also includes error checking and version updating after the batch
+     * write completes.
      *
      * @param <T>             The type of the documents
      * @param documents       Collection of documents to be written in this batch
      * @param setName         The name of the set to store the documents
      * @param operationType   The type of write operation to perform
+     * @param batchPolicy     {@link BatchPolicy} to use
      * @param templateContext {@link TemplateContext} containing Aerospike client, converter, and other necessary
      *                        components
      * @throws IllegalArgumentException            if an unexpected operation type is provided
@@ -105,7 +117,7 @@ public final class BatchUtils {
      */
     private static <T> void batchWriteAllDocuments(Collection<T> documents,
                                                    String setName, BaseAerospikeTemplate.OperationType operationType,
-                                                   TemplateContext templateContext) {
+                                                   BatchPolicy batchPolicy, TemplateContext templateContext) {
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
         switch (operationType) {
             case SAVE_OPERATION -> documents.forEach(document ->
@@ -121,8 +133,6 @@ public final class BatchUtils {
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
-            BatchPolicy batchPolicy = (BatchPolicy) PolicyUtils.enrichPolicyWithTransaction(templateContext.client,
-                templateContext.client.copyBatchPolicyDefault());
             templateContext.client.operate(batchPolicy, batchWriteRecords);
         } catch (AerospikeException e) {
             // no exception is thrown for versions mismatch, only record's result code shows it
@@ -187,7 +197,7 @@ public final class BatchUtils {
     }
 
     /**
-     * Deletes documents by their IDs in buffered batches. This method handles the batching logic and delegates to
+     * Deletes documents by their IDs in chunked batches. This method handles the batching logic and delegates to
      * {@link #doDeleteByIds(Collection, String, boolean, TemplateContext)} for the actual deletion.
      *
      * @param ids             Iterable of document IDs to delete
@@ -208,9 +218,15 @@ public final class BatchUtils {
         }
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
+        if (batchSize < 0) {
+            // For negative batchSize write records straight away without chunking
+            doDeleteByIds(iterableToList(ids), setName, skipNonExisting, templateContext);
+            return;
+        }
+
         List<Object> idsList = new ArrayList<>();
         for (Object id : ids) {
-            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+            if (batchSizeMatch(batchSize, idsList.size())) {
                 doDeleteByIds(idsList, setName, skipNonExisting, templateContext);
                 idsList.clear();
             }
@@ -243,7 +259,7 @@ public final class BatchUtils {
             logEmptyItems(log, "Ids for deleting");
             return;
         }
-        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext);
+        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext).toArray(Key[]::new);
 
         // requires server ver. >= 6.0.0
         deleteAndHandleErrors(templateContext.client, keys, skipNonExisting, templateContext.exceptionTranslator);
@@ -282,7 +298,7 @@ public final class BatchUtils {
                                       AerospikeExceptionTranslator exceptionTranslator) {
         BatchResults results;
         try {
-            BatchPolicy batchPolicy = (BatchPolicy) PolicyUtils.enrichPolicyWithTransaction(client,
+            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client,
                 client.copyBatchPolicyDefault());
             results = client.delete(batchPolicy, null, keys);
         } catch (AerospikeException e) {
@@ -314,7 +330,7 @@ public final class BatchUtils {
      */
     static GroupedEntities findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
-        BatchPolicy batchPolicy = (BatchPolicy) PolicyUtils.enrichPolicyWithTransaction(
+        BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(
             templateContext.client,
             templateContext.client.copyBatchPolicyDefault()
         );
@@ -328,7 +344,7 @@ public final class BatchUtils {
      * allows specifying a subset of bin names to retrieve. It also includes validation for paginated queries with
      * offset.
      *
-     * @param keys            An array of {@link Key} objects representing the records to retrieve
+     * @param keys            A collection of {@link Key} objects representing the records to retrieve
      * @param binNames        An optional array of bin names to retrieve. If null, all bins are retrieved
      * @param setName         The name of the set where the records are located
      * @param query           An optional {@link Query} object to apply filters or pagination
@@ -337,7 +353,7 @@ public final class BatchUtils {
      * @throws IllegalArgumentException if keys or set name are null, or if an invalid paginated query is provided
      * @throws AerospikeException       if an error occurs during the batch read
      */
-    static Record[] findByKeysUsingQuery(Key[] keys, @Nullable String[] binNames, String setName,
+    static Record[] findByKeysUsingQuery(Collection<Key> keys, @Nullable String[] binNames, String setName,
                                          @Nullable Query query, TemplateContext templateContext) {
         Assert.notNull(keys, "Keys must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
@@ -347,22 +363,59 @@ public final class BatchUtils {
             verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         }
 
-        if (keys.length == 0) {
+        if (keys.isEmpty()) {
             return new Record[]{};
         }
 
         try {
-            BatchPolicy batchPolicy = (BatchPolicy) PolicyUtils.enrichPolicyWithTransaction(templateContext.client,
-                PolicyUtils.getBatchPolicyFilterExp(query, templateContext));
-            Record[] aeroRecords;
-            if (binNames != null) {
-                aeroRecords = templateContext.client.get(batchPolicy, keys, binNames);
-            } else {
-                aeroRecords = templateContext.client.get(batchPolicy, keys);
-            }
-            return aeroRecords;
+            BatchPolicy batchPolicy = getBatchPolicyFilterExp(query, templateContext);
+            return batchReadInChunks(batchPolicy, keys, binNames, templateContext);
         } catch (AerospikeException e) {
             throw ExceptionUtils.translateError(e, templateContext.exceptionTranslator);
+        }
+    }
+
+    static Record[] batchReadInChunks(BatchPolicy batchPolicy, Collection<Key> keys, String[] binNames,
+                                      TemplateContext templateContext) {
+        BatchPolicy batchPolicyEnriched = (BatchPolicy) enrichPolicyWithTransaction(templateContext.client,
+            batchPolicy);
+        int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
+
+        // For smaller collections of keys or negative batchSize value read records straight away without chunking
+        if (keys.size() <= batchSize || batchSize < 0) {
+            return batchRead(batchPolicyEnriched, keys.toArray(Key[]::new), binNames, templateContext)
+                .toArray(Record[]::new);
+        }
+
+        // Pre-allocate result list with estimated capacity
+        List<Record> allRecords = new ArrayList<>(keys.size());
+        List<Key> keysChunk = new ArrayList<>(batchSize);
+
+        for (Key key : keys) {
+            keysChunk.add(key);
+            if (keysChunk.size() >= batchSize) {
+                // Process chunk and collect results directly
+                batchRead(batchPolicyEnriched, keysChunk.toArray(Key[]::new), binNames, templateContext)
+                    .forEach(allRecords::add);
+                keysChunk.clear();
+            }
+        }
+
+        // Process any remaining keys
+        if (!keysChunk.isEmpty()) {
+            batchRead(batchPolicyEnriched, keysChunk.toArray(Key[]::new), binNames, templateContext)
+                .forEach(allRecords::add);
+        }
+
+        return allRecords.toArray(Record[]::new);
+    }
+
+    private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
+                                            TemplateContext templateContext) {
+        if (binNames != null) {
+            return Arrays.stream(templateContext.client.get(batchPolicy, keys, binNames));
+        } else {
+            return Arrays.stream(templateContext.client.get(batchPolicy, keys));
         }
     }
 
@@ -381,8 +434,8 @@ public final class BatchUtils {
     static Stream<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query,
                                                        TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
-        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext);
-        Record[] records = findByKeysUsingQuery(keys, null, setName, query, templateContext);
+        Stream<Key> keys = MappingUtils.getKeys(ids, setName, templateContext);
+        Record[] records = findByKeysUsingQuery(keys.toList(), null, setName, query, templateContext);
         return Arrays.stream(records);
     }
 
@@ -409,17 +462,17 @@ public final class BatchUtils {
             return Stream.empty();
         }
 
-        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext);
+        List<Key> keys = MappingUtils.getKeys(ids, setName, templateContext).toList();
         Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
         return IntStream.range(0, records.length)
             .filter(index -> records[index] != null)
-            .mapToObj(index -> new KeyRecord(keys[index], records[index]));
+            .mapToObj(index -> new KeyRecord(keys.get(index), records[index]));
     }
 
     /**
-     * Applies a buffered batch write operation to a collection of documents in a reactive manner. This method chunks
-     * the input documents into batches and performs the specified operation (save, insert, update, delete) for each
-     * batch, returning a {@link Flux} of the processed documents.
+     * Applies a chunked batch write operation to a collection of documents in a reactive manner. This method chunks the
+     * input documents into batches and performs the specified operation (save, insert, update, delete) for each batch,
+     * returning a {@link Flux} of the processed documents.
      *
      * @param <T>             The type of the documents
      * @param documents       Collection of documents to be written
@@ -429,15 +482,21 @@ public final class BatchUtils {
      * @return A {@link Flux} emitting the documents after the batch write operations are complete, or emitting an error
      * if any resulting batch record failed
      */
-    static <T> Flux<T> applyBufferedReactiveBatchWrite(Iterable<? extends T> documents, String setName,
+    static <T> Flux<T> applyReactiveBatchWriteInChunks(Iterable<T> documents, String setName,
                                                        BaseAerospikeTemplate.OperationType operationType,
                                                        TemplateContext templateContext) {
         return Flux.defer(() -> {
             int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-
-            // Create batches
-            return createNullTolerantBatches(documents, batchSize)
-                .concatMap(batch -> batchWriteAllDocumentsReactively(batch, setName, operationType, templateContext));
+            if (batchSize < 0) {
+                // For negative batchSize write records straight away without chunking
+                return batchWriteAllDocumentsReactively(iterableToList(documents), setName, operationType,
+                    templateContext);
+            } else {
+                // Create chunks
+                return createNullTolerantBatches(documents, batchSize)
+                    .concatMap(batch -> batchWriteAllDocumentsReactively(batch, setName, operationType,
+                        templateContext));
+            }
         });
     }
 
@@ -473,17 +532,15 @@ public final class BatchUtils {
                     .map(BatchWriteData::batchRecord)
                     .toList();
 
-                IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-                return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-                        .copyBatchPolicyDefault())
-                    .flatMapMany(batchPolicyEnriched ->
-                        batchWriteReactivelyAndCheckForErrors(
-                            (BatchPolicy) batchPolicyEnriched, batchWriteRecords,
-                            batchWriteDataList,
-                            operationType,
-                            templateContext
-                        )
-                    );
+                BatchPolicy defaultBatchPolicy =
+                    templateContext.reactorClient.getAerospikeClient().copyBatchPolicyDefault();
+                return batchWriteReactivelyAndCheckForErrors(
+                    defaultBatchPolicy,
+                    batchWriteRecords,
+                    batchWriteDataList,
+                    operationType,
+                    templateContext
+                );
             } catch (Exception e) {
                 return Flux.error(e);
             }
@@ -491,12 +548,12 @@ public final class BatchUtils {
     }
 
     /**
-     * Executes a reactive batch write operation and checks for errors, updating document versions. This method wraps
-     * the reactive client's call, translates any errors, and then proceeds to check for and handle errors and update
-     * versions (if applicable) in a reactive chain.
+     * Enriches given {@param batchPolicy} with transaction, executes a reactive batch write operation and checks for
+     * errors, updating document versions. This method wraps the reactive client's call, translates any errors, and then
+     * proceeds to check for and handle errors and update versions (if applicable) in a reactive chain.
      *
      * @param <T>                The type of the documents
-     * @param batchPolicy        The batch policy to apply to the operation
+     * @param batchPolicy        The batch policy to apply
      * @param batchWriteRecords  A list of {@link BatchRecord} objects to be written
      * @param batchWriteDataList A list of {@link BatchWriteData} objects, containing the original documents and their
      *                           corresponding batch records
@@ -510,12 +567,12 @@ public final class BatchUtils {
                                                              List<BatchWriteData<T>> batchWriteDataList,
                                                              BaseAerospikeTemplate.OperationType operationType,
                                                              TemplateContext templateContext) {
-        return templateContext.reactorClient
-            .operate(batchPolicy, batchWriteRecords)
+        return enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy)
+            .flatMap(batchPolicyEnriched ->
+                templateContext.reactorClient.operate((BatchPolicy) batchPolicyEnriched, batchWriteRecords))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator))
-            .flatMap(ignore ->
-                checkForErrorsAndUpdateVersionForReactive(batchWriteDataList, batchWriteRecords, operationType,
-                    templateContext))
+            .flatMap(ignore -> checkForErrorsAndUpdateVersionForReactive(batchWriteDataList, batchWriteRecords,
+                operationType, templateContext))
             .flux()
             .flatMapIterable(list -> list.stream().map(BatchWriteData::document).toList());
     }
@@ -574,9 +631,9 @@ public final class BatchUtils {
     }
 
     /**
-     * Deletes documents by their IDs in a buffered batches reactively. This method takes an iterable of IDs, chunks
-     * them into batches, and then performs the deletion for each batch reactively, returning a {@link Mono} that
-     * completes when all deletions are done.
+     * Deletes documents by their IDs in a chunked batches reactively. This method takes an iterable of IDs, chunks them
+     * into batches, and then performs the deletion for each batch reactively, returning a {@link Mono} that completes
+     * when all deletions are done.
      *
      * @param ids             An iterable collection of document IDs to delete
      * @param setName         The name of the set from which to delete documents
@@ -596,11 +653,16 @@ public final class BatchUtils {
             return Mono.empty();
         }
 
+        int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
+        if (batchSize < 0) {
+            // For negative batchSize write records straight away without chunking
+            return doDeleteByIdsReactively(iterableToList(ids), setName, skipNonExisting, templateContext);
+        }
+
         List<Object> idsList = new ArrayList<>();
         List<Mono<Void>> deleteResults = new ArrayList<>();
         for (Object id : ids) {
-            if (batchWriteSizeMatch(templateContext.converter.getAerospikeDataSettings().getBatchWriteSize(),
-                idsList.size())) {
+            if (batchSizeMatch(batchSize, idsList.size())) {
                 deleteResults.add(doDeleteByIdsReactively(new ArrayList<>(idsList), setName, skipNonExisting,
                     templateContext));
                 idsList.clear();
@@ -677,8 +739,8 @@ public final class BatchUtils {
             return Mono.empty();
         };
 
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-                .copyBatchPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+            .copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, keys))
             .onErrorMap(e -> ExceptionUtils.translateError(e, exceptionTranslator))
             .flatMap(checkForErrors);
@@ -698,8 +760,8 @@ public final class BatchUtils {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
 
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-                .copyBatchPolicyDefault())
+        enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+            .copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, entitiesKeys.getKeys()))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
 
@@ -724,7 +786,7 @@ public final class BatchUtils {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
 
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, batchPolicy)
+        return enrichPolicyWithTransaction(reactorClient, batchPolicy)
             .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched,
                 entitiesKeys.getKeys()))
             .map(item -> MappingUtils.toGroupedEntities(entitiesKeys, item.records, templateContext.converter))
@@ -740,7 +802,7 @@ public final class BatchUtils {
      * @param templateContext The context containing the Aerospike reactive client and query engine
      * @return A {@link BatchPolicy} with or without a filter expression, based on the query
      */
-    static BatchPolicy getBatchPolicyFilterExpForReactive(Query query, TemplateContext templateContext) {
+    static BatchPolicy getBatchPolicyForReactive(Query query, TemplateContext templateContext) {
         if (isQueryCriteriaNotNull(query)) {
             BatchPolicy batchPolicy = templateContext.reactorClient.getAerospikeClient().copyBatchPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
@@ -751,27 +813,113 @@ public final class BatchUtils {
     }
 
     /**
-     * Retrieves a single {@link KeyRecord} from the Aerospike client reactively. This method fetches a record by its
-     * {@link Key}, optionally retrieving only specific bin names if a target class is provided. It enriches the batch
-     * policy with transaction details.
+     * Performs chunked batch read and retrieves a {@link Flux} of {@link KeyRecord} objects. The method enriches the
+     * given batch policy with transaction details. If a target class is provided, only specific bin names based on this
+     * class are retrieved.
      *
      * @param batchPolicy     The batch policy to apply to the operation. Can be null, in which case a default is used
-     * @param key             The {@link Key} of the record to retrieve
-     * @param targetClass     An optional target class; if provided, only bins relevant to this class are retrieved
+     * @param keys            An array of Aerospike client {@link Key}s to retrieve
+     * @param targetClass     If provided, only bins relevant to this class are retrieved; can be {@code null}
      * @param templateContext The context containing Aerospike reactive client, mapping context, and other components
-     * @return A {@link Mono} emitting the {@link KeyRecord} if found, or an empty Mono if not
+     * @return A {@link Flux} of {@link KeyRecord}s
      */
-    static Mono<KeyRecord> getFromClientReactively(BatchPolicy batchPolicy, Key key, Class<?> targetClass,
-                                                   TemplateContext templateContext) {
-        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        if (batchPolicy == null) batchPolicy = reactorClient.getAerospikeClient().copyBatchPolicyDefault();
-        if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass, templateContext.mappingContext);
-            return PolicyUtils.enrichPolicyWithTransaction(reactorClient, batchPolicy)
-                .flatMap(rPolicy -> reactorClient.get(rPolicy, key, binNames));
+    static Flux<KeyRecord> batchReadInChunksReactively(BatchPolicy batchPolicy, Key[] keys,
+                                                       @Nullable Class<?> targetClass,
+                                                       TemplateContext templateContext) {
+        Mono<Policy> policyMono = enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy);
+        int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
+
+        return policyMono
+            .flatMapMany(batchPolicyEnriched -> {
+                if (batchSize < 0) {
+                    // Process all keys in one go without chunking if batchSize value is negative
+                    return batchReadReactively((BatchPolicy) batchPolicyEnriched, keys, targetClass, templateContext)
+                        .flatMapIterable(BatchUtils::keysRecordsToList);
+                } else {
+                    // Read by keys in chunks
+                    return Flux.fromArray(keys)
+                        .buffer(batchSize)
+                        .flatMapSequential(keyList -> {
+                            // Convert each chunk back to array and process
+                            Key[] keysChunk = keyList.toArray(new Key[0]);
+                            return batchReadReactively((BatchPolicy) batchPolicyEnriched, keysChunk, targetClass,
+                                templateContext)
+                                .flatMapIterable(BatchUtils::keysRecordsToList);
+                        }, 1); // Use maximal concurrency of 1 to ensure the chunks are processed in order
+                }
+            });
+    }
+
+    /**
+     * Converts a {@link KeysRecords} object into an {@link Iterable} of {@link KeyRecord} while preserving the original
+     * order.
+     * <br>
+     * This method iterates through the arrays of keys and records within the provided {@link KeysRecords} object and
+     * creates a new {@link KeyRecord} for each corresponding key-record pair, maintaining their original sequence.
+     *
+     * @param keysRecords The {@link KeysRecords} object containing arrays of keys and records
+     * @return An {@link Iterable} of {@link KeyRecord} objects
+     */
+    private static Iterable<? extends KeyRecord> keysRecordsToList(KeysRecords keysRecords) {
+        // Create KeyRecord objects directly while preserving the original order
+        List<KeyRecord> result = new ArrayList<>(keysRecords.keys.length);
+        for (int i = 0; i < keysRecords.keys.length; i++) {
+            result.add(new KeyRecord(keysRecords.keys[i], keysRecords.records[i]));
         }
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, batchPolicy)
-            .flatMap(rPolicy -> reactorClient.get(rPolicy, key));
+        return result;
+    }
+
+    /**
+     * Performs a reactive batch read operation.
+     * <br>
+     * This method asynchronously retrieves records using a provided {@link BatchPolicy}, an array of {@link Key}s, and
+     * an optional target class. If a target class is provided, it retrieves specific bins based on that class.
+     * Otherwise, it retrieves all bins.
+     *
+     * @param batchPolicy     The {@link BatchPolicy} to use for the batch read operation
+     * @param keys            An array of {@link Key}s representing the records to retrieve
+     * @param targetClass     The {@link Class} of the target entity, used to determine bins, can be {@code null}
+     * @param templateContext The template context providing access to the reactive client and mapping context
+     * @return A {@link Mono} that emits a {@link KeysRecords} object containing the retrieved keys and records
+     */
+    private static Mono<KeysRecords> batchReadReactively(BatchPolicy batchPolicy, Key[] keys,
+                                                         @Nullable Class<?> targetClass,
+                                                         TemplateContext templateContext) {
+        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
+        if (targetClass != null) {
+            List<String> binNames = getBinNamesListFromTargetClass(targetClass, templateContext.mappingContext);
+            return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames.toArray(String[]::new)))
+                .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
+        }
+        return reactorClient.get(batchPolicy, keys);
+    }
+
+    /**
+     * Converts an array of {@link Key}s and a list of {@link BatchRead} objects into a {@link Mono} of
+     * {@link KeysRecords}.
+     *
+     * @param keys       An array of {@link Key}s
+     * @param batchReads A {@link List} of {@link BatchRead} objects containing the results of the batch read
+     * @return A {@link Mono} that emits a {@link KeysRecords} object
+     */
+    private static Mono<KeysRecords> batchReadsToKeysRecords(Key[] keys, List<BatchRead> batchReads) {
+        Record[] records = batchReads.stream()
+            .map(batchRead -> batchRead.record)
+            .toArray(Record[]::new);
+
+        return Mono.just(new KeysRecords(keys, records));
+    }
+
+    /**
+     * Creates a list of {@link BatchRead} objects with specified bin names for each key.
+     *
+     * @param keys     An array of {@link Key}s, for each of them a {@link BatchRead} object is created
+     * @param binNames An array of bin names to include in each {@link BatchRead} object
+     * @return A {@link List} of {@link BatchRead} objects
+     */
+    private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, String[] binNames) {
+        return Arrays.stream(keys).map(key -> new BatchRead(key, binNames))
+            .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
     }
 
     /**
@@ -798,13 +946,13 @@ public final class BatchUtils {
         Operation[] operations;
         BatchWritePolicy policy;
         if (entity.hasVersionProperty()) {
-            policy = PolicyUtils.expectGenerationCasAwareBatchPolicy(data, templateContext.batchWritePolicyDefault);
+            policy = expectGenerationCasAwareBatchPolicy(data, templateContext.batchWritePolicyDefault);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = TemplateUtils.getPutAndGetHeaderOperations(data, true);
         } else {
             policy =
-                PolicyUtils.ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE,
+                ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE,
                     templateContext.batchWritePolicyDefault);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
@@ -837,7 +985,7 @@ public final class BatchUtils {
         AerospikePersistentEntity<?> entity =
             templateContext.mappingContext.getRequiredPersistentEntity(document.getClass());
         BatchWritePolicy policy =
-            PolicyUtils.ignoreGenerationBatchPolicy(data, RecordExistsAction.CREATE_ONLY,
+            ignoreGenerationBatchPolicy(data, RecordExistsAction.CREATE_ONLY,
                 templateContext.batchWritePolicyDefault);
         Operation[] operations;
         if (entity.hasVersionProperty()) {
@@ -875,13 +1023,13 @@ public final class BatchUtils {
         BatchWritePolicy policy;
         if (entity.hasVersionProperty()) {
             policy =
-                PolicyUtils.expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
+                expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
                     templateContext.batchWritePolicyDefault);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = TemplateUtils.getPutAndGetHeaderOperations(data, true);
         } else {
-            policy = PolicyUtils.ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
                 templateContext.batchWritePolicyDefault);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
@@ -915,10 +1063,10 @@ public final class BatchUtils {
 
         BatchWritePolicy policy;
         if (entity.hasVersionProperty()) {
-            policy = PolicyUtils.expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
+            policy = expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
                 templateContext.batchWritePolicyDefault);
         } else {
-            policy = PolicyUtils.ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY,
                 templateContext.batchWritePolicyDefault);
         }
         Operation[] operations = Operation.array(Operation.delete());
@@ -936,7 +1084,7 @@ public final class BatchUtils {
      * @return {@code true} if the current size equals the batch size and the batch size is positive, {@code false}
      * otherwise
      */
-    static boolean batchWriteSizeMatch(int batchSize, int currentSize) {
+    static boolean batchSizeMatch(int batchSize, int currentSize) {
         return batchSize > 0 && currentSize == batchSize;
     }
 
@@ -977,7 +1125,7 @@ public final class BatchUtils {
                     currentBatch.add(item);
 
                     // When we hit batch size, emit the batch and start a new one
-                    if (batchWriteSizeMatch(batchSize, currentBatch.size())) {
+                    if (batchSizeMatch(batchSize, currentBatch.size())) {
                         sink.next(new ArrayList<>(currentBatch));
                         currentBatch.clear();
                     }
@@ -993,5 +1141,103 @@ public final class BatchUtils {
                 sink.error(e);
             }
         });
+    }
+
+    /**
+     * Finds entities by their IDs without post-processing.
+     *
+     * <p>This method retrieves a {@link Stream} of entities based on an iterable of IDs, an entity class,
+     * an optional target class, a set name, and an optional query. It maps the records to the entity or target class
+     * without applying further post-processing.</p>
+     *
+     * @param <T>             The type of the entity
+     * @param <S>             The type of the target class to which the entities will be mapped
+     * @param ids             An {@link Iterable} of IDs of the entities to find
+     * @param entityClass     The {@link Class} of the entity
+     * @param targetClass     The {@link Class} to which the retrieved entities will be mapped, can be {@code null}
+     * @param setName         The name of the set where the records are stored
+     * @param query           A {@link Query} to apply filtering or criteria to the search, can be {@code null}
+     * @param templateContext The template context to be used
+     * @return A {@link Stream} of entities, mapped to the target class, without further post-processing
+     */
+    static <T, S> Stream<?> findByIdsWithoutPostProcessing(Iterable<?> ids, Class<T> entityClass,
+                                                           @Nullable Class<S> targetClass, String setName,
+                                                           @Nullable Query query, TemplateContext templateContext) {
+        Assert.notNull(ids, "Ids must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+
+        List<Key> keys = MappingUtils.getKeys(iterableToList(ids), setName, templateContext).toList();
+        String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, templateContext.mappingContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
+
+        return IntStream.range(0, keys.size())
+            .mapToObj(index -> mapToEntity(keys.get(index), getTargetClass(entityClass, targetClass), records[index],
+                templateContext.converter));
+    }
+
+    /**
+     * Finds records reactively by their IDs using a query without entity mapping.
+     *
+     * <p>This method retrieves a {@link Flux} of {@link KeyRecord} instances based on a collection of IDs, a set name,
+     * and an optional query. It performs a batch read in chunks reactively and does not map the results to specific
+     * entity classes.</p>
+     *
+     * @param ids             A {@link Collection} of IDs of the records to find
+     * @param setName         The name of the set where the records are stored
+     * @param query           A {@link Query} to apply filtering or criteria to the search, can be {@code null}
+     * @param templateContext The template context to be used
+     * @return A {@link Flux} of {@link KeyRecord} instances
+     */
+    static Flux<KeyRecord> findByIdsUsingQueryWithoutEntityMappingReactively(Collection<?> ids, String setName,
+                                                                             @Nullable Query query,
+                                                                             TemplateContext templateContext) {
+        Assert.notNull(ids, "Ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+        BatchPolicy batchPolicy = getBatchPolicyForReactive(query, templateContext);
+        Key[] keys = getKeys(iterableToList(ids), setName, templateContext).toArray(Key[]::new);
+
+        return batchReadInChunksReactively(batchPolicy, keys, null, templateContext);
+    }
+
+    /**
+     * Finds entities reactively by their IDs without post-processing.
+     *
+     * <p>This method retrieves a {@link Flux} of entities based on a collection of IDs, an entity class,
+     * an optional target class, a set name, and an optional query. It performs a batch read in chunks reactively and
+     * maps the raw results to the target or entity class without applying further post-processing.</p>
+     *
+     * @param <T>             The type of the entity
+     * @param <S>             The type of the target class to which the entities will be mapped
+     * @param ids             A {@link Collection} of IDs of the entities to find
+     * @param entityClass     The {@link Class} of the entity
+     * @param targetClass     The {@link Class} to which the retrieved entities will be mapped, can be {@code null}
+     * @param setName         The name of the set where the records are stored
+     * @param query           A {@link Query} to apply initial filtering or criteria to the search, can be {@code null}
+     * @param templateContext The template context to be used
+     * @return A {@link Flux} of entities, mapped to the entity or target class, without further post-processing
+     */
+    static <T, S> Flux<?> findByIdsWithoutPostProcessingReactively(Collection<?> ids, Class<T> entityClass,
+                                                                   @Nullable Class<S> targetClass, String setName,
+                                                                   @Nullable Query query,
+                                                                   TemplateContext templateContext) {
+        Assert.notNull(ids, "Ids must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+        BatchPolicy batchPolicy = getBatchPolicyForReactive(query, templateContext);
+        Class<?> targetType = getTargetClass(entityClass, targetClass);
+        Key[] keys = getKeys(iterableToList(ids), setName, templateContext).toArray(Key[]::new);
+
+        return batchReadInChunksReactively(batchPolicy, keys, targetType, templateContext)
+            .filter(keyRecord -> keyRecord != null && keyRecord.record != null)
+            .map(keyRecord -> MappingUtils.mapToEntity(keyRecord.key, targetType, keyRecord.record,
+                templateContext.converter));
     }
 }
