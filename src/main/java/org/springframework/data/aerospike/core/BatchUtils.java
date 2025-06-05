@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -330,13 +329,10 @@ public final class BatchUtils {
      */
     static GroupedEntities findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
-        BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(
-            templateContext.client,
-            templateContext.client.copyBatchPolicyDefault()
-        );
-        Record[] aeroRecords = templateContext.client.get(batchPolicy, entitiesKeys.getKeys());
+        Record[] records =
+            findByKeysUsingQuery(Arrays.stream(entitiesKeys.getKeys()).toList(), null, null, templateContext);
 
-        return MappingUtils.toGroupedEntities(entitiesKeys, aeroRecords, templateContext.converter);
+        return MappingUtils.toGroupedEntities(entitiesKeys, records, templateContext.converter);
     }
 
     /**
@@ -346,17 +342,15 @@ public final class BatchUtils {
      *
      * @param keys            A collection of {@link Key} objects representing the records to retrieve
      * @param binNames        An optional array of bin names to retrieve. If null, all bins are retrieved
-     * @param setName         The name of the set where the records are located
      * @param query           An optional {@link Query} object to apply filters or pagination
      * @param templateContext The context containing Aerospike client, query engine, and exception translator
      * @return An array of {@link Record} objects matching the criteria
      * @throws IllegalArgumentException if keys or set name are null, or if an invalid paginated query is provided
      * @throws AerospikeException       if an error occurs during the batch read
      */
-    static Record[] findByKeysUsingQuery(Collection<Key> keys, @Nullable String[] binNames, String setName,
+    static Record[] findByKeysUsingQuery(Collection<Key> keys, @Nullable String[] binNames,
                                          @Nullable Query query, TemplateContext templateContext) {
         Assert.notNull(keys, "Keys must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
         if (isQueryCriteriaNotNull(query)) {
             // Paginated queries with offset and no sorting (i.e. original order)
             // are only allowed for purely id queries, and not for other queries
@@ -375,6 +369,22 @@ public final class BatchUtils {
         }
     }
 
+    /**
+     * Reads records from the database in chunks.
+     * <br>
+     * This method retrieves records based on a collection of {@link Key}s and an array of bin names.
+     * It enriches the provided {@link BatchPolicy} with transaction information and
+     * reads records in chunks based on the configured batch read size. If the collection
+     * of keys is smaller than or equal to the batch size, or if the batch size is negative,
+     * all records are read at once without chunking. Otherwise, the keys are processed
+     * in batches to optimize performance.
+     *
+     * @param batchPolicy The {@link BatchPolicy} to use for the batch read operation
+     * @param keys A {@link Collection} of {@link Key}s representing the records to retrieve
+     * @param binNames An array of bin names to retrieve for each record. If null, all bins will be retrieved
+     * @param templateContext The template context providing access to the Aerospike client and data settings
+     * @return An array of {@link Record} objects retrieved from the database
+     */
     static Record[] batchReadInChunks(BatchPolicy batchPolicy, Collection<Key> keys, String[] binNames,
                                       TemplateContext templateContext) {
         BatchPolicy batchPolicyEnriched = (BatchPolicy) enrichPolicyWithTransaction(templateContext.client,
@@ -410,6 +420,19 @@ public final class BatchUtils {
         return allRecords.toArray(Record[]::new);
     }
 
+    /**
+     * Performs a batch read operation to retrieve records from the database.
+     * <br>
+     * This method retrieves records based on an array of {@link Key}s and an optional array of bin names.
+     * If bin names are provided, only those specific bins will be retrieved for each record.
+     * Otherwise, all bins for the specified keys will be retrieved.
+     *
+     * @param batchPolicy The {@link BatchPolicy} to use for the batch read operation
+     * @param keys An array of {@link Key}s representing the records to retrieve
+     * @param binNames An array of bin names to retrieve for each record. If null, all bins will be retrieved
+     * @param templateContext The template context providing access to the Aerospike client
+     * @return A {@link Stream} of {@link Record} objects retrieved from the database
+     */
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
         if (binNames != null) {
@@ -435,7 +458,7 @@ public final class BatchUtils {
                                                        TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
         Stream<Key> keys = MappingUtils.getKeys(ids, setName, templateContext);
-        Record[] records = findByKeysUsingQuery(keys.toList(), null, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys.toList(), null, query, templateContext);
         return Arrays.stream(records);
     }
 
@@ -463,7 +486,7 @@ public final class BatchUtils {
         }
 
         List<Key> keys = MappingUtils.getKeys(ids, setName, templateContext).toList();
-        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, query, templateContext);
         return IntStream.range(0, records.length)
             .filter(index -> records[index] != null)
             .mapToObj(index -> new KeyRecord(keys.get(index), records[index]));
@@ -785,12 +808,19 @@ public final class BatchUtils {
                                                                             TemplateContext templateContext) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
 
-        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return enrichPolicyWithTransaction(reactorClient, batchPolicy)
-            .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched,
-                entitiesKeys.getKeys()))
-            .map(item -> MappingUtils.toGroupedEntities(entitiesKeys, item.records, templateContext.converter))
+        return batchReadInChunksReactively(batchPolicy, entitiesKeys.getKeys(), null, templateContext)
+            .collectList()
+            .map(keyRecordsList -> MappingUtils.toGroupedEntities(
+                    entitiesKeys,
+                    getRecordsStream(keyRecordsList).toArray(Record[]::new),
+                    templateContext.converter
+                )
+            )
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
+    }
+
+    private static Stream<Record> getRecordsStream(List<KeyRecord> keyRecordsList) {
+        return keyRecordsList.stream().map(keyRecord -> keyRecord.record);
     }
 
     /**
@@ -826,10 +856,10 @@ public final class BatchUtils {
     static Flux<KeyRecord> batchReadInChunksReactively(BatchPolicy batchPolicy, Key[] keys,
                                                        @Nullable Class<?> targetClass,
                                                        TemplateContext templateContext) {
-        Mono<Policy> policyMono = enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy);
+        Mono<Policy> enrichedPolicyMono = enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy);
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
 
-        return policyMono
+        return enrichedPolicyMono
             .flatMapMany(batchPolicyEnriched -> {
                 if (batchSize < 0) {
                     // Process all keys in one go without chunking if batchSize value is negative
@@ -1168,7 +1198,7 @@ public final class BatchUtils {
 
         List<Key> keys = MappingUtils.getKeys(iterableToList(ids), setName, templateContext).toList();
         String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, templateContext.mappingContext);
-        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, query, templateContext);
 
         return IntStream.range(0, keys.size())
             .mapToObj(index -> mapToEntity(keys.get(index), getTargetClass(entityClass, targetClass), records[index],
