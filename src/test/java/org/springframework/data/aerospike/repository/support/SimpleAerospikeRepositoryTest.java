@@ -25,6 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
@@ -52,6 +56,7 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+//@SpringBootTest(classes = )
 public class SimpleAerospikeRepositoryTest {
 
     @Mock
@@ -60,8 +65,8 @@ public class SimpleAerospikeRepositoryTest {
     AerospikeOperations operations;
     @InjectMocks
     SimpleAerospikeRepository<Person, String> aerospikeRepository;
-    @Autowired
-    AdditionalAerospikeTestOperations additionalAerospikeTestOperations;
+    @Mock
+    MappingAerospikeConverter converter;
 
     Person testPerson;
     List<Person> testPersons;
@@ -98,7 +103,7 @@ public class SimpleAerospikeRepositoryTest {
     @Test
     public void saveIterableOfS() {
         // batch write operations are supported starting with Server version 6.0+
-        List<Person> result = aerospikeRepository.saveAll(testPersons);
+        Iterable<Person> result = aerospikeRepository.saveAll(testPersons);
 
         assertThat(result).isEqualTo(testPersons);
         verify(operations).saveAll(testPersons);
@@ -147,19 +152,16 @@ public class SimpleAerospikeRepositoryTest {
     @Test
     public void findAll() {
         when(operations.findAll(Person.class)).thenReturn(testPersons.stream());
-
-        List<Person> fetchList = aerospikeRepository.findAll();
-
+        Iterable<Person> fetchList = aerospikeRepository.findAll();
         assertThat(fetchList).hasSameElementsAs(testPersons);
     }
 
     @Test
-    public void findAllIterableOfID() {
+    public void findAllByIds() {
         List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
         when(aerospikeRepository.findAllById(ids)).thenReturn(testPersons);
 
         List<Person> fetchList = (List<Person>) aerospikeRepository.findAllById(ids);
-
         assertThat(fetchList).isEqualTo(testPersons);
     }
 

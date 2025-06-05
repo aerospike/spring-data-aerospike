@@ -105,8 +105,8 @@ public class Query {
         for (Order order : sort) {
             if (order.isIgnoreCase()) {
                 throw new IllegalArgumentException(String.format(
-                    "Given sort contained an Order for %s with ignore case! "
-                        + "Aerospike does not support sorting ignoring case currently!",
+                    "Given sort contained an Order for %s with ignoring case. "
+                        + "Currently Aerospike does not support case-ignoring sorting",
                     order.getProperty()));
             }
         }

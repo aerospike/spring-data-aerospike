@@ -23,7 +23,6 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
-import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -51,7 +50,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -63,17 +61,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
-import static java.util.Objects.nonNull;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
+import static org.springframework.data.aerospike.core.BatchUtils.findByIdsWithoutPostProcessingReactively;
 import static org.springframework.data.aerospike.core.TemplateUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.TemplateUtils.operations;
 import static org.springframework.data.aerospike.core.MappingUtils.getTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
 import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -171,7 +170,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             logEmptyItems(log, "Documents for saving");
             return Flux.empty();
         }
-        return BatchUtils.applyBufferedReactiveBatchWrite(documents, setName, SAVE_OPERATION, templateContext);
+        return BatchUtils.applyReactiveBatchWriteInChunks(documents, setName, SAVE_OPERATION, templateContext);
     }
 
     @Override
@@ -207,7 +206,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> insertAll(Iterable<? extends T> documents) {
+    public <T> Flux<T> insertAll(Iterable<  T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for inserting");
             return Flux.empty();
@@ -216,13 +215,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName) {
+    public <T> Flux<T> insertAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for inserting");
             return Flux.empty();
         }
-        return BatchUtils.applyBufferedReactiveBatchWrite(documents, setName, INSERT_OPERATION, templateContext);
+        return BatchUtils.applyReactiveBatchWriteInChunks(documents, setName, INSERT_OPERATION, templateContext);
     }
 
     @Override
@@ -311,7 +310,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> updateAll(Iterable<? extends T> documents) {
+    public <T> Flux<T> updateAll(Iterable<T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for updating");
             return Flux.empty();
@@ -320,13 +319,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName) {
+    public <T> Flux<T> updateAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for updating");
             return Flux.empty();
         }
-        return BatchUtils.applyBufferedReactiveBatchWrite(documents, setName, UPDATE_OPERATION, templateContext);
+        return BatchUtils.applyReactiveBatchWriteInChunks(documents, setName, UPDATE_OPERATION, templateContext);
     }
 
     @Override
@@ -430,7 +429,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteAll(Iterable<T> documents) {
+    public <T> Mono<Void> deleteAll(Iterable<? extends T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for deleting");
             return Mono.empty();
@@ -439,13 +438,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteAll(Iterable<T> documents, String setName) {
+    public <T> Mono<Void> deleteAll(Iterable<? extends T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for deleting");
             return Mono.empty();
         }
-        return BatchUtils.applyBufferedReactiveBatchWrite(documents, setName, DELETE_OPERATION, templateContext).then();
+        return BatchUtils.applyReactiveBatchWriteInChunks(documents, setName, DELETE_OPERATION, templateContext).then();
     }
 
     @Override
@@ -748,24 +747,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> targetClass, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(targetClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        List<Object> idsList = new ArrayList<>();
-        Flux<T> result = Flux.empty();
-        for (Object id : ids) {
-            if (BatchUtils.batchWriteSizeMatch(converter.getAerospikeDataSettings()
-                .getBatchWriteSize(), idsList.size())) {
-                result = Flux.concat(result, findByIdsReactively(idsList, targetClass, setName, templateContext));
-                idsList.clear();
-            }
-            idsList.add(id);
-        }
-        if (!idsList.isEmpty()) {
-            result = Flux.concat(result, findByIdsReactively(idsList, targetClass, setName, templateContext));
-        }
-        return result;
+        //noinspection unchecked
+        return (Flux<T>) findByIdsWithoutPostProcessingReactively(iterableToList(ids), targetClass, null, setName,
+            null, templateContext);
     }
 
     @Override
@@ -826,53 +814,30 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                               String setName, @Nullable Query query) {
-        Flux<?> results = findByIdsWithoutPostProcessing(ids, entityClass, targetClass, setName, query);
+        Flux<?> results =
+            findByIdsWithoutPostProcessingReactively(ids, entityClass, targetClass, setName, query, templateContext);
         return PostProcessingUtils.applyPostProcessingOnResults(results, query);
     }
 
-    public <T, S> Flux<?> findByIdsWithoutPostProcessing(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                                         @Nullable Query query) {
-        return findByIdsWithoutPostProcessing(ids, entityClass, targetClass, getSetName(entityClass), query);
-    }
-
-    public <T, S> Flux<?> findByIdsWithoutPostProcessing(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                                         String setName, @Nullable Query query) {
-        Assert.notNull(ids, "Ids must not be null!");
-        Assert.notNull(entityClass, "Entity class must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        if (ids.isEmpty()) {
-            return Flux.empty();
-        }
-
-        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyFilterExpForReactive(query, templateContext);
-        Class<?> target = getTargetClass(entityClass, targetClass);
-
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName, templateContext))
-            .flatMapSequential(key -> BatchUtils.getFromClientReactively(batchPolicy, key, targetClass,
-                templateContext))
-            .flatMapSequential(keyRecord -> Mono.justOrEmpty(
-                // Completes without emitting in case of null value
-                mapToEntity(keyRecord.key, target, keyRecord.record, templateContext.converter)
-            ));
-    }
-
-    static Flux<?> findByIdsUsingQueryWithoutMappingReactively(Collection<?> ids, String setName, Query query,
-                                                               TemplateContext templateContext) {
-        Assert.notNull(ids, "Ids must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        if (ids.isEmpty()) {
-            return Flux.empty();
-        }
-
-        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyFilterExpForReactive(query, templateContext);
-
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName, templateContext))
-            .flatMap(key -> BatchUtils.getFromClientReactively(batchPolicy, key, null, templateContext))
-            .filter(keyRecord -> nonNull(keyRecord.record));
+    /**
+     * Finds entities reactively by their IDs without post-processing.
+     *
+     * <p>This method retrieves a {@link Flux} of entities based on a collection of IDs, an entity class,
+     * and an optional target class. It uses an optional {@link Query} to filter the results and does not apply
+     * post-processing to the retrieved entities.</p>
+     *
+     * @param <T>         The type of the entity
+     * @param <S>         The type of the target class to which the entities will be mapped
+     * @param ids         A {@link Collection} of IDs of the entities to find
+     * @param entityClass The {@link Class} of the entity
+     * @param targetClass The {@link Class} to map entities to and retrieve bin names from, can be {@code null}
+     * @param query       A {@link Query} to apply additional filtering or criteria to the search, can be {@code null}
+     * @return A {@link Flux} of entities, mapped to the entity or target class, without post-processing
+     */
+    public <T, S> Flux<?> findByIdsWithoutPostProcessing(Collection<?> ids, Class<T> entityClass,
+                                                         @Nullable Class<S> targetClass, @Nullable Query query) {
+        return findByIdsWithoutPostProcessingReactively(ids, entityClass, targetClass, getSetName(entityClass), query,
+            templateContext);
     }
 
     @Override
@@ -899,7 +864,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Entity class must not be null!");
-
         return findAll(entityClass, getSetName(entityClass));
     }
 
@@ -907,7 +871,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
-
         return findAll(targetClass, getSetName(entityClass));
     }
 
@@ -915,7 +878,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Flux<T> findAll(Class<T> targetClass, String setName) {
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-
         return findReactively(setName, targetClass, templateContext);
     }
 
@@ -1007,8 +969,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
-        return findByIdsUsingQueryWithoutMappingReactively(ids, setName, query, templateContext)
-            .filter(Objects::nonNull)
+        return BatchUtils.findByIdsUsingQueryWithoutEntityMappingReactively(ids, setName, query, templateContext)
+            .filter(keyRecord -> keyRecord != null && keyRecord.record != null)
             .hasElements();
     }
 
@@ -1037,8 +999,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
-        return findByIdsUsingQueryWithoutMappingReactively(ids, setName, query, templateContext)
-            .filter(Objects::nonNull)
+        return BatchUtils.findByIdsUsingQueryWithoutEntityMappingReactively(ids, setName, query, templateContext)
+            .filter(keyRecord -> keyRecord != null && keyRecord.record != null)
             .count();
     }
 

@@ -40,15 +40,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Currency;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -226,8 +218,11 @@ public class Utils {
     }
 
     public static <T> List<T> iterableToList(Iterable<T> iterable) {
-        return StreamSupport.stream(iterable.spliterator(), false)
-            .collect(Collectors.toList());
+        if (iterable instanceof List) {
+            // If Iterable is a Collection already, it is cast directly
+            return (List<T>) iterable;
+        }
+        return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
     }
 
     /**

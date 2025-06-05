@@ -199,7 +199,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Flux<T> insertAll(Iterable<? extends T> documents);
+    <T> Flux<T> insertAll(Iterable<T> documents);
 
     /**
      * Reactively insert documents within the given set using one batch request. The policies are analogous to
@@ -219,7 +219,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName);
+    <T> Flux<T> insertAll(Iterable<T> documents, String setName);
 
     /**
      * Reactively persist a document using specified WritePolicy.
@@ -331,7 +331,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Flux<T> updateAll(Iterable<? extends T> documents);
+    <T> Flux<T> updateAll(Iterable<T> documents);
 
     /**
      * Reactively update records within the given set using one batch request. The policies are analogous to
@@ -351,7 +351,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
+    <T> Flux<T> updateAll(Iterable<T> documents, String setName);
 
     /**
      * Reactively delete a record using the document's id.
@@ -435,7 +435,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Mono<Void> deleteAll(Iterable<T> documents);
+    <T> Mono<Void> deleteAll(Iterable<? extends T> documents);
 
     /**
      * Reactively delete multiple records within the given set (overrides the default set associated with the documents)
@@ -453,7 +453,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Mono<Void> deleteAll(Iterable<T> documents, String setName);
+    <T> Mono<Void> deleteAll(Iterable<? extends T> documents, String setName);
 
     /**
      * Reactively delete a record by id, set name will be determined by the given entity class.

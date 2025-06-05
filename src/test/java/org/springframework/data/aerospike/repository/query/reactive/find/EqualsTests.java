@@ -71,7 +71,6 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
         List<Customer> results = reactiveRepository.findAllById(ids)
             .collectList().block();
-
         assertThat(results).containsOnly(marge, matt);
     }
 

@@ -51,19 +51,16 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
-import static org.springframework.data.aerospike.core.BatchUtils.batchWriteSizeMatch;
+import static org.springframework.data.aerospike.core.BatchUtils.batchSizeMatch;
 import static org.springframework.data.aerospike.core.TemplateUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.TemplateUtils.operations;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
-import static org.springframework.data.aerospike.core.MappingUtils.getTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
 import static org.springframework.data.aerospike.core.TemplateUtils.*;
 
@@ -173,7 +170,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             logEmptyItems(log, "Documents for saving");
             return;
         }
-        BatchUtils.applyBufferedBatchWrite(documents, setName, SAVE_OPERATION, templateContext);
+        BatchUtils.applyBatchWriteInChunks(documents, setName, SAVE_OPERATION, templateContext);
     }
 
     @Override
@@ -206,7 +203,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void insertAll(Iterable<? extends T> documents) {
+    public <T> void insertAll(Iterable<T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for inserting");
             return;
@@ -215,13 +212,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void insertAll(Iterable<? extends T> documents, String setName) {
+    public <T> void insertAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for inserting");
             return;
         }
-        BatchUtils.applyBufferedBatchWrite(documents, setName, INSERT_OPERATION, templateContext);
+        BatchUtils.applyBatchWriteInChunks(documents, setName, INSERT_OPERATION, templateContext);
     }
 
     @Override
@@ -320,7 +317,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             logEmptyItems(log, "Documents for updating");
             return;
         }
-        BatchUtils.applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION, templateContext);
+        BatchUtils.applyBatchWriteInChunks(documents, setName, UPDATE_OPERATION, templateContext);
     }
 
     @Override
@@ -401,7 +398,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void deleteAll(Iterable<T> documents) {
+    public <T> void deleteAll(Iterable<? extends T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for deleting");
             return;
@@ -411,7 +408,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> documentsList = new ArrayList<>();
         for (Object document : documents) {
-            if (batchWriteSizeMatch(batchSize, documentsList.size())) {
+            if (batchSizeMatch(batchSize, documentsList.size())) {
                 deleteAll(documentsList, setName);
                 documentsList.clear();
             }
@@ -423,13 +420,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void deleteAll(Iterable<T> documents, String setName) {
+    public <T> void deleteAll(Iterable<? extends T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for deleting");
             return;
         }
-        BatchUtils.applyBufferedBatchWrite(documents, setName, DELETE_OPERATION, templateContext);
+        BatchUtils.applyBatchWriteInChunks(documents, setName, DELETE_OPERATION, templateContext);
     }
 
     @Override
@@ -716,37 +713,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return findByIds(ids, entityClass, targetClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
-        List<Object> idsList = new ArrayList<>();
-        List<S> result = new ArrayList<>();
-
-        for (Object id : ids) {
-            if (batchWriteSizeMatch(batchSize, idsList.size())) {
-                result = Stream.concat(
-                    result.stream(),
-                    (Stream<S>) findByIdsUsingQuery(idsList, entityClass, targetClass, setName, null)
-                        .filter(Objects::nonNull)
-                ).toList();
-                idsList.clear();
-            }
-            idsList.add(id);
-        }
-        if (!idsList.isEmpty()) {
-            result = Stream.concat(
-                result.stream(),
-                (Stream<S>) findByIdsUsingQuery(idsList, entityClass, targetClass, setName, null)
-                    .filter(Objects::nonNull)
-            ).toList();
-        }
-
-        return result;
+        //noinspection unchecked
+        return ((Stream<S>) findByIdsUsingQueryWithPostProcessing(ids, entityClass, targetClass, setName, null,
+            templateContext))
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     @Override
@@ -794,28 +771,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T, S> Stream<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                                 String setName, Query query) {
-        Stream<?> results = findByIdsWithoutPostProcessing(ids, entityClass, targetClass, setName, query);
-        return PostProcessingUtils.applyPostProcessingOnResults(results, query);
+        return findByIdsUsingQueryWithPostProcessing(ids, entityClass, targetClass, setName, query, templateContext);
     }
 
+    /**
+     * Finds entities by their IDs without post-processing.
+     *
+     * <p>This method retrieves a stream of entities based on a collection of IDs, an entity class,
+     * and an optional target class. It uses an optional {@link Query} to filter the results and does not apply
+     * post-processing to the retrieved entities.</p>
+     *
+     * @param <T>         The type of the entity
+     * @param <S>         The type of the target class to which the entities will be mapped
+     * @param ids         A {@link Collection} of IDs of the entities to find
+     * @param entityClass The {@link Class} of the entity
+     * @param targetClass The {@link Class} to map entities to and retrieve bin names from, can be {@code null}
+     * @param query       A {@link Query} to apply additional filtering or criteria to the search, can be {@code null}
+     * @return A {@link Stream} of entities, mapped to the entity or target class, without post-processing
+     */
     public <T, S> Stream<?> findByIdsWithoutPostProcessing(Collection<?> ids, Class<T> entityClass,
-                                                           Class<S> targetClass, Query query) {
-        return findByIdsWithoutPostProcessing(ids, entityClass, targetClass, getSetName(entityClass), query);
-    }
-
-    public <T, S> Stream<?> findByIdsWithoutPostProcessing(Collection<?> ids, Class<T> entityClass,
-                                                           Class<S> targetClass, String setName,
-                                                           Query query) {
-        Assert.notNull(ids, "Ids must not be null!");
-        Assert.notNull(entityClass, "Entity class must not be null!");
-
-        Key[] keys = MappingUtils.getKeys(ids, setName, templateContext);
-        String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, mappingContext);
-        Record[] records = BatchUtils.findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
-
-        return IntStream.range(0, keys.length)
-            .mapToObj(index -> mapToEntity(keys[index], getTargetClass(entityClass, targetClass), records[index],
-                templateContext.converter));
+                                                           @Nullable Class<S> targetClass, @Nullable Query query) {
+        return BatchUtils.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, getSetName(entityClass), query,
+            templateContext);
     }
 
     @Override

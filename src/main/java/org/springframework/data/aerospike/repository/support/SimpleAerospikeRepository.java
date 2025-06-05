@@ -63,13 +63,10 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
      * @param entities must not be {@literal null} nor must it contain {@literal null}.
      * @return List of entities
      */
-    public <S extends T> List<S> saveAll(Iterable<S> entities) {
+    public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Entities for save must not be null!");
-
-        List<S> entitiesList = iterableToList(entities);
-        operations.saveAll(entitiesList);
-
-        return entitiesList;
+        operations.saveAll(entities);
+        return entities;
     }
 
     @Override
@@ -86,7 +83,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public Page<T> findAll(Pageable pageable) {
         if (pageable == null) {
-            List<T> result = findAll();
+            // The implementation returned by findAll() is a List
+            List<T> result = (List<T>) findAll();
             return new PageImpl<>(result, null, result.size());
         }
 
@@ -106,7 +104,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     }
 
     @Override
-    public List<T> findAll() {
+    public Iterable<T> findAll() {
         return operations.findAll(entityInformation.getJavaType()).collect(Collectors.toList());
     }
 

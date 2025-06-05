@@ -45,11 +45,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.nonNull;
 import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
+import static org.springframework.data.aerospike.core.MappingUtils.getKeys;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.MappingUtils.convertIfNecessary;
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
@@ -80,8 +79,8 @@ public class TemplateUtils {
      * @return A {@link ConvertingPropertyAccessor} instance that can be used to set properties on the source object
      * with appropriate type conversions
      */
-    static <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source,
-                                                                 MappingAerospikeConverter converter) {
+    private static <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source,
+                                                                         MappingAerospikeConverter converter) {
         PersistentPropertyAccessor<T> accessor = entity.getPropertyAccessor(source);
         return new ConvertingPropertyAccessor<>(accessor, converter.getConversionService());
     }
@@ -91,22 +90,21 @@ public class TemplateUtils {
      * typically called after a successful write operation to synchronize the document's in-memory version with the
      * actual generation value stored in the Aerospike database.
      *
-     * @param <T>                The type of the document
-     * @param document           The document object whose version needs to be updated. This object will be modified
-     * @param newAeroRecord      The new {@link Record} returned from Aerospike after a write operation, which contains
-     *                           the updated generation value
-     * @param templateParameters The {@link TemplateContext} providing necessary services like mapping context and
-     *                           converter to access and update the version property
+     * @param <T>             The type of the document
+     * @param document        The document object whose version needs to be updated. This object will be modified
+     * @param newAeroRecord   The new {@link Record} returned from Aerospike after a write operation, which contains the
+     *                        updated generation value
+     * @param templateContext The {@link TemplateContext} providing necessary services like mapping context and
+     *                        converter to access and update the version property
      * @return The updated document object with its version property set to the {@code newAeroRecord.generation}
      * @throws IllegalStateException if the entity does not have a required version property defined, which is essential
      *                               for optimistic locking
      */
-    static <T> T updateVersion(T document, Record newAeroRecord,
-                               TemplateContext templateParameters) {
+    static <T> T updateVersion(T document, Record newAeroRecord, TemplateContext templateContext) {
         AerospikePersistentEntity<?> entity =
-            templateParameters.mappingContext.getRequiredPersistentEntity(document.getClass());
+            templateContext.mappingContext.getRequiredPersistentEntity(document.getClass());
         ConvertingPropertyAccessor<T> propertyAccessor =
-            getPropertyAccessor(entity, document, templateParameters.converter);
+            getPropertyAccessor(entity, document, templateContext.converter);
         AerospikePersistentProperty versionProperty = entity.getRequiredVersionProperty();
         propertyAccessor.setProperty(versionProperty, newAeroRecord.generation);
         return document;
@@ -200,6 +198,7 @@ public class TemplateUtils {
      */
     static Record getRecord(AerospikePersistentEntity<?> entity, Key key, @Nullable Query query,
                             TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
@@ -235,6 +234,7 @@ public class TemplateUtils {
      */
     static <T> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<T> targetClass,
                                                 @Nullable Query query, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         Record aeroRecord;
         String[] binNames = getBinNamesFromTargetClass(targetClass, templateContext.mappingContext);
         if (entity.isTouchOnRead()) {
@@ -261,8 +261,10 @@ public class TemplateUtils {
      *                        {@code null}
      * @return The {@link Record} retrieved
      */
-    static Record touchAndGet(Key key, int expiration, TemplateContext templateContext, @Nullable String[] binNames,
-                              @Nullable Query query) {
+    private static Record touchAndGet(Key key, int expiration, TemplateContext templateContext,
+                                      @Nullable String[] binNames, @Nullable Query query) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         WritePolicyBuilder writePolicyBuilder =
             WritePolicyBuilder.builder(templateContext.client.copyWritePolicyDefault()).expiration(expiration);
 
@@ -305,6 +307,8 @@ public class TemplateUtils {
      * @throws AerospikeException if an error occurs during reading
      */
     static <T> Stream<T> find(Class<T> targetClass, String setName, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return findRecordsUsingQuery(setName, targetClass, null, templateContext)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
@@ -324,6 +328,8 @@ public class TemplateUtils {
      */
     static <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query,
                                                 TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Stream<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass, getDistinctPredicate(query),
             query, templateContext);
@@ -345,6 +351,8 @@ public class TemplateUtils {
     static <T> Stream<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
                                                              Predicate<KeyRecord> distinctPredicate,
                                                              Query query, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return findRecordsUsingQuery(setName, targetClass, query, templateContext)
             .filter(distinctPredicate)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
@@ -365,6 +373,7 @@ public class TemplateUtils {
     static Stream<KeyRecord> findExistingKeyRecordsUsingQuery(String setName, Query query,
                                                               TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         if (qualifier != null) {
@@ -408,6 +417,7 @@ public class TemplateUtils {
     @SuppressWarnings("UnusedReturnValue")
     static Record doPersistAndHandleError(AerospikeWriteData data, WritePolicy writePolicy, Operation[] operations,
                                           TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         try {
             WritePolicy writePolicyEnriched =
                 (WritePolicy) PolicyUtils.enrichPolicyWithTransaction(templateContext.client, writePolicy);
@@ -436,6 +446,7 @@ public class TemplateUtils {
                                                           WritePolicy writePolicy, boolean firstlyDeleteBins,
                                                           BaseAerospikeTemplate.OperationType operationType,
                                                           TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         try {
             Record newAeroRecord = putAndGetHeader(data, writePolicy, firstlyDeleteBins, templateContext);
             updateVersion(document, newAeroRecord, templateContext);
@@ -460,6 +471,7 @@ public class TemplateUtils {
      */
     static <T> void doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy writePolicy,
                                                        TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         try {
             Record newAeroRecord = putAndGetHeader(data, writePolicy, false, templateContext);
             updateVersion(document, newAeroRecord, templateContext);
@@ -479,8 +491,9 @@ public class TemplateUtils {
      * @return The {@link Record} header after the put operation
      * @throws AerospikeException if client operate command fails
      */
-    static Record putAndGetHeader(AerospikeWriteData data, WritePolicy writePolicy, boolean firstlyDeleteBins,
-                                  TemplateContext templateContext) {
+    private static Record putAndGetHeader(AerospikeWriteData data, WritePolicy writePolicy, boolean firstlyDeleteBins,
+                                          TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         Key key = data.getKey();
         Operation[] operations = getPutAndGetHeaderOperations(data, firstlyDeleteBins);
         WritePolicy writePolicyEnriched =
@@ -506,6 +519,7 @@ public class TemplateUtils {
     @SuppressWarnings("SameParameterValue")
     static <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Sort sort, long offset,
                                                 long limit, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         verifyUnsortedWithOffset(sort, offset);
         Stream<T> results = find(targetClass, setName, templateContext);
         return PostProcessingUtils.applyPostProcessingOnResults(results, sort, offset, limit);
@@ -524,14 +538,14 @@ public class TemplateUtils {
      *                        necessary components
      * @return A {@link Stream} of {@link KeyRecord}s that match the query
      */
-    static <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query,
-                                                       TemplateContext templateContext) {
+    private static <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query,
+                                                               TemplateContext templateContext) {
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a separate flow for a query for id equality
+                // a separate flow for id equality query
                 return BatchUtils.findExistingByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
@@ -577,46 +591,14 @@ public class TemplateUtils {
     static <T> Mono<T> executeOperationsReactivelyOnValue(T document, AerospikeWriteData data,
                                                           WritePolicy writePolicy, Operation[] operations,
                                                           TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return templateContext.reactorClient.operate(writePolicy, data.getKey(), operations)
             .filter(keyRecord -> Objects.nonNull(keyRecord.record))
             .map(keyRecord ->
                 MappingUtils.mapToEntity(keyRecord.key, MappingUtils.getEntityClass(document), keyRecord.record,
                     templateContext.converter))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
-    }
-
-    /**
-     * Finds documents reactively by a collection of IDs within a specified set. This method constructs Aerospike keys
-     * from the provided IDs and uses a reactive batch get operation. The retrieved {@link KeyRecord}s are then mapped
-     * to the target class.
-     *
-     * @param <T>             The type of the target class
-     * @param ids             A collection of IDs to query for
-     * @param targetClass     The class of the entities to be returned
-     * @param setName         The name of the set to query
-     * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client and converter
-     * @return A {@link Flux} that emits the found entities
-     * @throws AerospikeException in case of an error during reading
-     */
-    static <T> Flux<T> findByIdsReactively(Collection<?> ids, Class<T> targetClass, String setName,
-                                           TemplateContext templateContext) {
-        Key[] keys = iterableToList(ids).stream()
-            .map(id -> getKey(id, setName, templateContext))
-            .toArray(Key[]::new);
-
-        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return PolicyUtils.enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-                .copyBatchPolicyDefault())
-            .flatMap(batchPolicy -> reactorClient.get((BatchPolicy) batchPolicy, keys))
-            .flatMap(kr -> Mono.just(kr.asMap()))
-            .flatMapMany(keyRecordMap -> {
-                List<T> entities = keyRecordMap.entrySet().stream()
-                    .filter(entry -> entry.getValue() != null)
-                    .map(entry -> MappingUtils.mapToEntity(entry.getKey(), targetClass, entry.getValue(),
-                        templateContext.converter))
-                    .collect(Collectors.toList());
-                return Flux.fromIterable(entities);
-            });
     }
 
     /**
@@ -655,6 +637,7 @@ public class TemplateUtils {
     static Flux<KeyRecord> findExistingKeyRecordsUsingQueryReactively(String setName, Query query,
                                                                       TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         if (qualifier != null) {
@@ -689,7 +672,9 @@ public class TemplateUtils {
      */
     static <T> Mono<T> doPersistAndHandleErrorReactively(T document, AerospikeWriteData data, WritePolicy writePolicy,
                                                          Operation[] operations, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
+
         return PolicyUtils.enrichPolicyWithTransaction(reactorClient, writePolicy)
             .flatMap(writePolicyEnriched ->
                 reactorClient.operate((WritePolicy) writePolicyEnriched, data.getKey(), operations))
@@ -717,6 +702,8 @@ public class TemplateUtils {
                                                                        WritePolicy writePolicy, Operation[] operations,
                                                                        BaseAerospikeTemplate.OperationType operationType,
                                                                        TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return PolicyUtils.enrichPolicyWithTransaction(templateContext.reactorClient, writePolicy)
             .flatMap(writePolicyEnriched -> putAndGetHeaderForReactive(data, (WritePolicy) writePolicyEnriched,
                 operations, templateContext))
@@ -744,6 +731,8 @@ public class TemplateUtils {
     static <T> Mono<T> doPersistWithVersionAndHandleErrorReactively(T document, AerospikeWriteData data,
                                                                     WritePolicy writePolicy, Operation[] operations,
                                                                     TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return PolicyUtils.enrichPolicyWithTransaction(templateContext.reactorClient, writePolicy)
             .flatMap(writePolicyEnriched ->
                 putAndGetHeaderForReactive(data, (WritePolicy) writePolicyEnriched, operations, templateContext))
@@ -760,8 +749,8 @@ public class TemplateUtils {
      * @param templateContext The {@link TemplateContext} containing the reactive Aerospike client
      * @return A {@link Mono} that emits the {@link Record} header after the put operation
      */
-    static Mono<Record> putAndGetHeaderForReactive(AerospikeWriteData data, WritePolicy writePolicy,
-                                                   Operation[] operations, TemplateContext templateContext) {
+    private static Mono<Record> putAndGetHeaderForReactive(AerospikeWriteData data, WritePolicy writePolicy,
+                                                           Operation[] operations, TemplateContext templateContext) {
         return templateContext.reactorClient.operate(writePolicy, data.getKey(), operations)
             .map(keyRecord -> keyRecord.record);
     }
@@ -782,6 +771,7 @@ public class TemplateUtils {
      */
     static Mono<KeyRecord> touchAndGetReactively(Key key, int expiration, String[] binNames, Query query,
                                                  TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(templateContext.writePolicyDefault)
             .expiration(expiration);
 
@@ -823,6 +813,7 @@ public class TemplateUtils {
      */
     static <T> Flux<T> findWithPostProcessingReactively(String setName, Class<T> targetClass, Query query,
                                                         TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Flux<T> results = findUsingQueryWithDistinctPredicateReactively(setName, targetClass,
             getDistinctPredicate(query), query, templateContext);
@@ -848,6 +839,7 @@ public class TemplateUtils {
     @SuppressWarnings("SameParameterValue")
     static <T> Flux<T> findWithPostProcessingReactively(String setName, Class<T> targetClass, Sort sort, long offset,
                                                         long limit, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         verifyUnsortedWithOffset(sort, offset);
         Flux<T> results = findReactively(setName, targetClass, templateContext);
         results = PostProcessingUtils.applyPostProcessingOnResults(results, sort, offset, limit);
@@ -866,6 +858,7 @@ public class TemplateUtils {
      * @throws AerospikeException if there is an error during reading
      */
     static <T> Flux<T> findReactively(String setName, Class<T> targetClass, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         return findRecordsUsingQueryReactively(setName, targetClass, null, templateContext)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
     }
@@ -886,6 +879,7 @@ public class TemplateUtils {
     static <T> Flux<T> findUsingQueryWithDistinctPredicateReactively(String setName, Class<T> targetClass,
                                                                      Predicate<KeyRecord> distinctPredicate,
                                                                      Query query, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         return findRecordsUsingQueryReactively(setName, targetClass, query, templateContext)
             .filter(distinctPredicate)
             .map(keyRecord -> MappingUtils.mapToEntity(keyRecord, targetClass, templateContext.converter));
@@ -906,13 +900,14 @@ public class TemplateUtils {
      * @return A {@link Flux} of {@link KeyRecord}s that match the query
      * @throws AerospikeException if there is an error during reading
      */
-    static <T> Flux<KeyRecord> findRecordsUsingQueryReactively(String setName, Class<T> targetClass, Query query,
-                                                               TemplateContext templateContext) {
+    private static <T> Flux<KeyRecord> findRecordsUsingQueryReactively(String setName, Class<T> targetClass,
+                                                                       Query query,
+                                                                       TemplateContext templateContext) {
         Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a separate flow for a query for id equality
+                // a separate flow for id equality query
                 return findExistingByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
@@ -948,22 +943,23 @@ public class TemplateUtils {
      * @throws IllegalArgumentException if {@code ids} or {@code setName} is null
      * @throws AerospikeException       in case of an error during reading
      */
-    static <T> Flux<KeyRecord> findExistingByIdsWithoutEntityMappingReactively(Collection<?> ids, String setName,
-                                                                               Class<T> targetClass, Query query,
-                                                                               TemplateContext templateContext) {
+    private static <T> Flux<KeyRecord> findExistingByIdsWithoutEntityMappingReactively(Collection<?> ids,
+                                                                                       String setName,
+                                                                                       Class<T> targetClass,
+                                                                                       Query query,
+                                                                                       TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         if (ids.isEmpty()) {
             return Flux.empty();
         }
 
-        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyFilterExpForReactive(query, templateContext);
+        BatchPolicy batchPolicy = BatchUtils.getBatchPolicyForReactive(query, templateContext);
+        Key[] keys = getKeys(iterableToList(ids), setName, templateContext).toArray(Key[]::new);
 
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName, templateContext))
-            .flatMap(key -> BatchUtils.getFromClientReactively(batchPolicy, key, targetClass, templateContext))
-            .filter(keyRecord -> nonNull(keyRecord.record));
+        return BatchUtils.batchReadInChunksReactively(batchPolicy, keys, targetClass, templateContext)
+            .filter(keyRecord -> keyRecord != null && keyRecord.record != null);
     }
 
     /**
@@ -1023,6 +1019,8 @@ public class TemplateUtils {
      * @return An {@link AerospikeWriteData} object containing the key, set name, and bins
      */
     static <T> AerospikeWriteData writeData(T document, String setName, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         AerospikeWriteData data = AerospikeWriteData.forWrite(templateContext.namespace);
         data.setSetName(setName);
         templateContext.converter.write(document, data);
@@ -1043,6 +1041,8 @@ public class TemplateUtils {
      */
     static <T> AerospikeWriteData writeDataWithSpecificFields(T document, String setName, Collection<String> fields,
                                                               TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         AerospikeWriteData data = AerospikeWriteData.forWrite(templateContext.namespace);
         data.setSetName(setName);
         data.setRequestedBins(MappingUtils.fieldsToBinNames(document, fields, templateContext));
@@ -1077,6 +1077,7 @@ public class TemplateUtils {
     static Key getKey(Object id, String setName, TemplateContext templateContext) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         // Choosing whether to preserve id type based on the configuration
         if (templateContext.converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
@@ -1255,5 +1256,32 @@ public class TemplateUtils {
         }
 
         return distinctPredicate;
+    }
+
+    /**
+     * Finds entities by their IDs using a query and applies post-processing to the results.
+     *
+     * <p>This method retrieves a stream of entities based on an Iterable of IDs, an entity class, and a target class.
+     * It utilizes a provided {@link Query} for filtering and then applies post-processing to the retrieved entities
+     * using {@link PostProcessingUtils#applyPostProcessingOnResults}.</p>
+     *
+     * @param <T>             The type of the entity
+     * @param <S>             The type of the target class to which the entities will be mapped
+     * @param ids             An {@link Iterable} of IDs of the entities to find
+     * @param entityClass     The {@link Class} of the entity
+     * @param targetClass     The {@link Class} to which the retrieved entities will be mapped, can be {@code null}
+     * @param setName         The name of the set where the entities are stored
+     * @param query           A {@link Query} to apply initial filtering or criteria to the search, can be {@code null}
+     * @param templateContext The template context to be used
+     * @return A {@link Stream} of entities, mapped to the target class, after post-processing
+     */
+    static <T, S> Stream<?> findByIdsUsingQueryWithPostProcessing(Iterable<?> ids, Class<T> entityClass,
+                                                                  @Nullable Class<S> targetClass, String setName,
+                                                                  @Nullable Query query,
+                                                                  TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+        Stream<?> results = BatchUtils.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, setName, query,
+            templateContext);
+        return PostProcessingUtils.applyPostProcessingOnResults(results, query);
     }
 }

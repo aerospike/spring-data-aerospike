@@ -220,7 +220,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void insertAll(Iterable<? extends T> documents);
+    <T> void insertAll(Iterable<T> documents);
 
     /**
      * Insert multiple documents within the given set (overrides the set associated with the document) in one batch
@@ -239,7 +239,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void insertAll(Iterable<? extends T> documents, String setName);
+    <T> void insertAll(Iterable<T> documents, String setName);
 
     /**
      * Persist a document using specified WritePolicy.
@@ -449,7 +449,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void deleteAll(Iterable<T> documents);
+    <T> void deleteAll(Iterable<? extends T> documents);
 
     /**
      * Delete multiple records within the given set (overrides the default set associated with the documents) in one
@@ -467,7 +467,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void deleteAll(Iterable<T> documents, String setName);
+    <T> void deleteAll(Iterable<? extends T> documents, String setName);
 
     /**
      * Delete a record by id, set name will be determined by the given entityClass.

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
@@ -177,7 +178,7 @@ public class MappingUtils {
         Assert.notNull(ids, "List of ids must not be null!");
 
         AerospikePersistentEntity<?> entity = templateContext.mappingContext.getRequiredPersistentEntity(entityClass);
-        List<?> idsList = iterableToList(ids);
+        Collection<?> idsList = iterableToList(ids);
 
         return idsList.stream()
             .map(id -> TemplateUtils.getKey(id, entity, templateContext))
@@ -269,6 +270,20 @@ public class MappingUtils {
     public static String[] getBinNamesFromTargetClass(Class<?> targetClass,
                                                       MappingContext<BasicAerospikePersistentEntity<?>,
                                                           AerospikePersistentProperty> mappingContext) {
+        return getBinNamesListFromTargetClass(targetClass, mappingContext).toArray(new String[0]);
+    }
+
+    /**
+     * Retrieves a list of bin names for a given target class based on its persistent properties. This method iterates
+     * through the properties of the target entity and collects their field names, excluding the ID property.
+     *
+     * @param targetClass    The class for which to retrieve bin names
+     * @param mappingContext The mapping context used to retrieve persistent entity information
+     * @return A list of strings representing the bin names associated with the target class's properties
+     */
+    public static List<String> getBinNamesListFromTargetClass(Class<?> targetClass,
+                                                              MappingContext<BasicAerospikePersistentEntity<?>,
+                                                                  AerospikePersistentProperty> mappingContext) {
         AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
 
         List<String> binNamesList = new ArrayList<>();
@@ -280,7 +295,7 @@ public class MappingUtils {
                 }
             });
 
-        return binNamesList.toArray(new String[0]);
+        return binNamesList;
     }
 
     /**
@@ -303,11 +318,10 @@ public class MappingUtils {
      * @param ids             A collection of IDs
      * @param setName         The name of the set associated with the keys
      * @param templateContext The context containing template dependencies for key generation
-     * @return An array of Aerospike {@link Key} objects
+     * @return A Stream of Aerospike {@link Key} objects
      */
-    static Key[] getKeys(Collection<?> ids, String setName, TemplateContext templateContext) {
+    static Stream<Key> getKeys(Collection<?> ids, String setName, TemplateContext templateContext) {
         return ids.stream()
-            .map(id -> TemplateUtils.getKey(id, setName, templateContext))
-            .toArray(Key[]::new);
+            .map(id -> TemplateUtils.getKey(id, setName, templateContext));
     }
 }
