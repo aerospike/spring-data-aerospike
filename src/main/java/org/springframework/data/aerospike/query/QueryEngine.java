@@ -100,9 +100,9 @@ public class QueryEngine {
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        // query with filters
-        if (query != null) {
-            // dataSettings provided to be used in FilterOperation
+        // Query with filters
+        if (isQueryCriteriaNotNull(query) && query.getCriteriaObject() != null) {
+            // Provide dataSettings to use in FilterOperation
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
 

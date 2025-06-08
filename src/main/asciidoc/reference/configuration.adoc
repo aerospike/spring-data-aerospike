@@ -313,16 +313,17 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 *Default*: `10 000`.
 
-[[configuration.batch-write-size]]
-=== batchWriteSize
+[[configuration.batch-read-size]]
+=== batchReadSize
 
 [source,properties]
 ----
 # application.properties
-spring.data.aerospike.batch-write-size=100
+spring.data.aerospike.batch-read-size=100
 ----
 
-Maximum batch size for batch write operations. Non-positive value means no limit.
+Maximal batch size for batch read operations. Query data larger than the specified batch-read-size will be firstly
+chunked into segments. Non-positive value of the batch-read-size parameter means no limit.
 
 NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
@@ -335,7 +336,37 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
-        aerospikeDataSettings.setBatchWriteSize(100);
+        aerospikeDataSettings.setBatchReadSize(1000);
+    }
+}
+----
+
+*Default*: `100`.
+
+[[configuration.batch-write-size]]
+=== batchWriteSize
+
+[source,properties]
+----
+# application.properties
+spring.data.aerospike.batch-write-size=100
+----
+
+Maximal batch size for batch write operations. Query data larger than the specified batch-write-size will be firstly
+chunked into segments. Non-positive value of the batch-write-size parameter means no limit.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+        aerospikeDataSettings.setBatchWriteSize(1000);
     }
 }
 ----

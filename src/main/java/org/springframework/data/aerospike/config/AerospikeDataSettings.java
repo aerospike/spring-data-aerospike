@@ -40,6 +40,8 @@ public class AerospikeDataSettings {
     int serverVersionRefreshSeconds = 3600;
     // Limit amount of results returned by server. Non-positive value means no limit
     long queryMaxRecords = 10_000L;
+    // Maximum batch size for batch read operations
+    int batchReadSize = 100;
     // Maximum batch size for batch write operations
     int batchWriteSize = 100;
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
