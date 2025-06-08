@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -73,13 +72,13 @@ public final class BatchUtils {
     static <T> void applyBatchWriteInChunks(Iterable<T> documents, String setName,
                                             BaseAerospikeTemplate.OperationType operationType,
                                             TemplateContext templateContext) {
-
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(templateContext.client,
             templateContext.client.copyBatchPolicyDefault());
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-        if (batchSize < 0) {
-            // For negative batchSize write records straight away without chunking
+        if (batchSize <= 0) {
+            // For non-positive batchSize, write records straight away without chunking
             batchWriteAllDocuments(iterableToList(documents), setName, operationType, batchPolicy, templateContext);
             return;
         }
@@ -212,14 +211,15 @@ public final class BatchUtils {
     static void deleteByIds(Iterable<?> ids, String setName, boolean skipNonExisting,
                             TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         if (isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
             return;
         }
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-        if (batchSize < 0) {
-            // For negative batchSize write records straight away without chunking
+        if (batchSize <= 0) {
+            // For non-positive batchSize, write records straight away without chunking
             doDeleteByIds(iterableToList(ids), setName, skipNonExisting, templateContext);
             return;
         }
@@ -252,8 +252,8 @@ public final class BatchUtils {
      * @throws IllegalArgumentException if the set name is null
      * @throws AerospikeException       if there is an error during batch delete
      */
-    static void doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting,
-                              TemplateContext templateContext) {
+    private static void doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting,
+                                      TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
         if (isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -274,6 +274,7 @@ public final class BatchUtils {
      * @throws AerospikeException if an error occurs during batch delete
      */
     static void deleteGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
         deleteAndHandleErrors(templateContext.client, entitiesKeys.getKeys(), false,
             templateContext.exceptionTranslator);
@@ -294,8 +295,8 @@ public final class BatchUtils {
      * @throws com.aerospike.client.AerospikeException.BatchRecordArray if one of resulting batch records has error
      *                                                                  result code or is null
      */
-    static void deleteAndHandleErrors(IAerospikeClient client, Key[] keys, boolean skipNonExisting,
-                                      AerospikeExceptionTranslator exceptionTranslator) {
+    private static void deleteAndHandleErrors(IAerospikeClient client, Key[] keys, boolean skipNonExisting,
+                                              AerospikeExceptionTranslator exceptionTranslator) {
         BatchResults results;
         try {
             BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client,
@@ -329,14 +330,12 @@ public final class BatchUtils {
      * @throws AerospikeException if an error occurs during the batch read
      */
     static GroupedEntities findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
-        BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(
-            templateContext.client,
-            templateContext.client.copyBatchPolicyDefault()
-        );
-        Record[] aeroRecords = templateContext.client.get(batchPolicy, entitiesKeys.getKeys());
+        Record[] records =
+            findByKeysUsingQuery(Arrays.stream(entitiesKeys.getKeys()).toList(), null, null, templateContext);
 
-        return MappingUtils.toGroupedEntities(entitiesKeys, aeroRecords, templateContext.converter);
+        return MappingUtils.toGroupedEntities(entitiesKeys, records, templateContext.converter);
     }
 
     /**
@@ -346,17 +345,15 @@ public final class BatchUtils {
      *
      * @param keys            A collection of {@link Key} objects representing the records to retrieve
      * @param binNames        An optional array of bin names to retrieve. If null, all bins are retrieved
-     * @param setName         The name of the set where the records are located
      * @param query           An optional {@link Query} object to apply filters or pagination
      * @param templateContext The context containing Aerospike client, query engine, and exception translator
      * @return An array of {@link Record} objects matching the criteria
      * @throws IllegalArgumentException if keys or set name are null, or if an invalid paginated query is provided
      * @throws AerospikeException       if an error occurs during the batch read
      */
-    static Record[] findByKeysUsingQuery(Collection<Key> keys, @Nullable String[] binNames, String setName,
-                                         @Nullable Query query, TemplateContext templateContext) {
+    private static Record[] findByKeysUsingQuery(Collection<Key> keys, @Nullable String[] binNames,
+                                                 @Nullable Query query, TemplateContext templateContext) {
         Assert.notNull(keys, "Keys must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
         if (isQueryCriteriaNotNull(query)) {
             // Paginated queries with offset and no sorting (i.e. original order)
             // are only allowed for purely id queries, and not for other queries
@@ -375,14 +372,29 @@ public final class BatchUtils {
         }
     }
 
-    static Record[] batchReadInChunks(BatchPolicy batchPolicy, Collection<Key> keys, String[] binNames,
-                                      TemplateContext templateContext) {
+    /**
+     * Reads records from the database in chunks.
+     * <br>
+     * This method retrieves records based on a collection of {@link Key}s and an array of bin names. It enriches the
+     * provided {@link BatchPolicy} with transaction information and reads records in chunks based on the configured
+     * batch read size. If the collection of keys is smaller than or equal to the batch size, or if the batch size is
+     * non-positive, all records are read at once without chunking. Otherwise, the keys are processed in batches to optimize
+     * performance.
+     *
+     * @param batchPolicy     The {@link BatchPolicy} to use for the batch read operation
+     * @param keys            A {@link Collection} of {@link Key}s representing the records to retrieve
+     * @param binNames        An array of bin names to retrieve for each record. If null, all bins will be retrieved
+     * @param templateContext The template context providing access to the Aerospike client and data settings
+     * @return An array of {@link Record} objects retrieved from the database
+     */
+    private static Record[] batchReadInChunks(BatchPolicy batchPolicy, Collection<Key> keys, String[] binNames,
+                                              TemplateContext templateContext) {
         BatchPolicy batchPolicyEnriched = (BatchPolicy) enrichPolicyWithTransaction(templateContext.client,
             batchPolicy);
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
 
-        // For smaller collections of keys or negative batchSize value read records straight away without chunking
-        if (keys.size() <= batchSize || batchSize < 0) {
+        // For smaller collections of keys or non-positive batchSize, read records straight away without chunking
+        if (keys.size() <= batchSize || batchSize <= 0) {
             return batchRead(batchPolicyEnriched, keys.toArray(Key[]::new), binNames, templateContext)
                 .toArray(Record[]::new);
         }
@@ -410,13 +422,25 @@ public final class BatchUtils {
         return allRecords.toArray(Record[]::new);
     }
 
+    /**
+     * Performs a batch read operation to retrieve records from the database.
+     * <br>
+     * This method retrieves records based on an array of {@link Key}s and an optional array of bin names. If bin names
+     * are provided, only those specific bins will be retrieved for each record. Otherwise, all bins for the specified
+     * keys will be retrieved.
+     *
+     * @param batchPolicy     The {@link BatchPolicy} to use for the batch read operation
+     * @param keys            An array of {@link Key}s representing the records to retrieve
+     * @param binNames        An array of bin names to retrieve for each record. If null, all bins will be retrieved
+     * @param templateContext The template context providing access to the Aerospike client
+     * @return A {@link Stream} of {@link Record} objects retrieved from the database
+     */
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
         if (binNames != null) {
             return Arrays.stream(templateContext.client.get(batchPolicy, keys, binNames));
-        } else {
-            return Arrays.stream(templateContext.client.get(batchPolicy, keys));
         }
+        return Arrays.stream(templateContext.client.get(batchPolicy, keys));
     }
 
     /**
@@ -434,8 +458,10 @@ public final class BatchUtils {
     static Stream<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query,
                                                        TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         Stream<Key> keys = MappingUtils.getKeys(ids, setName, templateContext);
-        Record[] records = findByKeysUsingQuery(keys.toList(), null, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys.toList(), null, query, templateContext);
         return Arrays.stream(records);
     }
 
@@ -458,12 +484,13 @@ public final class BatchUtils {
                                                                    @Nullable Query query,
                                                                    TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         if (ids.isEmpty()) {
             return Stream.empty();
         }
 
         List<Key> keys = MappingUtils.getKeys(ids, setName, templateContext).toList();
-        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, query, templateContext);
         return IntStream.range(0, records.length)
             .filter(index -> records[index] != null)
             .mapToObj(index -> new KeyRecord(keys.get(index), records[index]));
@@ -485,18 +512,19 @@ public final class BatchUtils {
     static <T> Flux<T> applyReactiveBatchWriteInChunks(Iterable<T> documents, String setName,
                                                        BaseAerospikeTemplate.OperationType operationType,
                                                        TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return Flux.defer(() -> {
             int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-            if (batchSize < 0) {
-                // For negative batchSize write records straight away without chunking
+            if (batchSize <= 0) {
+                // For non-positive batchSize, write records straight away without chunking
                 return batchWriteAllDocumentsReactively(iterableToList(documents), setName, operationType,
                     templateContext);
-            } else {
-                // Create chunks
-                return createNullTolerantBatches(documents, batchSize)
-                    .concatMap(batch -> batchWriteAllDocumentsReactively(batch, setName, operationType,
-                        templateContext));
             }
+            // Create chunks
+            return createNullTolerantBatches(documents, batchSize)
+                .concatMap(batch -> batchWriteAllDocumentsReactively(batch, setName, operationType,
+                    templateContext));
         });
     }
 
@@ -514,9 +542,11 @@ public final class BatchUtils {
      * @return A {@link Flux} emitting the documents after the batch write operations are complete, or emitting an error
      * if any resulting batch record failed
      */
-    static <T> Flux<T> batchWriteAllDocumentsReactively(List<T> documents, String setName,
-                                                        BaseAerospikeTemplate.OperationType operationType,
-                                                        TemplateContext templateContext) {
+    private static <T> Flux<T> batchWriteAllDocumentsReactively(List<T> documents, String setName,
+                                                                BaseAerospikeTemplate.OperationType operationType,
+                                                                TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
+
         return Flux.defer(() -> {
             try {
                 List<BatchWriteData<T>> batchWriteDataList = documents.stream().map(document ->
@@ -562,11 +592,11 @@ public final class BatchUtils {
      * @return A {@link Flux} emitting the documents from the processed batch, or emitting an error if any resulting
      * batch record failed
      */
-    static <T> Flux<T> batchWriteReactivelyAndCheckForErrors(BatchPolicy batchPolicy,
-                                                             List<BatchRecord> batchWriteRecords,
-                                                             List<BatchWriteData<T>> batchWriteDataList,
-                                                             BaseAerospikeTemplate.OperationType operationType,
-                                                             TemplateContext templateContext) {
+    private static <T> Flux<T> batchWriteReactivelyAndCheckForErrors(BatchPolicy batchPolicy,
+                                                                     List<BatchRecord> batchWriteRecords,
+                                                                     List<BatchWriteData<T>> batchWriteDataList,
+                                                                     BaseAerospikeTemplate.OperationType operationType,
+                                                                     TemplateContext templateContext) {
         return enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy)
             .flatMap(batchPolicyEnriched ->
                 templateContext.reactorClient.operate((BatchPolicy) batchPolicyEnriched, batchWriteRecords))
@@ -593,10 +623,10 @@ public final class BatchUtils {
      * {@link AerospikeException} if any resulting batch record failed, or {@link OptimisticLockingFailureException} if
      * version mismatch (CAS error) occurred
      */
-    static <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersionForReactive(List<BatchWriteData<T>> batchWriteDataList,
-                                                                                       List<BatchRecord> batchWriteRecords,
-                                                                                       BaseAerospikeTemplate.OperationType operationType,
-                                                                                       TemplateContext templateContext) {
+    private static <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersionForReactive(List<BatchWriteData<T>> batchWriteDataList,
+                                                                                               List<BatchRecord> batchWriteRecords,
+                                                                                               BaseAerospikeTemplate.OperationType operationType,
+                                                                                               TemplateContext templateContext) {
         boolean errorsFound = false;
         String casErrorDocumentId = null;
         for (BatchWriteData<T> data : batchWriteDataList) {
@@ -648,14 +678,15 @@ public final class BatchUtils {
     static Mono<Void> deleteByIdsReactively(Iterable<?> ids, String setName, boolean skipNonExisting,
                                             TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         if (isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
             return Mono.empty();
         }
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
-        if (batchSize < 0) {
-            // For negative batchSize write records straight away without chunking
+        if (batchSize <= 0) {
+            // For non-positive batchSize, write records straight away without chunking
             return doDeleteByIdsReactively(iterableToList(ids), setName, skipNonExisting, templateContext);
         }
 
@@ -693,8 +724,8 @@ public final class BatchUtils {
      * batch record within the results failed
      * @throws IllegalArgumentException if the set name is null
      */
-    static Mono<Void> doDeleteByIdsReactively(Collection<?> ids, String setName, boolean skipNonExisting,
-                                              TemplateContext templateContext) {
+    private static Mono<Void> doDeleteByIdsReactively(Collection<?> ids, String setName, boolean skipNonExisting,
+                                                      TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
         if (isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -722,9 +753,9 @@ public final class BatchUtils {
      * @return A {@link Mono<Void>} that completes successfully if no errors, or emits {@link AerospikeException} if any
      * resulting batch record failed
      */
-    static Mono<Void> batchDeleteReactivelyAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys,
-                                                             boolean skipNonExisting,
-                                                             AerospikeExceptionTranslator exceptionTranslator) {
+    private static Mono<Void> batchDeleteReactivelyAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys,
+                                                                     boolean skipNonExisting,
+                                                                     AerospikeExceptionTranslator exceptionTranslator) {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
             if (results.records == null) {
                 return Mono.error(new AerospikeException.BatchRecordArray(null,
@@ -757,6 +788,7 @@ public final class BatchUtils {
      * any resulting batch record failed
      */
     static Mono<Void> deleteEntitiesByGroupedKeysReactively(GroupedKeys groupedKeys, TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
 
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
@@ -783,14 +815,22 @@ public final class BatchUtils {
     static Mono<GroupedEntities> findGroupedEntitiesByGroupedKeysReactively(BatchPolicy batchPolicy,
                                                                             GroupedKeys groupedKeys,
                                                                             TemplateContext templateContext) {
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
 
-        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        return enrichPolicyWithTransaction(reactorClient, batchPolicy)
-            .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched,
-                entitiesKeys.getKeys()))
-            .map(item -> MappingUtils.toGroupedEntities(entitiesKeys, item.records, templateContext.converter))
+        return batchReadInChunksReactively(batchPolicy, entitiesKeys.getKeys(), null, templateContext)
+            .collectList()
+            .map(keyRecordsList -> MappingUtils.toGroupedEntities(
+                    entitiesKeys,
+                    getRecordsStream(keyRecordsList).toArray(Record[]::new),
+                    templateContext.converter
+                )
+            )
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
+    }
+
+    private static Stream<Record> getRecordsStream(List<KeyRecord> keyRecordsList) {
+        return keyRecordsList.stream().map(keyRecord -> keyRecord.record);
     }
 
     /**
@@ -826,13 +866,13 @@ public final class BatchUtils {
     static Flux<KeyRecord> batchReadInChunksReactively(BatchPolicy batchPolicy, Key[] keys,
                                                        @Nullable Class<?> targetClass,
                                                        TemplateContext templateContext) {
-        Mono<Policy> policyMono = enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy);
+        Mono<Policy> enrichedPolicyMono = enrichPolicyWithTransaction(templateContext.reactorClient, batchPolicy);
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchReadSize();
 
-        return policyMono
+        return enrichedPolicyMono
             .flatMapMany(batchPolicyEnriched -> {
-                if (batchSize < 0) {
-                    // Process all keys in one go without chunking if batchSize value is negative
+                if (batchSize <= 0) {
+                    // Process all keys in one go without chunking if batchSize value is non-positive
                     return batchReadReactively((BatchPolicy) batchPolicyEnriched, keys, targetClass, templateContext)
                         .flatMapIterable(BatchUtils::keysRecordsToList);
                 } else {
@@ -860,7 +900,7 @@ public final class BatchUtils {
      * @param keysRecords The {@link KeysRecords} object containing arrays of keys and records
      * @return An {@link Iterable} of {@link KeyRecord} objects
      */
-    private static Iterable<? extends KeyRecord> keysRecordsToList(KeysRecords keysRecords) {
+    private static Iterable<KeyRecord> keysRecordsToList(KeysRecords keysRecords) {
         // Create KeyRecord objects directly while preserving the original order
         List<KeyRecord> result = new ArrayList<>(keysRecords.keys.length);
         for (int i = 0; i < keysRecords.keys.length; i++) {
@@ -935,8 +975,8 @@ public final class BatchUtils {
      * @return A {@link BatchWriteData} object configured for a save operation
      * @throws IllegalArgumentException if the document is null
      */
-    static <T> BatchWriteData<T> getBatchWriteForSave(T document, String setName,
-                                                      TemplateContext templateContext) {
+    private static <T> BatchWriteData<T> getBatchWriteForSave(T document, String setName,
+                                                              TemplateContext templateContext) {
         Assert.notNull(document, "Document must not be null!");
 
         AerospikeWriteData data = TemplateUtils.writeData(document, setName, templateContext);
@@ -951,13 +991,11 @@ public final class BatchUtils {
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = TemplateUtils.getPutAndGetHeaderOperations(data, true);
         } else {
-            policy =
-                ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE,
-                    templateContext.batchWritePolicyDefault);
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE,
+                templateContext.batchWritePolicyDefault);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
-            operations = operations(data.getBinsAsArray(), Operation::put,
-                Operation.array(Operation.delete()));
+            operations = operations(data.getBinsAsArray(), Operation::put, Operation.array(Operation.delete()));
         }
 
         return new BatchWriteData<>(document, new BatchWrite(policy, data.getKey(), operations),
@@ -976,17 +1014,15 @@ public final class BatchUtils {
      * @return A {@link BatchWriteData} object configured for an insert operation
      * @throws IllegalArgumentException if the document is null
      */
-    static <T> BatchWriteData<T> getBatchWriteForInsert(T document, String setName,
-                                                        TemplateContext templateContext) {
+    private static <T> BatchWriteData<T> getBatchWriteForInsert(T document, String setName,
+                                                                TemplateContext templateContext) {
         Assert.notNull(document, "Document must not be null!");
 
         AerospikeWriteData data = TemplateUtils.writeData(document, setName, templateContext);
-
         AerospikePersistentEntity<?> entity =
             templateContext.mappingContext.getRequiredPersistentEntity(document.getClass());
         BatchWritePolicy policy =
-            ignoreGenerationBatchPolicy(data, RecordExistsAction.CREATE_ONLY,
-                templateContext.batchWritePolicyDefault);
+            ignoreGenerationBatchPolicy(data, RecordExistsAction.CREATE_ONLY, templateContext.batchWritePolicyDefault);
         Operation[] operations;
         if (entity.hasVersionProperty()) {
             operations = TemplateUtils.getPutAndGetHeaderOperations(data, false);
@@ -1011,12 +1047,11 @@ public final class BatchUtils {
      * @return A {@link BatchWriteData} object configured for an update operation
      * @throws IllegalArgumentException if the document is null
      */
-    static <T> BatchWriteData<T> getBatchWriteForUpdate(T document, String setName,
-                                                        TemplateContext templateContext) {
+    private static <T> BatchWriteData<T> getBatchWriteForUpdate(T document, String setName,
+                                                                TemplateContext templateContext) {
         Assert.notNull(document, "Document must not be null!");
 
         AerospikeWriteData data = TemplateUtils.writeData(document, setName, templateContext);
-
         AerospikePersistentEntity<?> entity =
             templateContext.mappingContext.getRequiredPersistentEntity(document.getClass());
         Operation[] operations;
@@ -1053,8 +1088,8 @@ public final class BatchUtils {
      * @return A {@link BatchWriteData} object configured for a delete operation
      * @throws IllegalArgumentException if the document is null
      */
-    static <T> BatchWriteData<T> getBatchWriteForDelete(T document, String setName,
-                                                        TemplateContext templateContext) {
+    private static <T> BatchWriteData<T> getBatchWriteForDelete(T document, String setName,
+                                                                TemplateContext templateContext) {
         Assert.notNull(document, "Document must not be null!");
 
         AerospikePersistentEntity<?> entity =
@@ -1099,7 +1134,7 @@ public final class BatchUtils {
      *                        {@link ResultCode#KEY_NOT_FOUND_ERROR} regardless of the record being null
      * @return {@code true} if the batch record indicates as failed, {@code false} otherwise
      */
-    static boolean batchRecordFailed(BatchRecord batchRecord, boolean skipNonExisting) {
+    private static boolean batchRecordFailed(BatchRecord batchRecord, boolean skipNonExisting) {
         int resultCode = batchRecord.resultCode;
         if (skipNonExisting) {
             return resultCode != ResultCode.OK && resultCode != ResultCode.KEY_NOT_FOUND_ERROR;
@@ -1112,10 +1147,10 @@ public final class BatchUtils {
      * elements.
      *
      * @param source    The source iterable containing elements to batch
-     * @param batchSize The maximum size of each batch
+     * @param batchSize The maximal size of each batch
      * @return A Flux emitting lists of batched elements, or an error in case of an exception found
      */
-    static <T> Flux<List<T>> createNullTolerantBatches(Iterable<? extends T> source, int batchSize) {
+    private static <T> Flux<List<T>> createNullTolerantBatches(Iterable<? extends T> source, int batchSize) {
         return Flux.create(sink -> {
             try {
                 List<T> currentBatch = new ArrayList<>();
@@ -1165,10 +1200,11 @@ public final class BatchUtils {
                                                            @Nullable Query query, TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         List<Key> keys = MappingUtils.getKeys(iterableToList(ids), setName, templateContext).toList();
         String[] binNames = getBinNamesFromTargetClassOrNull(entityClass, targetClass, templateContext.mappingContext);
-        Record[] records = findByKeysUsingQuery(keys, binNames, setName, query, templateContext);
+        Record[] records = findByKeysUsingQuery(keys, binNames, query, templateContext);
 
         return IntStream.range(0, keys.size())
             .mapToObj(index -> mapToEntity(keys.get(index), getTargetClass(entityClass, targetClass), records[index],
@@ -1193,6 +1229,7 @@ public final class BatchUtils {
                                                                              TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         if (ids.isEmpty()) {
             return Flux.empty();
@@ -1227,6 +1264,7 @@ public final class BatchUtils {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
         if (ids.isEmpty()) {
             return Flux.empty();

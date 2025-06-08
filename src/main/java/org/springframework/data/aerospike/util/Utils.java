@@ -218,13 +218,11 @@ public class Utils {
     }
 
     public static <T> List<T> iterableToList(Iterable<T> iterable) {
-        List<T> list = new ArrayList<>();
         if (iterable instanceof List) {
             // If Iterable is a Collection already, it is cast directly
             return (List<T>) iterable;
-        } else {
-            return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
         }
+        return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
     }
 
     /**

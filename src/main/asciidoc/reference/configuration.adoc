@@ -319,7 +319,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring.data.aerospike.batch-read-size=1000
+spring.data.aerospike.batch-read-size=100
 ----
 
 Maximal batch size for batch read operations. Query data larger than the specified batch-read-size will be firstly
@@ -341,7 +341,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-*Default*: `1000`.
+*Default*: `100`.
 
 [[configuration.batch-write-size]]
 === batchWriteSize
@@ -349,7 +349,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring.data.aerospike.batch-write-size=1000
+spring.data.aerospike.batch-write-size=100
 ----
 
 Maximal batch size for batch write operations. Query data larger than the specified batch-write-size will be firstly
@@ -371,7 +371,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-*Default*: `1000`.
+*Default*: `100`.
 
 [[configuration.keep-original-key-types]]
 === keepOriginalKeyTypes
