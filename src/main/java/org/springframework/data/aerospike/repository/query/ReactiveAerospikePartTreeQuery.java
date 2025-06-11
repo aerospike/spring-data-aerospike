@@ -23,7 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
@@ -32,12 +31,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.aerospike.core.PostProcessingUtils.applyPostProcessingOnResults;
 import static org.springframework.data.aerospike.core.QualifierUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
-import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
 
 /**
  * @author Igor Ermolenko
@@ -60,7 +60,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
-        Class<?> targetClass = getTargetClass(accessor);
+        Class<?> targetClass = getTargetClass(accessor, queryMethod);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
@@ -143,25 +143,17 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
      * @return {@link Mono<Page>} or {@link Mono<Slice>}
      */
     private Mono<?> processPaginatedIdQuery(Class<?> targetClass, List<Object> ids, Pageable pageable, Query query) {
-        if (!isQueryCriteriaNotNull(query) && !pageable.isUnpaged() && query.getSort() == Sort.unsorted()) {
-            List<Object> idsPagedPlusOne = getPagedIdsPlusOne(ids, pageable);
-            // Purely id queries
-            Flux<?> pagedResultsPlusOne =
-                template.findByIdsWithoutPostProcessing(idsPagedPlusOne, entityClass, targetClass, query);
-            // Post-processing is done separately here
-            return processPagedQueryWithIdsOnly(ids.size(), pagedResultsPlusOne, pageable);
-        }
         // Combined queries with ids
-        // Purely id queries with pageable.isUnpaged() also get processed here
         Flux<?> unprocessedResultsStream =
-            template.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, query);
+            template.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, query)
+                .filter(Objects::nonNull); // Leave only existing records
         // Post-processing is done separately here
         return processPagedQuery(unprocessedResultsStream, pageable, query);
     }
 
     /**
-     * Applies post-processing on result of batch read for combined ids-based paginated queries
-     * and for purely id queries with explicit {@link Pageable#isUnpaged()}.
+     * Applies post-processing on results of batch read for paginated queries.
+     *
      * @return {@link Mono<Page>} or {@link Mono<Slice>}
      */
     private Mono<?> processPagedQuery(Flux<?> unprocessedResults, Pageable pageable, Query query) {
@@ -172,35 +164,20 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     /**
-     * Applies post-processing on result of batch read for paginated purely id queries.
-     * @return {@link Mono<Page>} or {@link Mono<Slice>}
-     */
-    private Mono<?> processPagedQueryWithIdsOnly(long overallSize, Flux<?> pagedResultsPlusOne, Pageable pageable) {
-        if (queryMethod.isSliceQuery()) {
-            return processSliceQueryWithIdsOnly(pagedResultsPlusOne, pageable);
-        }
-        return processPageQueryWithIdsOnly(overallSize, pagedResultsPlusOne, pageable);
-    }
-
-    /**
-     * Creates new SliceImpl based on given parameters. This method is used for paginated regular and combined queries
-     * with pagination, and for purely id queries where pageable.isUnpaged() is true.
-     * <br>
-     * The case of paginated purely id queries is processed within
-     * {@link #processSliceQueryWithIdsOnly(Flux, Pageable)}
+     * Creates new SliceImpl based on given parameters. This method is used for paginated queries.
      */
     private Mono<Slice<?>> processSliceQuery(Flux<?> unprocessedResults, Pageable pageable, Query query) {
         return unprocessedResults
             .collectList()
             .map(list -> {
-                if (pageable.isUnpaged()) {
+                if (list.isEmpty() || pageable.isUnpaged()) {
                     return new SliceImpl<>(list, pageable, false);
                 }
 
                 // Override query's limit (rows) before applying post-processing to return +1 indicating hasNext
                 // Query's offset and sorting are set from the pageable
                 Query limitedQueryPlusOne = query.limit(pageable.getPageSize() + 1);
-                List<Object> limitedResultsPlusOne = applyPostProcessing(list.stream(), limitedQueryPlusOne)
+                List<Object> limitedResultsPlusOne = applyPostProcessingOnResults(list.stream(), limitedQueryPlusOne)
                     .collect(Collectors.toList());
 
                 boolean hasNext = limitedResultsPlusOne.size() > pageable.getPageSize();
@@ -210,53 +187,19 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     /**
-     * Creates new SliceImpl based on given parameters. This method is used for paginated purely id queries.
-     * <br>
-     * The case when pageable.isUnpaged() is true is processed within {@link #processSliceQuery(Flux, Pageable, Query)}
-     */
-    private Mono<Slice<?>> processSliceQueryWithIdsOnly(Flux<?> pagedResultsPlusOne, Pageable pageable) {
-        return pagedResultsPlusOne
-            .collectList()
-            .map(list -> {
-                boolean hasNext = list.size() > pageable.getPageSize();
-                List<?> resultsToUse = hasNext
-                    ? list.subList(0, pageable.getPageSize())
-                    : list;
-                return new SliceImpl<>(resultsToUse, pageable, hasNext);
-            });
-    }
-
-    /**
-     * Creates new PageImpl based on given parameters. This method is used for paginated regular and combined queries
-     * with pagination, and for purely id queries where pageable.isUnpaged() is true.
-     * <br>
-     * The case of paginated purely id queries is processed within
-     * {@link #processPagedQueryWithIdsOnly(long, Flux, Pageable)}
+     * Creates new PageImpl based on given parameters. This method is used for paginated queries.
      */
     private Mono<Page<?>> processPageQuery(Flux<?> unprocessedResults, Pageable pageable, Query query) {
         return unprocessedResults
             .collectList()
             .map(list -> {
                 List<?> resultsPage;
-                if (pageable.isUnpaged()) {
+                if (list.isEmpty() || pageable.isUnpaged()) {
                     resultsPage = list;
                 } else {
-                    resultsPage = applyPostProcessing(list.stream(), query).toList();
+                    resultsPage = applyPostProcessingOnResults(list.stream(), query).toList();
                 }
                 return new PageImpl<>(resultsPage, pageable, list.size());
             });
-    }
-
-    /**
-     * Creates new PageImpl based on given parameters. This method is used for paginated purely id queries.
-     * <br>
-     * The case when pageable.isUnpaged() is true is processed within {@link #processPageQuery(Flux, Pageable, Query)}
-     */
-    private Mono<Page<?>> processPageQueryWithIdsOnly(long overallSize, Flux<?> pagedResultsPlusOne,
-                                                      Pageable pageable) {
-        return pagedResultsPlusOne
-            .take(pageable.getPageSize())
-            .collectList()
-            .map(list -> new PageImpl<>(list, pageable, overallSize));
     }
 }

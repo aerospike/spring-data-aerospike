@@ -219,7 +219,7 @@ public final class BatchUtils {
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
         if (batchSize <= 0) {
-            // For non-positive batchSize, write records straight away without chunking
+            // For non-positive batchSize, delete records straight away without chunking
             doDeleteByIds(iterableToList(ids), setName, skipNonExisting, templateContext);
             return;
         }
@@ -686,7 +686,7 @@ public final class BatchUtils {
 
         int batchSize = templateContext.converter.getAerospikeDataSettings().getBatchWriteSize();
         if (batchSize <= 0) {
-            // For non-positive batchSize, write records straight away without chunking
+            // For non-positive batchSize, delete records straight away without chunking
             return doDeleteByIdsReactively(iterableToList(ids), setName, skipNonExisting, templateContext);
         }
 
@@ -770,8 +770,7 @@ public final class BatchUtils {
             return Mono.empty();
         };
 
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
-            .copyBatchPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, keys))
             .onErrorMap(e -> ExceptionUtils.translateError(e, exceptionTranslator))
             .flatMap(checkForErrors);
@@ -1274,8 +1273,7 @@ public final class BatchUtils {
         Key[] keys = getKeys(iterableToList(ids), setName, templateContext).toArray(Key[]::new);
 
         return batchReadInChunksReactively(batchPolicy, keys, targetType, templateContext)
-            .filter(keyRecord -> keyRecord != null && keyRecord.record != null)
-            .map(keyRecord -> MappingUtils.mapToEntity(keyRecord.key, targetType, keyRecord.record,
+            .flatMap(keyRecord -> MappingUtils.mapToEntityReactively(keyRecord.key, targetType, keyRecord.record,
                 templateContext.converter));
     }
 }

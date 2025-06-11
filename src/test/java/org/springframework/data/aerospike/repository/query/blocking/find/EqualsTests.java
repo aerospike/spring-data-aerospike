@@ -19,11 +19,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.testcontainers.shaded.com.google.common.collect.Streams;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -230,9 +232,15 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findAllByIds() {
+    void findAllByIdsIterable_shouldReturnAllExisting() {
         Iterable<Person> result = repository.findAllById(List.of(dave.getId(), carter.getId()));
         assertThat(result).containsExactlyInAnyOrder(dave, carter);
+
+        Iterable<Person> result2 = repository.findAllById(List.of("1", "2"));
+        assertThat(result2).isEmpty();
+
+        Iterable<Person> result3 = repository.findAllById(List.of("1", "2", dave.getId(), carter.getId()));
+        assertThat(result3).containsExactlyInAnyOrder(dave, carter);
     }
 
     @Test
@@ -258,6 +266,33 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findAllByIds_paginatedQuery_withSorting_shouldReturnAllExisting() {
+        var idsIncludingNonExistent = Streams.concat(allPersons.stream().map(Person::getId), Stream.of("1", "2")).toList();
+        Page<Person> result = repository.findAllById(
+            idsIncludingNonExistent,
+            PageRequest.of(1, 2, Sort.by("firstName"))
+        );
+        // The necessary slice is chosen after retrieving all results
+        // That's why the total page count is 6 here and not 7 (two non-existent ids, no results retrieved for them)
+        assertThat(result.getTotalPages()).isEqualTo(6);
+        Iterator<Person> iterator = result.iterator();
+        assertThat(iterator.next()).isEqualTo(carter);
+        assertThat(iterator.next()).isEqualTo(dave);
+        assertThat(iterator.hasNext()).isFalse();
+
+        var idsOnlyNonExistent = List.of("1", "2");
+        Page<Person> result3 = repository.findAllById(
+            idsOnlyNonExistent,
+            PageRequest.of(1, 2, Sort.by("firstName"))
+        );
+        // The necessary slice is chosen after retrieving all results
+        // That's why the total page count is 0 (no existing ids, no results retrieved)
+        assertThat(result3.getTotalPages()).isEqualTo(0);
+        Iterator<Person> iterator3 = result3.iterator();
+        assertThat(iterator3.hasNext()).isFalse();
+    }
+
+    @Test
     void findAllByIds_paginatedQuery_withOffset_originalOrder_unsorted() {
         List<String> ids = allPersons.stream().map(Person::getId).toList();
         assertThat(ids.size()).isEqualTo(11);
@@ -272,6 +307,44 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(iterator.next()).isEqualTo(oliver);
         assertThat(iterator.next()).isEqualTo(alicia);
         assertThat(iterator.hasNext()).isFalse();
+    }
+
+    @Test
+    void findAllByIds_paginatedQuery_unsorted_shouldReturnAllExisting() {
+        List<String> ids = allPersons.stream().map(Person::getId).toList();
+        var idsIncludingNonExistent = Streams.concat(ids.stream(), Stream.of("1", "2")).toList();
+        Page<Person> result = repository.findAllById(
+            idsIncludingNonExistent,
+            PageRequest.of(1, 2)
+        );
+        // Overall ids quantity is 13, with 11 existing in DB, so total existing pages count is 6
+        assertThat(result.getTotalPages()).isEqualTo(6);
+        Iterator<Person> iterator = result.iterator();
+        assertThat(iterator.next()).isEqualTo(oliver);
+        assertThat(iterator.next()).isEqualTo(alicia);
+        assertThat(iterator.hasNext()).isFalse();
+
+        Page<Person> result2 = repository.findAllById(
+            idsIncludingNonExistent,
+            PageRequest.of(6, 2)
+        );
+        // Overall ids quantity is 13, with 11 existing in DB, so total existing pages count is 6
+        assertThat(result2.getTotalPages()).isEqualTo(6);
+        // This page has no content because of two ids that don't exist in DB
+        assertThat(result2.hasContent()).isFalse();
+        Iterator<Person> iterator2 = result2.iterator();
+        assertThat(iterator2.hasNext()).isFalse();
+
+        var idsOnlyNonExistent = List.of("1", "2");
+        Page<Person> result3 = repository.findAllById(
+            idsOnlyNonExistent,
+            PageRequest.of(1, 2)
+        );
+        // No existing pages (because two ids provided don't exist in DB)
+        assertThat(result3.getTotalPages()).isEqualTo(0);
+        assertThat(result3.getContent()).isEmpty();
+        Iterator<Person> iterator3 = result3.iterator();
+        assertThat(iterator3.hasNext()).isFalse();
     }
 
     @Test
@@ -313,27 +386,51 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(persons2.getContent()).containsExactlyInAnyOrder(boyd, dave);
         assertThat(persons2.hasNext()).isFalse();
 
-        Slice<Person> persons3 = repository.findAllByIdAndFirstNameIn(ids, names, PageRequest.of(1, 1, Sort.by("firstName")));
+        Slice<Person> persons3 = repository.findAllByIdAndFirstNameIn(ids, names, PageRequest.of(1, 1, 
+            Sort.by("firstName")));
         assertThat(persons3.getSize()).isEqualTo(1);
         assertThat(persons3.getContent()).containsOnly(dave); // it is the second result out of the given two
         assertThat(persons3.hasNext()).isFalse();
 
         QueryParam idsAll = of(allPersons.stream().map(Person::getId).toList());
         QueryParam namesAll = of(allPersons.stream().map(Person::getFirstName).toList());
-        Slice<Person> persons4 = repository.findAllByIdAndFirstNameIn(idsAll, namesAll, PageRequest.of(1, 1, Sort.by("firstName")));
+        Slice<Person> persons4 = repository.findAllByIdAndFirstNameIn(idsAll, namesAll,
+            PageRequest.of(1, 1, Sort.by("firstName")));
         assertThat(persons4.getSize()).isEqualTo(1);
         assertThat(persons4.getContent()).containsOnly(boyd);
         assertThat(persons4.hasNext()).isTrue();
     }
 
     @Test
+    void findAllByIds_AND_simpleProperty_paginated_shouldReturnAllExisting() {
+        QueryParam ids = of(List.of("1", "2", dave.getId(), boyd.getId()));
+        QueryParam names = of(List.of(dave.getFirstName(), boyd.getFirstName(), "testName"));
+
+        Slice<Person> persons = repository.findAllByIdAndFirstNameIn(ids, names,
+            PageRequest.of(1, 1, Sort.by("firstName")));
+        assertThat(persons.getSize()).isEqualTo(1);
+        assertThat(persons.getContent()).containsOnly(dave); // it is the second result out of the given two
+        assertThat(persons.hasNext()).isFalse();
+
+        QueryParam idsNonExistent = of(List.of("1", "2"));
+        Slice<Person> persons3 = repository.findAllByIdAndFirstNameIn(idsNonExistent, names,
+            PageRequest.of(1, 1, Sort.by("firstName")));
+        // No existing records, size being 1 is a result of Slice's getSize() returning page size in this case
+        assertThat(persons3.getSize()).isEqualTo(1);
+        assertThat(persons3.getContent()).isEmpty(); // No existing ids
+        assertThat(persons3.hasNext()).isFalse();
+    }
+
+    @Test
     void findAllByIds_AND_simpleProperty_sorted() {
         QueryParam ids = of(List.of(douglas.getId(), dave.getId(), boyd.getId()));
         QueryParam names = of(List.of(douglas.getFirstName(), dave.getFirstName(), boyd.getFirstName()));
-        List<Person> persons = repository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.DESC, "firstName"));
+        List<Person> persons = repository.findAllByIdAndFirstNameIn(ids, names, 
+            Sort.by(Sort.Direction.DESC, "firstName"));
         assertThat(persons.get(0)).isEqualTo(douglas);
 
-        List<Person> persons2 = repository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.ASC, "firstName"));
+        List<Person> persons2 = repository.findAllByIdAndFirstNameIn(ids, names, 
+            Sort.by(Sort.Direction.ASC, "firstName"));
         assertThat(persons2.get(0)).isEqualTo(boyd);
     }
 

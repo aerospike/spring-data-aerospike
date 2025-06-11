@@ -24,14 +24,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -56,8 +51,7 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-//@SpringBootTest(classes = )
-public class SimpleAerospikeRepositoryTest {
+public class SimpleAerospikeRepositoryTests {
 
     @Mock
     EntityInformation<Person, String> metadata;
