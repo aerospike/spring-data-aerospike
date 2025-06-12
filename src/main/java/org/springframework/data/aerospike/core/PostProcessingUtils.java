@@ -42,18 +42,18 @@ public final class PostProcessingUtils {
      * @param query   The {@link Query} object specifying criteria. Can be {@code null}
      * @return A new {@link Stream} with post-processing operations applied
      */
-    static <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, @Nullable Query query) {
-        if (query != null) {
-            if (query.getSort() != null && query.getSort().isSorted()) {
-                Comparator<T> comparator = TemplateUtils.getComparator(query);
-                results = results.sorted(comparator);
-            }
-            if (query.hasOffset()) {
-                results = results.skip(query.getOffset());
-            }
-            if (query.hasRows()) {
-                results = results.limit(query.getRows());
-            }
+    public static <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, @Nullable Query query) {
+        if (query == null) return results;
+
+        if (query.getSort() != null && query.getSort().isSorted()) {
+            Comparator<T> comparator = TemplateUtils.getComparator(query);
+            results = results.sorted(comparator);
+        }
+        if (query.hasOffset()) {
+            results = results.skip(query.getOffset());
+        }
+        if (query.hasRows()) {
+            results = results.limit(query.getRows());
         }
         return results;
     }
@@ -99,6 +99,7 @@ public final class PostProcessingUtils {
      */
     static <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, @Nullable Query query) {
         if (query == null) return results;
+
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = TemplateUtils.getComparator(query);
             results = results.sort(comparator);

@@ -35,11 +35,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.core.PostProcessingUtils.applyPostProcessingOnResults;
 import static org.springframework.data.aerospike.core.QualifierUtils.getIdValue;
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
-import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
-import static org.springframework.data.aerospike.query.QualifierUtils.isQueryNullOrUnsorted;
 
 /**
  * @author Peter Milne
@@ -63,7 +61,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
-        Class<?> targetClass = getTargetClass(accessor);
+        Class<?> targetClass = getTargetClass(accessor, queryMethod);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
@@ -143,33 +141,24 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     /**
-     * Processes ids-based paginated query: performs batch read and applies post-processing.
+     * Processes ids-based paginated query: performs batch read and applies filtering and post-processing.
      * @return {@link Page} or {@link Slice}
      */
-    private Object processPaginatedIdQuery(Class<?> targetClass, List<Object> ids, Pageable pageable,
+    private Slice<?> processPaginatedIdQuery(Class<?> targetClass, List<Object> ids, Pageable pageable,
                                            @Nullable Query query) {
-        if (!isQueryCriteriaNotNull(query) && !pageable.isUnpaged() && isQueryNullOrUnsorted(query)) {
-            List<Object> idsPagedPlusOne = getPagedIdsPlusOne(ids, pageable);
-            // Purely id queries
-            Stream<?> pagedResultsPlusOne =
-                template.findByIdsWithoutPostProcessing(idsPagedPlusOne, entityClass, targetClass, query);
-            // Post-processing is done separately here
-            return processPagedQueryWithIdsOnly(ids.size(), pagedResultsPlusOne, pageable);
-        }
         // Combined queries with ids
-        // Purely id queries with pageable.isUnpaged() also get processed here
         Stream<?> unprocessedResultsStream =
-            template.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, query);
+            template.findByIdsWithoutPostProcessing(ids, entityClass, targetClass, query)
+                .filter(Objects::nonNull); // Leave only existing records
         // Post-processing is done separately here
         return processPagedQuery(unprocessedResultsStream, pageable, query);
     }
 
     /**
-     * Applies post-processing on result of batch read for combined ids-based paginated queries
-     * and for purely id queries with explicit {@link Pageable#isUnpaged()}.
+     * Applies post-processing on results of batch read for paginated queries.
      * @return {@link Page} or {@link Slice}
      */
-    private Object processPagedQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
+    private Slice<?> processPagedQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         if (queryMethod.isSliceQuery()) {
             return processSliceQuery(unprocessedResultsStream, pageable, query);
         }
@@ -177,22 +166,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     /**
-     * Applies post-processing on result of batch read for paginated purely id queries.
-     * @return {@link Page} or {@link Slice}
-     */
-    private Object processPagedQueryWithIdsOnly(long overallSize, Stream<?> pagedResultsPlusOne, Pageable pageable) {
-        if (queryMethod.isSliceQuery()) {
-            return processSliceQueryWithIdsOnly(pagedResultsPlusOne, pageable);
-        }
-        return processPageQueryWithIdsOnly(overallSize, pagedResultsPlusOne, pageable);
-    }
-
-    /**
-     * Creates new SliceImpl based on given parameters. This method is used for regular and combined queries with
-     * pagination, and for purely id queries where pageable.isUnpaged() is true.
-     * <br>
-     * The case of paginated purely id queries is processed within
-     * {@link #processSliceQueryWithIdsOnly(Stream, Pageable)}
+     * Creates new SliceImpl based on given parameters. This method is used for queries with
+     * pagination.
      */
     private Slice<?> processSliceQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         if (pageable.isUnpaged()) {
@@ -202,7 +177,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         // Override query's limit (rows) before applying post-processing to return +1 indicating hasNext
         // Query's offset and sorting are set from the pageable
         Query limitedQueryPlusOne = query.limit(pageable.getPageSize() + 1);
-        List<Object> limitedResultsPlusOne = applyPostProcessing(unprocessedResultsStream, limitedQueryPlusOne)
+        List<Object> limitedResultsPlusOne = applyPostProcessingOnResults(unprocessedResultsStream, limitedQueryPlusOne)
             .collect(Collectors.toList());
 
         boolean hasNext = limitedResultsPlusOne.size() > pageable.getPageSize();
@@ -211,24 +186,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     /**
-     * Creates new SliceImpl based on given parameters. This method is used for paginated purely id queries.
-     * <br>
-     * The case when pageable.isUnpaged() is true is processed within
-     * {@link #processSliceQuery(Stream, Pageable, Query)}
-     */
-    private Slice<?> processSliceQueryWithIdsOnly(Stream<?> pagedResultsPlusOne, Pageable pageable) {
-        List<Object> results = pagedResultsPlusOne.collect(Collectors.toList());
-        boolean hasNext = results.size() > pageable.getPageSize();
-        if (hasNext) results = results.subList(0, pageable.getPageSize());
-        return new SliceImpl<>(results, pageable, hasNext);
-    }
-
-    /**
-     * Creates new PageImpl based on given parameters. This method is used for regular and combined queries with
-     * pagination, and for purely id queries where pageable.isUnpaged() is true.
-     * <br>
-     * The case of paginated purely id queries is processed within
-     * {@link #processPageQueryWithIdsOnly(long, Stream, Pageable)}
+     * Creates new PageImpl based on given parameters. This method is used for queries with pagination.
      */
     private Page<?> processPageQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
         List<?> unprocessedResults = unprocessedResultsStream.toList();
@@ -236,21 +194,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (pageable.isUnpaged()) {
             resultsPage = unprocessedResults;
         } else {
-            resultsPage = applyPostProcessing(unprocessedResults.stream(), query).toList();
+            resultsPage = applyPostProcessingOnResults(unprocessedResults.stream(), query).toList();
         }
         return new PageImpl<>(resultsPage, pageable, unprocessedResults.size());
-    }
-
-    /**
-     * Creates new PageImpl based on given parameters. This method is used for paginated purely id queries.
-     * <br>
-     * The case when pageable.isUnpaged() is true is processed within
-     * {@link #processPageQuery(Stream, Pageable, Query)}
-     */
-    private Page<?> processPageQueryWithIdsOnly(long overallSize, Stream<?> pagedResultsPlusOne, Pageable pageable) {
-        List<?> resultsPage = pagedResultsPlusOne
-            .limit(pageable.getPageSize())
-            .toList();
-        return new PageImpl<>(resultsPage, pageable, overallSize);
     }
 }

@@ -16,13 +16,11 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContext;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -34,16 +32,12 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
 
 /**
  * @author Peter Milne
@@ -79,6 +73,15 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return queryMethod;
     }
 
+    /**
+     * Prepares a {@link Query} object based on the provided parameters, accessor, and query method. This method
+     * constructs the query, applies pagination and sorting, handles limiting clauses, and sets up dynamic SpEL
+     * expression evaluation if present in the criteria.
+     *
+     * @param parameters The array of parameters passed to the query method
+     * @param accessor   The accessor for method parameters, providing access to pagination, sorting etc.
+     * @return A new {@link Query} object
+     */
     protected Query prepareQuery(Object[] parameters, ParametersParameterAccessor accessor) {
         PartTree tree = new PartTree(queryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
@@ -90,7 +93,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             query.setOffset(accessor.getPageable().getOffset());
             query.setRows(accessor.getPageable().getPageSize());
         } else {
-            if (tree.isLimiting()) { // whether it contains "first"/"top"
+            if (tree.isLimiting() && tree.getMaxResults() != null) { // whether it contains "first"/"top"
                 query.limit(tree.getMaxResults());
             } else {
                 query.setOffset(-1);
@@ -108,7 +111,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
         if (query.getCriteria() instanceof SpelExpression spelExpression) {
             // Create a ValueEvaluationContextProvider using the accessor
-            ValueEvaluationContextProvider provider = this.evaluationContextAccessor.create(queryMethod.getParameters());
+            ValueEvaluationContextProvider provider =
+                this.evaluationContextAccessor.create(queryMethod.getParameters());
 
             // Get the ValueEvaluationContext using the provider
             ValueEvaluationContext valueContext = provider.getEvaluationContext(parameters);
@@ -123,7 +127,47 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return query;
     }
 
-    Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+    /**
+     * Creates a {@link Query} instance using a {@link AbstractQueryCreator}. This method instantiates the query creator
+     * with the necessary components and then delegates to it to create the actual query.
+     *
+     * @param accessor The accessor for method parameters
+     * @param tree     The {@link PartTree} representing the parsed query method name
+     * @return A {@link Query} object constructed by the query creator
+     */
+    public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
+        Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
+            .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class,
+                AerospikeMappingContext.class, MappingAerospikeConverter.class, ServerVersionSupport.class);
+        return (Query) BeanUtils.instantiateClass(constructor, tree, accessor, context, converter, versionSupport)
+            .createQuery();
+    }
+
+    /**
+     * Abstract method to run a query with a list of IDs for equality. Implementations should define how to execute the
+     * query given the target class, a list of IDs, the query object, and whether it's a paged query.
+     *
+     * @param targetClass  The target class for the query
+     * @param ids          The list of IDs to use for equality comparison in the query
+     * @param query        The {@link Query} object to execute
+     * @param isPagedQuery A {@link Pageable} object indicating if the query is paged
+     * @return An {@link Object} representing the result of the query execution
+     */
+    protected abstract Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query,
+                                                      Pageable isPagedQuery);
+
+    /**
+     * Determines the target class for the query's projection. This can be:
+     * <ul>
+     * <li>a dynamic projection class if specified in the accessor;</li>
+     * <li>a DTO projection class if the return type of the query method is not assignable from the entity class;</li>
+     * <li>the entity class itself if no projection is specified</li>
+     * </ul>
+     *
+     * @param accessor The accessor for method parameters
+     * @return The {@link Class} representing the target type for the query results
+     */
+    static Class<?> getTargetClass(ParametersParameterAccessor accessor, QueryMethod queryMethod) {
         // Dynamic projection
         if (accessor.getParameters().hasDynamicProjection()) {
             return accessor.findDynamicProjection();
@@ -136,69 +180,55 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return queryMethod.getEntityInformation().getJavaType();
     }
 
-    public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
-        Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
-            .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class,
-                AerospikeMappingContext.class, MappingAerospikeConverter.class, ServerVersionSupport.class);
-        return (Query) BeanUtils.instantiateClass(constructor, tree, accessor, context, converter, versionSupport)
-            .createQuery();
-    }
-
-    protected <T> Stream<T> applyPostProcessing(Stream<T> results, @Nullable Query query) {
-        if (query == null) return results;
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.limit(query.getRows());
-        }
-
-        return results;
-    }
-
-    protected <T> Comparator<T> getComparator(Query query) {
-        return query.getSort().stream()
-            .map(this::<T>getPropertyComparator)
-            .reduce(Comparator::thenComparing)
-            .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
-    }
-
-    private <T> Comparator<T> getPropertyComparator(Sort.Order order) {
-        boolean ignoreCase = order.isIgnoreCase();
-        boolean ascending = order.getDirection().isAscending();
-        return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
-    }
-
-    protected abstract Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query,
-                                                      Pageable isPagedQuery);
-
-    protected boolean isExistsQuery(QueryMethod queryMethod) {
+    /**
+     * Checks if the given {@link QueryMethod} represents an "exists by" query.
+     *
+     * @param queryMethod The {@link QueryMethod} to check
+     * @return {@code true} if the query method name starts with "existsBy", {@code false} otherwise
+     */
+    protected static boolean isExistsQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("existsBy");
     }
 
-    protected boolean isCountQuery(QueryMethod queryMethod) {
+    /**
+     * Checks if the given {@link QueryMethod} represents a "count by" query.
+     *
+     * @param queryMethod The {@link QueryMethod} to check
+     * @return {@code true} if the query method name starts with "countBy", {@code false} otherwise
+     */
+    protected static boolean isCountQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("countBy");
     }
 
-    protected boolean isDeleteQuery(QueryMethod queryMethod) {
+    /**
+     * Checks if the given {@link QueryMethod} represents a "delete by" query.
+     *
+     * @param queryMethod The {@link QueryMethod} to check
+     * @return {@code true} if the query method name starts with "deleteBy" or "removeBy", {@code false} otherwise
+     */
+    protected static boolean isDeleteQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("deleteBy") || queryMethod.getName().startsWith("removeBy");
     }
 
     /**
-     * Find whether entity domain class is assignable from query method's returned object class.
-     * Not assignable when using a detached DTO (data transfer object, e.g., for projections).
+     * Find whether entity domain class is assignable from query method's returned object class. Not assignable when
+     * using a detached DTO (data transfer object, e.g., for projections).
      *
      * @param queryMethod QueryMethod in use
      * @return true when entity is assignable from query method's return class, otherwise false
      */
-    protected boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
+    protected static boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
         return queryMethod.getEntityInformation().getJavaType().isAssignableFrom(queryMethod.getReturnedObjectType());
     }
 
+    /**
+     * Creates a new {@link Query} object by excluding the ID qualifier from the original criteria and retaining the
+     * original query's sort, offset, rows, and distinct settings.
+     *
+     * @param query    The original {@link Query} from which to derive the new query
+     * @param criteria The {@link Qualifier} from which to exclude the ID qualifier
+     * @return A new {@link Query} object with the ID qualifier excluded from its criteria
+     */
     protected static Query getQueryWithExcludedIdQualifier(Query query, Qualifier criteria) {
         Query newQuery = new Query(excludeIdQualifier(criteria));
         newQuery.setSort(query.getSort());
@@ -206,15 +236,5 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         newQuery.setRows(query.getRows());
         newQuery.setDistinct(query.isDistinct());
         return newQuery;
-    }
-
-    protected static List<Object> getPagedIdsPlusOne(List<Object> ids, Pageable pageable) {
-        // Paginated queries with offset and no sorting (i.e. original order)
-        // are only allowed for purely id queries, and not for other types
-        // Limit by page size + 1 to set hasNext when initializing SliceImpl
-        return ids.stream()
-            .skip(pageable.getOffset()) // query offset
-            .limit(pageable.getPageSize() + 1) // query rows
-            .toList(); // no custom sorting in this case, which allows to prepare for reading just page size + 1
     }
 }

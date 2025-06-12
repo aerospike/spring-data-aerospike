@@ -16,6 +16,7 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -74,6 +75,28 @@ public class MappingUtils {
         }
         AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
         return converter.read(clazz, data);
+    }
+
+    /**
+     * Maps a {@link Key} and {@link Record} to an entity of the specified class reactively. If the record is null, this
+     * method returns {@link Mono#empty()}. Otherwise, it uses the provided converter to read the data into an instance
+     * of the target class.
+     *
+     * @param <T>        The type of the entity
+     * @param key        The {@link Key} associated with the record
+     * @param clazz      The class to which the record should be mapped
+     * @param aeroRecord The {@link Record} containing the data
+     * @param converter  The {@link MappingAerospikeConverter} used for mapping
+     * @return {@link Mono} of an instance of the specified class populated with data from the record,
+     * or {@link Mono#empty()} if the record is null
+     */
+    static <T> Mono<T> mapToEntityReactively(Key key, Class<T> clazz, Record aeroRecord,
+                                                  MappingAerospikeConverter converter) {
+        if (aeroRecord == null) {
+            return Mono.empty();
+        }
+        AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
+        return Mono.just(converter.read(clazz, data));
     }
 
     /**

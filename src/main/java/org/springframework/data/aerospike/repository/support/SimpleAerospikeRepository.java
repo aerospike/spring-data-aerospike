@@ -31,8 +31,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.util.Utils.iterableToList;
-
 public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID> {
 
     private final AerospikeOperations operations;
