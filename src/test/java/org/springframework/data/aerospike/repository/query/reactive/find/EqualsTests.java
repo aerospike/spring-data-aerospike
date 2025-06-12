@@ -6,16 +6,11 @@ import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerSomeFields;
-import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.testcontainers.shaded.com.google.common.collect.Streams;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.util.Iterator;
@@ -73,18 +68,14 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         reactiveRepository.findAllById(idsIncludingNonExistent)
             .collectList()
             .as(StepVerifier::create)
-            .assertNext(results -> {
-                assertThat(results).containsOnly(marge, matt);
-            })
+            .assertNext(results -> assertThat(results).containsOnly(marge, matt))
             .verifyComplete();
 
         Iterable<String> idsNonExistent = asList("1", "non-existent-id", "2");
         reactiveRepository.findAllById(idsNonExistent)
             .collectList()
             .as(StepVerifier::create)
-            .assertNext(results -> {
-                assertThat(results).isEmpty();
-            })
+            .assertNext(results -> assertThat(results).isEmpty())
             .verifyComplete();
     }
 
@@ -94,9 +85,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         reactiveRepository.findAllById(ids)
             .collectList()
             .as(StepVerifier::create)
-            .assertNext(results -> {
-                assertThat(results).containsOnly(homer, marge, matt);
-            })
+            .assertNext(results -> assertThat(results).containsOnly(homer, marge, matt))
             .verifyComplete();
     }
 
@@ -114,9 +103,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
         reactiveRepository.findAllById(ids, PageRequest.ofSize(7))
             .as(StepVerifier::create)
-            .assertNext(result -> {
-                assertThat(result.getTotalPages()).isEqualTo(2);
-            })
+            .assertNext(result -> assertThat(result.getTotalPages()).isEqualTo(2))
             .verifyComplete();
 
         List<String> firstNamesSorted = allCustomers.stream().map(Customer::getFirstName).sorted().toList();
@@ -400,35 +387,35 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     void findAllByIds_AND_simpleProperty_paginated_shouldReturnAllExisting() {
         QueryParam ids = of(List.of("1", "2", maggie.getId(), matt.getId()));
         QueryParam names = of(List.of(maggie.getFirstName(), matt.getFirstName(), "testName"));
-//
-//        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Pageable.ofSize(1))
-//            .as(StepVerifier::create)
-//            .assertNext(result -> {
-//                assertThat(result.getSize()).isEqualTo(1);
-//                assertThat(result.getContent()).containsAnyOf(maggie, matt);
-//                assertThat(result.hasNext()).isTrue();
-//            })
-//            .verifyComplete();
-//
-//        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Pageable.unpaged())
-//            .as(StepVerifier::create)
-//            .assertNext(result -> {
-//                assertThat(result.getSize()).isEqualTo(2);
-//                assertThat(result.getContent()).containsExactlyInAnyOrder(maggie, matt);
-//                assertThat(result.hasNext()).isFalse();
-//            })
-//            .verifyComplete();
-//
-//        reactiveRepository.findAllByIdAndFirstNameIn(ids, names,
-//                PageRequest.of(1, 1, Sort.by("firstName"))
-//            )
-//            .as(StepVerifier::create)
-//            .assertNext(result -> {
-//                assertThat(result.getSize()).isEqualTo(1);
-//                assertThat(result.getContent()).containsOnly(matt); // it is the second existing record
-//                assertThat(result.hasNext()).isFalse();
-//            })
-//            .verifyComplete();
+
+        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Pageable.ofSize(1))
+            .as(StepVerifier::create)
+            .assertNext(result -> {
+                assertThat(result.getSize()).isEqualTo(1);
+                assertThat(result.getContent()).containsAnyOf(maggie, matt);
+                assertThat(result.hasNext()).isTrue();
+            })
+            .verifyComplete();
+
+        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Pageable.unpaged())
+            .as(StepVerifier::create)
+            .assertNext(result -> {
+                assertThat(result.getSize()).isEqualTo(2);
+                assertThat(result.getContent()).containsExactlyInAnyOrder(maggie, matt);
+                assertThat(result.hasNext()).isFalse();
+            })
+            .verifyComplete();
+
+        reactiveRepository.findAllByIdAndFirstNameIn(ids, names,
+                PageRequest.of(1, 1, Sort.by("firstName"))
+            )
+            .as(StepVerifier::create)
+            .assertNext(result -> {
+                assertThat(result.getSize()).isEqualTo(1);
+                assertThat(result.getContent()).containsOnly(matt); // it is the second existing record
+                assertThat(result.hasNext()).isFalse();
+            })
+            .verifyComplete();
 
         QueryParam idsNonExistent = of(List.of("1", "2"));
         reactiveRepository.findAllByIdAndFirstNameIn(idsNonExistent, names,
@@ -448,18 +435,15 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     void findAllByIds_AND_simpleProperty_sorted() {
         QueryParam ids = of(List.of(fry.getId(), leela.getId(), matt.getId()));
         QueryParam names = of(List.of(fry.getFirstName(), leela.getFirstName(), matt.getFirstName()));
-        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.DESC, "firstName")).collectList()
+        reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.DESC, "firstName"))
+            .collectList()
             .as(StepVerifier::create)
-            .assertNext(result -> {
-                assertThat(result.get(0)).isEqualTo(fry);
-            })
+            .assertNext(result -> assertThat(result.get(0)).isEqualTo(fry))
             .verifyComplete();
 
         reactiveRepository.findAllByIdAndFirstNameIn(ids, names, Sort.by(Sort.Direction.ASC, "firstName")).collectList()
             .as(StepVerifier::create)
-            .assertNext(result -> {
-                assertThat(result.get(0)).isEqualTo(leela);
-            })
+            .assertNext(result -> assertThat(result.get(0)).isEqualTo(leela))
             .verifyComplete();
     }
 }
