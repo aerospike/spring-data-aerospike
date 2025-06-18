@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -536,20 +537,22 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         }
     }
 
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class CachedObject {
 
-        private final Object value;
+        private Object value;
 
         public Object getValue() {
             return value;
         }
     }
 
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class AnotherCachedObject {
 
-        private final long number;
+        private long number;
 
         public long getNumber() {
             return number;

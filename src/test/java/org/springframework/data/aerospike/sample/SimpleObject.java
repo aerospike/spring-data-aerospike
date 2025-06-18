@@ -15,11 +15,15 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Builder
-@Value
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SimpleObject {
 
     String property1;

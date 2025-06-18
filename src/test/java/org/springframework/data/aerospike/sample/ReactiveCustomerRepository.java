@@ -78,6 +78,8 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     // Paginated query
     Mono<Page<Customer>> findAllById(Iterable<String> ids, Pageable pageable);
 
+    Mono<Customer> findAllByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
     // Sorted query
     Flux<Customer> findAllById(Iterable<String> ids, Sort sort);
 

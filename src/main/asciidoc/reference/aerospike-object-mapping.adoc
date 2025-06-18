@@ -131,3 +131,53 @@ public class Person<T extends Address> {
 // other getters/setters omitted
 }
 ----
+
+[[mapping-parameter-name-known-issue]]
+=== Troubleshooting "Parameter Does Not Have a Name": Known Issue
+
+Let's assume we have a complex entity called `Person`. In order to get a smaller subset of fields (only `firstName`, `lastName` and `email`) from `Person` object we want to run a simple `find` query using DTO projection, so we create a DTO entity called `PersonSomeFields`:
+
+[source,java]
+----
+@Data
+@Builder
+public class PersonSomeFields {
+
+    private String firstName;
+    private String lastName;
+    @Field("email")
+    private String emailAddress;
+}
+
+List<PersonSomeFields> result = repository.findPersonSomeFieldsByFirstName("Carter");
+----
+
+However, when we run this query, it might lead to a `MappingException` with the message "Parameter %s does not have a name".
+
+When mapping to a DTO / entity class like `PersonSomeFields` (often annotated with Lombok's `@Data` and `@Builder`), Spring Data attempts to create an instance of `PersonSomeFields`. During this process, it tries to identify the constructor parameters and their corresponding property names.
+
+Without a no-argument constructor explicitly defined or generated, Spring Data attempts to use the implicitly generated constructor. To correctly map constructor parameters to entity properties, it relies on the parameter names being available at runtime. However, Java compiler or Lombok's generated constructors often do not retain parameter names, leading to `null` being returned for parameter name.
+
+The solution is to ensure that Spring Data has a way to instantiate the `PersonSomeFields` class without relying on extracting parameter names from a constructor that might not have them available at runtime. The simplest and most robust way to achieve this is by providing a no-argument constructor.
+
+When using Lombok, this is easily done by adding the `@NoArgsConstructor` annotation to your DTO class. This instructs Lombok to generate a public no-argument constructor.
+
+If you are using `@Builder` alongside `@NoArgsConstructor`, it's typically required by Lombok to also include `@AllArgsConstructor`.
+
+Here is an example of the modified class:
+
+[source,java]
+----
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PersonSomeFields {
+
+    private String firstName;
+    private String lastName;
+    @Field("email")
+    private String emailAddress;
+}
+----
+

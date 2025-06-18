@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
+import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
@@ -65,6 +66,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     @Autowired
     protected ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
+    @Autowired
+    protected AerospikeConverter converter;
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();

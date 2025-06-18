@@ -15,21 +15,30 @@ public class AerospikeReadDataTest {
 
     @Test
     public void shouldThrowExceptionIfRecordIsNull() {
-        assertThatThrownBy(() -> AerospikeReadData.forRead(new Key("namespace", "set", 867), null))
+        assertThatThrownBy(() -> AerospikeReadData.forRead(
+            new Key("namespace", "set", 867),
+            null)
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Record must not be null");
     }
 
     @Test
     public void shouldThrowExceptionIfRecordBinsIsNull() {
-        assertThatThrownBy(() -> AerospikeReadData.forRead(new Key("namespace", "set", 867), new Record(null, 0, 0)))
+        assertThatThrownBy(() -> AerospikeReadData.forRead(
+            new Key("namespace", "set", 867),
+            new Record(null, 0, 0))
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Record bins must not be null");
     }
 
     @Test
     public void shouldThrowExceptionIfKeyIsNull() {
-        assertThatThrownBy(() -> AerospikeReadData.forRead(null, new Record(Collections.emptyMap(), 0, 0)))
+        assertThatThrownBy(() -> AerospikeReadData.forRead(
+            null,
+            new Record(Collections.emptyMap(), 0, 0))
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Key must not be null");
     }
