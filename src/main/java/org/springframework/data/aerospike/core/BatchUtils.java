@@ -301,8 +301,8 @@ public final class BatchUtils {
                                               AerospikeExceptionTranslator exceptionTranslator) {
         BatchResults results;
         try {
-            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client,
-                client.copyBatchPolicyDefault());
+            BatchPolicy batchPolicy =
+                (BatchPolicy) enrichPolicyWithTransaction(client, client.copyBatchPolicyDefault());
             results = client.delete(batchPolicy, null, keys);
         } catch (AerospikeException e) {
             throw ExceptionUtils.translateError(e, exceptionTranslator);

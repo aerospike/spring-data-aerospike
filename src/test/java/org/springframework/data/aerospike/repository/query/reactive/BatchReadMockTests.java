@@ -38,7 +38,8 @@ public class BatchReadMockTests extends BaseReactiveIntegrationTests {
 
     @BeforeAll
     void beforeAll() {
-        assertThat(converter.getAerospikeDataSettings().getBatchReadSize()).isEqualTo(100);
+        assertThat(reactiveTemplate.getAerospikeConverter().getAerospikeDataSettings().getBatchReadSize())
+            .isEqualTo(100);
         ids = IntStream.range(0, 201)
             .mapToObj(count -> "as-" + count)
             .toList();

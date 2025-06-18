@@ -68,8 +68,6 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     @Autowired
     protected AerospikeCacheKeyProcessor cacheKeyProcessor;
-    @Autowired
-    protected AerospikeConverter converter;
 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));

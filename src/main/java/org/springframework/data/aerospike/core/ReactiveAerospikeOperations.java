@@ -517,7 +517,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
      * to {@link #deleteById(Object, String)}.
      * <p>
-     * Deleting non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
+     * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -530,8 +530,8 @@ public interface ReactiveAerospikeOperations {
     Mono<Void> deleteByIds(Iterable<?> ids, String setName);
 
     /**
-     * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
-     * to {@link #deleteById(Object, String)}.
+     * Reactively delete existing records within the given set using a single batch delete operation.
+     * The policies are analogous to {@link #deleteById(Object, String)}.
      * <p>
      * Non-existing records are ignored.
      * <p>
