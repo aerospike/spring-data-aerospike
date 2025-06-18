@@ -130,7 +130,9 @@ public final class BatchUtils {
             default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
         }
 
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream()
+            .map(BatchWriteData::batchRecord)
+            .collect(Collectors.toList());
         try {
             templateContext.client.operate(batchPolicy, batchWriteRecords);
         } catch (AerospikeException e) {
@@ -299,8 +301,8 @@ public final class BatchUtils {
                                               AerospikeExceptionTranslator exceptionTranslator) {
         BatchResults results;
         try {
-            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client,
-                client.copyBatchPolicyDefault());
+            BatchPolicy batchPolicy =
+                (BatchPolicy) enrichPolicyWithTransaction(client, client.copyBatchPolicyDefault());
             results = client.delete(batchPolicy, null, keys);
         } catch (AerospikeException e) {
             throw ExceptionUtils.translateError(e, exceptionTranslator);
@@ -491,6 +493,7 @@ public final class BatchUtils {
 
         List<Key> keys = MappingUtils.getKeys(ids, setName, templateContext).toList();
         Record[] records = findByKeysUsingQuery(keys, binNames, query, templateContext);
+
         return IntStream.range(0, records.length)
             .filter(index -> records[index] != null)
             .mapToObj(index -> new KeyRecord(keys.get(index), records[index]));

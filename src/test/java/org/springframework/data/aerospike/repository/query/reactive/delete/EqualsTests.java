@@ -1,17 +1,20 @@
 package org.springframework.data.aerospike.repository.query.reactive.delete;
 
 import com.aerospike.client.AerospikeException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 /**
@@ -33,7 +36,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     }
 
     @Test
-    public void deleteById_ShouldSkipNonexistent() {
+    public void deleteById_ShouldSkipNonExistent() {
         StepVerifier.create(reactiveRepository.deleteById("non-existent-id"))
             .verifyComplete();
     }
@@ -48,8 +51,8 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void deleteByIdPublisher_ShouldDeleteOnlyFirstElement() {
         StepVerifier.create(
-            reactiveRepository
-                .deleteById(Flux.just(homer.getId(), marge.getId())))
+                reactiveRepository
+                    .deleteById(Flux.just(homer.getId(), marge.getId())))
             .verifyComplete();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
@@ -173,6 +176,9 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteAllById_ShouldDelete() {
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(1).verifyComplete();
+
         reactiveRepository.deleteAllById(asList(homer.getId(), marge.getId()))
             .block();
 
@@ -183,6 +189,59 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         StepVerifier.create(reactiveRepository.saveAll(Flux.just(marge, homer)))
             .expectNextCount(2)
             .verifyComplete();
+    }
+
+    @Test
+    void deleteAllById_shouldIgnoreNonExistent() {
+        // Pre-deletion check
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("1")).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
+
+        reactiveRepository.deleteAllById(List.of(homer.getId(), marge.getId()))
+            .block();
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
+
+        // Restore records
+        reactiveRepository.save(homer).block();
+        reactiveRepository.save(marge).block();
+
+        // Pre-deletion check
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("1")).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
+
+        // Another way to run the same, this is the implementation of reactiveRepository.deleteAllById(Iterable<?>)
+        reactiveTemplate.deleteExistingByIds(List.of("1", homer.getId(), "2", marge.getId()), Customer.class)
+            .block();
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
+
+        // Restore records
+        reactiveRepository.save(homer).block();
+        reactiveRepository.save(marge).block();
+
+        // Pre-deletion check
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(1).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("1")).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
+
+        // Non-existent records cause the exception, they are not ignored
+        Assertions.assertThatThrownBy(() -> reactiveTemplate.deleteByIds(
+                    List.of("1", homer.getId(), "2", marge.getId()),
+                    Customer.class
+                ).block()
+            )
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
+
+        // Cleanup
+        reactiveRepository.save(homer).block();
+        reactiveRepository.save(marge).block();
     }
 
     @Test

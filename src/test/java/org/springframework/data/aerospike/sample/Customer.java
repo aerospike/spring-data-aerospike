@@ -15,8 +15,10 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
@@ -26,6 +28,8 @@ import org.springframework.data.annotation.Id;
 @Data
 @Builder
 @Document
+@NoArgsConstructor
+@AllArgsConstructor
 public class Customer {
 
     @Id

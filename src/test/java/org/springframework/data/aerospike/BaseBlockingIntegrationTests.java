@@ -10,6 +10,7 @@ import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor;
+import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;

@@ -17,12 +17,14 @@ package org.springframework.data.aerospike.sample;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class Address {
 

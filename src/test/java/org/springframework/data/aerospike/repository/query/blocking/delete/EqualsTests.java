@@ -1,12 +1,17 @@
 package org.springframework.data.aerospike.repository.query.blocking.delete;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Key;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Person;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.QueryParam.of;
 
 /**
@@ -31,10 +36,18 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     @Test
     void deleteById() {
         assertThat(repository.existsById(dave.getId())).isTrue();
+
         repository.deleteById(dave.getId());
         assertThat(repository.existsById(dave.getId())).isFalse();
+
         // cleanup
         repository.save(dave);
+    }
+
+    @Test
+    void deleteById_shouldIgnoreNonExistent() {
+        assertThat(repository.existsById("1")).isFalse();
+        repository.deleteById("1");
     }
 
     @Test
@@ -79,6 +92,55 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(repository.existsById(carter.getId())).isFalse();
 
         // cleanup
+        repository.save(dave);
+        repository.save(carter);
+    }
+
+    @Test
+    void deleteAllById_shouldIgnoreNonExistent() {
+        // Pre-deletion check
+        assertThat(repository.existsById(dave.getId())).isTrue();
+        assertThat(repository.existsById(carter.getId())).isTrue();
+        assertThat(repository.existsById("1")).isFalse();
+        assertThat(repository.existsById("2")).isFalse();
+
+        repository.deleteAllById(List.of("1", dave.getId(), "2", carter.getId()));
+        assertThat(repository.existsById(dave.getId())).isFalse();
+        assertThat(repository.existsById(carter.getId())).isFalse();
+
+        // Restore records
+        repository.save(dave);
+        repository.save(carter);
+
+        // Pre-deletion check
+        assertThat(repository.existsById(dave.getId())).isTrue();
+        assertThat(repository.existsById(carter.getId())).isTrue();
+        assertThat(repository.existsById("1")).isFalse();
+        assertThat(repository.existsById("2")).isFalse();
+
+        // Another way to run the same, this is the implementation of repository.deleteAllById(Iterable<?>)
+        template.deleteExistingByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class);
+        assertThat(repository.existsById(dave.getId())).isFalse();
+        assertThat(repository.existsById(carter.getId())).isFalse();
+        assertThat(repository.existsById("1")).isFalse();
+        assertThat(repository.existsById("2")).isFalse();
+
+        // Restore records
+        repository.save(dave);
+        repository.save(carter);
+
+        // Pre-deletion check
+        assertThat(repository.existsById(dave.getId())).isTrue();
+        assertThat(repository.existsById(carter.getId())).isTrue();
+        assertThat(repository.existsById("1")).isFalse();
+        assertThat(repository.existsById("2")).isFalse();
+
+        // Non-existent records cause the exception, they are not ignored
+        assertThatThrownBy(() -> template.deleteByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
+
+        // Cleanup
         repository.save(dave);
         repository.save(carter);
     }

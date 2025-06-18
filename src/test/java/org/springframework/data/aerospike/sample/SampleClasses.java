@@ -75,110 +75,131 @@ public class SampleClasses {
     @TypeAlias("simpleclass")
     @Document(collection = SIMPLESET)
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SimpleClass implements SomeInterface {
 
         public static final String SIMPLESET = "simpleset1";
         @Id
-        final long id;
-        final String field1;
-        final int field2;
-        final long field3;
-        final float field4;
-        final double field5;
-        final boolean field6;
-        final Date field7;
-        final TYPES field8;
-        final Set<String> field9;
-        final Set<Set<String>> field10;
-        final byte field11;
-        final char field12;
-        final char field13;
+        long id;
+        String field1;
+        int field2;
+        long field3;
+        float field4;
+        double field5;
+        boolean field6;
+        Date field7;
+        TYPES field8;
+        Set<String> field9;
+        Set<Set<String>> field10;
+        byte field11;
+        char field12;
+        char field13;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithShortKey {
 
         @Id
-        final long id;
-        final Map<Short, String> mapWithShortKey;
+        long id;
+        Map<Short, String> mapWithShortKey;
     }
 
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithIntegerKey {
 
         @Id
-        final long id;
-        final Map<Integer, String> mapWithIntKey;
+        long id;
+        Map<Integer, String> mapWithIntKey;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithLongKey {
 
         @Id
-        final long id;
-        final Map<Long, String> mapWithLongKey;
+        long id;
+        Map<Long, String> mapWithLongKey;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithDoubleKey {
 
         @Id
-        final long id;
-        final Map<Double, String> mapWithDoubleKey;
+        long id;
+        Map<Double, String> mapWithDoubleKey;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithByteKey {
 
         @Id
-        final long id;
-        final Map<Byte, String> mapWithByteKey;
+        long id;
+        Map<Byte, String> mapWithByteKey;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithCharacterKey {
 
         @Id
-        final long id;
-        final Map<Character, String> mapWithCharacterKey;
+        long id;
+        Map<Character, String> mapWithCharacterKey;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithStringValue {
 
         @Id
-        final long id;
-        final Map<String, String> mapWithStringValue;
+        long id;
+        Map<String, String> mapWithStringValue;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithCollectionValue {
 
         @Id
-        final long id;
-        final Map<String, List<String>> mapWithCollectionValue;
+        long id;
+        Map<String, List<String>> mapWithCollectionValue;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapWithGenericValue<T> {
 
         @Id
-        final long id;
-        final Map<String, T> mapWithNonSimpleValue;
+        long id;
+        Map<String, T> mapWithNonSimpleValue;
     }
 
     @Data
     @Document
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentExample {
 
@@ -188,6 +209,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Document(collection = "${aerospike.collections.test}")
@@ -202,14 +224,17 @@ public class SampleClasses {
         Long timestamp;
     }
 
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SomeId {
 
         String partA;
         String partB;
     }
 
-    @Value
+    @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class SomeEntity {
 
@@ -219,7 +244,9 @@ public class SampleClasses {
     }
 
     @Document
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class BigDecimalContainer {
 
         @Id
@@ -231,25 +258,31 @@ public class SampleClasses {
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomTypeWithListAndMap {
 
         @Id
-        final String id;
-        final List<Object> listOfObjects;
-        final Map<String, Object> mapWithObjectValue;
+        String id;
+        List<Object> listOfObjects;
+        Map<String, Object> mapWithObjectValue;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomTypeWithCustomType {
 
         @Id
-        final String id;
-        final ImmutableListAndMap field;
+        String id;
+        ImmutableListAndMap field;
     }
 
     @Document
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomTypeWithListAndMapImmutable {
 
         @Id
@@ -259,7 +292,9 @@ public class SampleClasses {
     }
 
     @Document
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomTypeWithCustomTypeImmutable {
 
         ImmutableListAndMap field;
@@ -267,132 +302,153 @@ public class SampleClasses {
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SortedMapWithSimpleValue {
 
         @Id
-        final String id;
-        final SortedMap<String, String> map;
+        String id;
+        SortedMap<String, String> map;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class NestedMapsWithSimpleValue {
 
         @Id
-        final String id;
-        final Map<String, Map<String, Map<String, String>>> nestedMaps;
+        String id;
+        Map<String, Map<String, Map<String, String>>> nestedMaps;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class GenericType<T> {
 
         @Id
-        final String id;
-        final T content;
+        String id;
+        T content;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CollectionOfObjects {
 
         @Id
-        final String id;
-        final Collection<Object> collection;
+        String id;
+        Collection<Object> collection;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ListOfLists {
 
         @Id
-        final String id;
-        final List<List<String>> listOfLists;
+        String id;
+        List<List<String>> listOfLists;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ListOfMaps {
 
         @Id
-        final String id;
-        final List<Map<String, Name>> listOfMaps;
+        String id;
+        List<Map<String, Name>> listOfMaps;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ContainerOfCustomFieldNames {
 
         @Id
-        final String id;
+        String id;
         @Field("property")
-        final String myField;
-        final CustomFieldNames customFieldNames;
+        String myField;
+        CustomFieldNames customFieldNames;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomFieldNames {
 
         @Field("property1")
-        final int intField;
+        int intField;
         @Field("property2")
-        final String stringField;
+        String stringField;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ClassWithComplexId {
 
         @Id
-        final ComplexId complexId;
+        ComplexId complexId;
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ComplexId {
 
-        final Long innerId;
+        Long innerId;
     }
 
     @Document
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SetWithSimpleValue {
 
         @Id
-        final long id;
-        final Set<String> collectionWithSimpleValues;
+        long id;
+        Set<String> collectionWithSimpleValues;
     }
 
     @Document(collection = SIMPLESET2)
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SimpleClassWithPersistenceConstructor {
 
         public static final String SIMPLESET2 = "simpleset2";
         @Id
-        final long id;
-        final String field1;
-        final int field2;
-
-        @PersistenceCreator
-        public SimpleClassWithPersistenceConstructor(long id, String field1, int field2) {
-            this.id = id;
-            this.field1 = field1;
-            this.field2 = field2;
-        }
+        long id;
+        String field1;
+        int field2;
     }
 
     @Document(collection = SIMPLESET3)
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class User implements Contact {
 
         public static final String SIMPLESET3 = "simpleset3";
         @Id
-        final long id;
-        final Name name;
-        final Address address;
+        long id;
+        Name name;
+        Address address;
     }
 
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ImmutableListAndMap {
 
         List<Object> listOfObjects;
@@ -400,27 +456,34 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Name {
 
-        final String firstName;
-        final String lastName;
+        String firstName;
+        String lastName;
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Address {
 
-        final Street street;
-        final int apartment;
+        Street street;
+        int apartment;
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Street {
 
-        final String name;
-        final int number;
+        String name;
+        int number;
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithPrimitiveShortId {
 
@@ -429,6 +492,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithPrimitiveIntId {
 
@@ -437,6 +501,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithPrimitiveLongId {
 
@@ -464,6 +529,7 @@ public class SampleClasses {
 
     @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithShortId {
 
@@ -474,6 +540,7 @@ public class SampleClasses {
 
     @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithIntegerId {
 
@@ -484,6 +551,7 @@ public class SampleClasses {
 
     @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithLongId {
 
@@ -494,6 +562,7 @@ public class SampleClasses {
 
     @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithCharacterId {
 
@@ -504,6 +573,7 @@ public class SampleClasses {
 
     @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithByteId {
 
@@ -535,6 +605,7 @@ public class SampleClasses {
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND)
+    @NoArgsConstructor
     @AllArgsConstructor
     @ToString
     @EqualsAndHashCode
@@ -543,25 +614,22 @@ public class SampleClasses {
         @Id
         String id;
         Set<Address> addresses;
-
-        private Person() {
-        }
-
-        private Person(Set<Address> addresses) {
-            this.addresses = addresses;
-        }
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class IdAndAddressesList {
 
         @Id
-        final String id;
-        final List<Address> addresses;
+        String id;
+        List<Address> addresses;
     }
 
     @Data
     @Document(collection = "versioned-set")
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VersionedClass {
 
         @Version
@@ -585,6 +653,7 @@ public class SampleClasses {
 
     @Data
     @Document
+    @NoArgsConstructor
     public static class VersionedClassWithAllArgsConstructor {
 
         private String field;
@@ -605,20 +674,19 @@ public class SampleClasses {
     @EqualsAndHashCode
     @ToString
     @Document(collection = "custom-set")
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomCollectionClass {
 
         @Id
-        private final String id;
-        private final String data;
-
-        public CustomCollectionClass(String id, String data) {
-            this.id = id;
-            this.data = data;
-        }
+        private String id;
+        private String data;
     }
 
-    @Value
+    @Data
     @Document(collection = "set-to-delete")
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomCollectionClassToDelete {
 
         @Id
@@ -626,6 +694,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(expiration = EXPIRATION_ONE_SECOND)
     public static class DocumentWithExpiration {
@@ -713,6 +782,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(collection = "expiration-set", expiration = 1, touchOnRead = true)
     public static class DocumentWithTouchOnRead {
@@ -737,6 +807,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(collection = "expiration-set")
     public static class DocumentWithExpirationAnnotation {
@@ -748,8 +819,10 @@ public class SampleClasses {
         private Integer expiration; // the value must be effectively integer
     }
 
-    @Value
+    @Data
     @Document(collection = "expiration-set")
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DocumentWithExpirationAnnotationAndPersistenceConstructor {
 
         @Id
@@ -757,15 +830,10 @@ public class SampleClasses {
 
         @Expiration
         int expiration; // the value must be effectively integer
-
-        @PersistenceCreator
-        public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, int expiration) {
-            this.id = id;
-            this.expiration = expiration;
-        }
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(collection = "expiration-set")
     public static class DocumentWithUnixTimeExpiration {
@@ -778,41 +846,50 @@ public class SampleClasses {
     }
 
     @Document(expirationExpression = "${expirationProperty}")
+    @NoArgsConstructor
     public static class DocumentWithExpirationExpression {
 
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND, expirationUnit = TimeUnit.MINUTES)
+    @NoArgsConstructor
     public static class DocumentWithExpirationUnit {
 
     }
 
     @Document(expiration = EXPIRATION_NEVER_EXPIRE, expirationUnit = TimeUnit.DAYS)
+    @NoArgsConstructor
     public static class DocumentWithNeverExpireAndExpirationUnit {
 
     }
 
     @Document(expiration = EXPIRATION_NEVER_EXPIRE)
+    @NoArgsConstructor
     public static class DocumentWithNeverExpireAndWithoutExpirationUnit {
 
     }
 
     @Document
+    @NoArgsConstructor
     public static class DocumentWithoutExpiration {
 
     }
 
+    @NoArgsConstructor
     public static class DocumentWithoutAnnotation {
 
     }
 
     @Document(expiration = 1, expirationExpression = "${expirationProperty}")
+    @NoArgsConstructor
     public static class DocumentWithExpirationAndExpression {
 
     }
 
     @Data
     @Document
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DocumentWithDefaultConstructor {
 
         @Id
@@ -825,6 +902,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(collection = "expiration-set", expiration = 1, expirationUnit = TimeUnit.DAYS, touchOnRead = true)
     public static class DocumentWithExpirationOneDay {
@@ -841,6 +919,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document(collection = "expiration-set", touchOnRead = true)
     public static class DocumentWithTouchOnReadAndExpirationProperty {
@@ -852,17 +931,20 @@ public class SampleClasses {
     }
 
     @Document(collection = DocumentWithExpressionInCollection.COLLECTION_PREFIX + "${setSuffix}")
+    @NoArgsConstructor
     public static class DocumentWithExpressionInCollection {
 
         public static final String COLLECTION_PREFIX = "set-prefix-";
     }
 
     @Document
+    @NoArgsConstructor
     public static class DocumentWithoutCollection {
 
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithByteArray {
@@ -874,6 +956,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithIntArray {
@@ -885,6 +968,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithBigIntegerAndNestedArray {
@@ -899,6 +983,8 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ObjectWithIntegerArray {
 
         @Version
@@ -911,6 +997,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithByteArrayList {
@@ -922,6 +1009,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithAtomicFields {
@@ -935,6 +1023,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithURL {
@@ -946,6 +1035,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithUUID {
@@ -957,6 +1047,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithCurrency {
@@ -968,6 +1059,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithDate {
@@ -979,6 +1071,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithCalendar {
@@ -990,6 +1083,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithInstant {
@@ -1000,6 +1094,7 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     @Document
     public static class DocumentWithDuration {
@@ -1012,6 +1107,8 @@ public class SampleClasses {
 
     @Data
     @Document
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DocumentWithCompositeKey {
 
         @Id
@@ -1024,15 +1121,11 @@ public class SampleClasses {
             this.id = id;
             this.data = "some-initial-data";
         }
-
-        @PersistenceCreator
-        public DocumentWithCompositeKey(CompositeKey id, String data) {
-            this.id = id;
-            this.data = data;
-        }
     }
 
-    @Value
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CompositeKey {
 
         String firstPart;

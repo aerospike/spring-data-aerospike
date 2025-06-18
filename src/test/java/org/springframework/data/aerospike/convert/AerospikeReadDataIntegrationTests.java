@@ -4,6 +4,7 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Address;
@@ -27,6 +28,7 @@ class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
         "zipCode", address.getZipCode(),
         "city", address.getCity());
 
+    @NoArgsConstructor
     @AllArgsConstructor
     @Getter
     static class User {
@@ -67,8 +69,9 @@ class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
         assertThat(user.getAddress()).isEqualTo(address);
     }
 
-    @AllArgsConstructor
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     static class Document {
 
         @Id
