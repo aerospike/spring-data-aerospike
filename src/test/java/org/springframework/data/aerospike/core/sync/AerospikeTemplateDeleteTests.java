@@ -245,7 +245,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteByIds_rejectsDuplicateIds() {
+    public void deleteExistingByIds_rejectsDuplicateIds() {
         String id1 = nextId();
         DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
         DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -253,18 +253,18 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(document2);
 
         List<String> ids = List.of(id1, id1);
-        assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
+        assertThatThrownBy(() -> template.deleteExistingByIds(ids, DocumentWithExpiration.class))
             .isInstanceOf(AerospikeException.BatchRecordArray.class)
             .hasMessageContaining("Batch failed");
     }
 
     @Test
-    public void deleteExistingByIds_skipsDuplicateIds() {
+    public void deleteByIds_skipsDuplicateIds() {
         List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(201);
         template.deleteAll(persons);
         var ids = persons.stream().map(Person::getId).toList();
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
-        template.deleteExistingByIds(ids, Person.class); // ignores non-existing records
+        template.deleteByIds(ids, Person.class); // ignores non-existing records
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
     }
 
@@ -276,17 +276,17 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id2));
 
         List<String> ids = List.of(id1, id2);
-        template.deleteExistingByIds(ids, DocumentWithExpiration.class);
+        template.deleteByIds(ids, DocumentWithExpiration.class);
         assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
 
         List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
         ids = persons.stream().map(Person::getId).toList();
-        template.deleteExistingByIds(ids, Person.class);
+        template.deleteByIds(ids, Person.class);
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
 
         List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
         ids = persons2.stream().map(Person::getId).toList();
-        template.deleteExistingByIds(ids, Person.class);
+        template.deleteByIds(ids, Person.class);
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
     }
 
@@ -298,7 +298,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
 
         List<String> ids = List.of(id1, id2);
-        template.deleteExistingByIds(ids, OVERRIDE_SET_NAME);
+        template.deleteByIds(ids, OVERRIDE_SET_NAME);
 
         assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
     }

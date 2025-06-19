@@ -7,7 +7,6 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Customer;
-import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -215,7 +214,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
 
         // Another way to run the same, this is the implementation of reactiveRepository.deleteAllById(Iterable<?>)
-        reactiveTemplate.deleteExistingByIds(List.of("1", homer.getId(), "2", marge.getId()), Customer.class)
+        reactiveTemplate.deleteByIds(List.of("1", homer.getId(), "2", marge.getId()), Customer.class)
             .block();
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
@@ -230,14 +229,17 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         StepVerifier.create(reactiveRepository.findById("1")).expectNextCount(0).verifyComplete();
         StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
 
-        // Non-existent records cause the exception, they are not ignored
-        Assertions.assertThatThrownBy(() -> reactiveTemplate.deleteByIds(
+        // Trying to delete non-existent records causes an exception
+        Assertions.assertThatThrownBy(() -> reactiveTemplate.deleteExistingByIds(
                     List.of("1", homer.getId(), "2", marge.getId()),
                     Customer.class
                 ).block()
             )
             .isInstanceOf(AerospikeException.BatchRecordArray.class)
             .hasMessageContaining("Batch failed");
+        // Existing records are deleted as the check is performed in post-processing
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
 
         // Cleanup
         reactiveRepository.save(homer).block();

@@ -448,16 +448,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        if (ValidationUtils.isEmpty(ids)) {
-            logEmptyItems(log, "Ids for deleting");
-            return Mono.empty();
-        }
-        return deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
+    @Deprecated
     public <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
@@ -468,7 +459,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
+    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        if (ValidationUtils.isEmpty(ids)) {
+            logEmptyItems(log, "Ids for deleting");
+            return Mono.empty();
+        }
+        return deleteByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
+    @Deprecated
+    public Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -478,7 +480,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName) {
+    public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -993,12 +995,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
-        return countExistingByIdsUsingQuery(ids, getSetName(entityClass), query);
+    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return BatchUtils.findByIdsUsingQueryWithoutEntityMappingReactively(ids, setName, query, templateContext)
             .filter(keyRecord -> keyRecord != null && keyRecord.record != null)
             .count();

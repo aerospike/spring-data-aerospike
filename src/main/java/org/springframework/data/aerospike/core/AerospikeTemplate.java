@@ -430,19 +430,21 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
+    @Deprecated
     public <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         deleteExistingByIds(ids, getSetName(entityClass));
     }
 
     @Override
-    public void deleteByIds(Iterable<?> ids, String setName) {
+    public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        deleteByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
+    @Deprecated
+    public void deleteExistingByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -452,7 +454,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public void deleteExistingByIds(Iterable<?> ids, String setName) {
+    public void deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
             logEmptyItems(log, "Ids for deleting");
@@ -972,18 +974,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> long countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
-        return countExistingByIdsUsingQuery(ids, getSetName(entityClass), query);
-    }
-
-    @Override
-    public long countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
-        return BatchUtils.findByIdsUsingQueryWithoutMapping(ids, setName, query, templateContext)
-            .filter(Objects::nonNull)
-            .count();
-    }
-
-    @Override
     public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
@@ -991,6 +981,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return BatchUtils.findByIdsUsingQueryWithoutMapping(ids, setName, query, templateContext)
+            .filter(Objects::nonNull)
             .count();
     }
 

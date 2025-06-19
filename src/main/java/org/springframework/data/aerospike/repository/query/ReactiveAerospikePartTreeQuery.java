@@ -127,7 +127,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (isExistsQuery(queryMethod)) {
             return template.existsByIdsUsingQuery(ids, entityClass, query);
         } else if (isCountQuery(queryMethod)) {
-            return template.countExistingByIdsUsingQuery(ids, entityClass, query);
+            return template.countByIdsUsingQuery(ids, entityClass, query);
         } else if (isDeleteQuery(queryMethod)) {
             return template.deleteByIdsUsingQuery(ids, entityClass, query);
         } else {

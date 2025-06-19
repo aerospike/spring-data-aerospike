@@ -1,9 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.delete;
 
 import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Key;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -119,11 +117,9 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(repository.existsById("2")).isFalse();
 
         // Another way to run the same, this is the implementation of repository.deleteAllById(Iterable<?>)
-        template.deleteExistingByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class);
+        template.deleteByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class);
         assertThat(repository.existsById(dave.getId())).isFalse();
         assertThat(repository.existsById(carter.getId())).isFalse();
-        assertThat(repository.existsById("1")).isFalse();
-        assertThat(repository.existsById("2")).isFalse();
 
         // Restore records
         repository.save(dave);
@@ -136,9 +132,12 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThat(repository.existsById("2")).isFalse();
 
         // Non-existent records cause the exception, they are not ignored
-        assertThatThrownBy(() -> template.deleteByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class))
+        assertThatThrownBy(() -> template.deleteExistingByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class))
             .isInstanceOf(AerospikeException.BatchRecordArray.class)
             .hasMessageContaining("Batch failed");
+        // Existing records are deleted as the check is performed in post-processing
+        assertThat(repository.existsById(dave.getId())).isFalse();
+        assertThat(repository.existsById(carter.getId())).isFalse();
 
         // Cleanup
         repository.save(dave);
