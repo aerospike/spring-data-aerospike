@@ -237,6 +237,9 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
             )
             .isInstanceOf(AerospikeException.BatchRecordArray.class)
             .hasMessageContaining("Batch failed");
+        // Existing records are deleted as the check is performed in post-processing
+        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
+        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
 
         // Cleanup
         reactiveRepository.save(homer).block();

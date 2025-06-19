@@ -120,8 +120,6 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         template.deleteByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class);
         assertThat(repository.existsById(dave.getId())).isFalse();
         assertThat(repository.existsById(carter.getId())).isFalse();
-        assertThat(repository.existsById("1")).isFalse();
-        assertThat(repository.existsById("2")).isFalse();
 
         // Restore records
         repository.save(dave);
@@ -137,6 +135,9 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> template.deleteExistingByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class))
             .isInstanceOf(AerospikeException.BatchRecordArray.class)
             .hasMessageContaining("Batch failed");
+        // Existing records are deleted as the check is performed in post-processing
+        assertThat(repository.existsById(dave.getId())).isFalse();
+        assertThat(repository.existsById(carter.getId())).isFalse();
 
         // Cleanup
         repository.save(dave);

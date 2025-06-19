@@ -498,20 +498,26 @@ public interface AerospikeOperations {
      * set name will be determined by the given entityClass.
      * The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
-     * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
+     * If a non-existent id is given within {@code ids}, {@link AerospikeException.BatchRecordArray} exception
+     * is thrown after performing delete.
      * <p>
      * This operation requires Server version 6.0+.
+     * <p>
+     * @deprecated This method is deprecated and will be removed in a future version. Use a combination of
+     * {@link #existsByIdsUsingQuery(Collection, Class, Query)} and {@link #deleteByIds(Iterable, Class)}} to ensure
+     * existence of records prior to deletion if needed.
      *
      * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors or empty records.
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
+    @Deprecated(forRemoval = true)
     <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
-     * Delete existing records by ids using a single batch delete operation, set name will be determined by the given
+     * Delete records by ids using a single batch delete operation, set name will be determined by the given
      * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
      * Non-existing records are ignored.
@@ -530,20 +536,26 @@ public interface AerospikeOperations {
      * Delete existing records by ids within the given set using a single batch delete operation or throw an exception.
      * The policies are analogous to {@link #deleteById(Object, String)}.
      * <p>
-     * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
+     * If a non-existent id is given within {@code ids}, {@link AerospikeException.BatchRecordArray} exception
+     * is thrown after performing delete.
      * <p>
      * This operation requires Server version 6.0+.
+     * <p>
+     * @deprecated This method is deprecated and will be removed in a future version. Use a combination of
+     * {@link #existsByIdsUsingQuery(Collection, String, Query)} and {@link #deleteByIds(Iterable, String)}} to ensure
+     * existence of records prior to deletion if needed.
      *
      * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors or empty records.
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
+    @Deprecated(forRemoval = true)
     void deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
-     * Delete existing records by ids within the given set using a single batch delete operation. The policies are analogous to
+     * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
      * {@link #deleteById(Object, String)}.
      * <p>
      * Non-existing records are ignored.
@@ -561,7 +573,7 @@ public interface AerospikeOperations {
     /**
      * Perform a single batch delete operation for records from different sets.
      * <p>
-     * Records' versions on server are not checked.
+     * Records' versions on server are not checked. Non-existing records are ignored.
      * <p>
      * This operation requires Server 6.0+.
      *

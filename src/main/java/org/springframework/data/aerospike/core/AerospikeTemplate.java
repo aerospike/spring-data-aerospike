@@ -430,6 +430,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    @Deprecated
     public <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         deleteExistingByIds(ids, getSetName(entityClass));
@@ -442,6 +443,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    @Deprecated
     public void deleteExistingByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
