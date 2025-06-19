@@ -278,7 +278,7 @@ public final class BatchUtils {
     static void deleteGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
         Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
-        deleteAndHandleErrors(templateContext.client, entitiesKeys.getKeys(), false,
+        deleteAndHandleErrors(templateContext.client, entitiesKeys.getKeys(), true,
             templateContext.exceptionTranslator);
     }
 
@@ -380,8 +380,8 @@ public final class BatchUtils {
      * This method retrieves records based on a collection of {@link Key}s and an array of bin names. It enriches the
      * provided {@link BatchPolicy} with transaction information and reads records in chunks based on the configured
      * batch read size. If the collection of keys is smaller than or equal to the batch size, or if the batch size is
-     * non-positive, all records are read at once without chunking. Otherwise, the keys are processed in batches to optimize
-     * performance.
+     * non-positive, all records are read at once without chunking. Otherwise, the keys are processed in batches to
+     * optimize performance.
      *
      * @param batchPolicy     The {@link BatchPolicy} to use for the batch read operation
      * @param keys            A {@link Collection} of {@link Key}s representing the records to retrieve
@@ -457,8 +457,8 @@ public final class BatchUtils {
      * @throws IllegalArgumentException if the set name is null
      * @throws AerospikeException       if an error occurs during the batch read
      */
-    static Stream<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query,
-                                                       TemplateContext templateContext) {
+    static Stream<Record> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query,
+                                                            TemplateContext templateContext) {
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(templateContext, "TemplateContext name must not be null!");
 
@@ -481,10 +481,9 @@ public final class BatchUtils {
      * @throws IllegalArgumentException if IDs are null
      * @throws AerospikeException       if an error occurs during the batch read
      */
-    static Stream<KeyRecord> findExistingByIdsWithoutEntityMapping(Collection<?> ids, String setName,
-                                                                   @Nullable String[] binNames,
-                                                                   @Nullable Query query,
-                                                                   TemplateContext templateContext) {
+    static Stream<KeyRecord> findByIdsWithoutEntityMapping(Collection<?> ids, String setName,
+                                                           @Nullable String[] binNames,
+                                                           @Nullable Query query, TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null");
         Assert.notNull(templateContext, "TemplateContext name must not be null!");
         if (ids.isEmpty()) {
@@ -799,7 +798,7 @@ public final class BatchUtils {
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, entitiesKeys.getKeys()))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
 
-        return batchDeleteReactivelyAndCheckForErrors(reactorClient, entitiesKeys.getKeys(), false,
+        return batchDeleteReactivelyAndCheckForErrors(reactorClient, entitiesKeys.getKeys(), true,
             templateContext.exceptionTranslator);
     }
 

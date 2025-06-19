@@ -480,21 +480,22 @@ public interface ReactiveAerospikeOperations {
     Mono<Boolean> deleteById(Object id, String setName);
 
     /**
-     * Reactively delete records using a single batch delete operation, set name will be determined by the given entity
-     * class. The policies are analogous to {@link #deleteById(Object, Class)}.
+     * Reactively delete existing records using a single batch delete operation or throw an exception,
+     * set name will be determined by the given entity class.
+     * The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
-     * Deleting non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
+     * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the records to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from and to map the results to. Must not be
      *                    {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or empty records.
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
      * Reactively delete records using a single batch delete operation, set name will be determined by the given entity
@@ -511,11 +512,11 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
-     * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
-     * to {@link #deleteById(Object, String)}.
+     * Reactively delete records within the given set using a single batch delete operation or throw an exception.
+     * The policies are analogous to {@link #deleteById(Object, String)}.
      * <p>
      * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
@@ -527,7 +528,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    Mono<Void> deleteByIds(Iterable<?> ids, String setName);
+    Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
      * Reactively delete existing records within the given set using a single batch delete operation.
@@ -543,7 +544,7 @@ public interface ReactiveAerospikeOperations {
      * @throws DataAccessException                 if batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName);
+    Mono<Void> deleteByIds(Iterable<?> ids, String setName);
 
     /**
      * Reactively delete records from different sets in a single request.
@@ -1144,7 +1145,7 @@ public interface ReactiveAerospikeOperations {
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return Quantity of matching queries.
      */
-    <T> Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+    <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
 
     /**
      * Count existing records by ids and a query using the given entityClass within the set.
@@ -1156,7 +1157,7 @@ public interface ReactiveAerospikeOperations {
      * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return Quantity of matching queries.
      */
-    Mono<Long> countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
+    Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Reactively create an index with the specified name in Aerospike.

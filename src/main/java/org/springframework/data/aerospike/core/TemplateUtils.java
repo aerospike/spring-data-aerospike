@@ -380,7 +380,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
-                return BatchUtils.findExistingByIdsWithoutEntityMapping(
+                return BatchUtils.findByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
                     null,
@@ -546,7 +546,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for id equality query
-                return BatchUtils.findExistingByIdsWithoutEntityMapping(
+                return BatchUtils.findByIdsWithoutEntityMapping(
                     getIdValue(idQualifier),
                     setName,
                     binNames,
@@ -644,7 +644,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
-                return findExistingByIdsWithoutEntityMappingReactively(
+                return findByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
                     null,
@@ -908,7 +908,7 @@ public class TemplateUtils {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for id equality query
-                return findExistingByIdsWithoutEntityMappingReactively(
+                return findByIdsWithoutEntityMappingReactively(
                     getIdValue(idQualifier),
                     setName,
                     targetClass,
@@ -943,11 +943,10 @@ public class TemplateUtils {
      * @throws IllegalArgumentException if {@code ids} or {@code setName} is null
      * @throws AerospikeException       in case of an error during reading
      */
-    private static <T> Flux<KeyRecord> findExistingByIdsWithoutEntityMappingReactively(Collection<?> ids,
-                                                                                       String setName,
-                                                                                       Class<T> targetClass,
-                                                                                       Query query,
-                                                                                       TemplateContext templateContext) {
+    private static <T> Flux<KeyRecord> findByIdsWithoutEntityMappingReactively(Collection<?> ids, String setName,
+                                                                               Class<T> targetClass,
+                                                                               Query query,
+                                                                               TemplateContext templateContext) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(templateContext, "TemplateContext name must not be null!");

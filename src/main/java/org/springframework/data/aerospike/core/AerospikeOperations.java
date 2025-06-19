@@ -494,8 +494,9 @@ public interface AerospikeOperations {
     boolean deleteById(Object id, String setName);
 
     /**
-     * Delete records by ids using a single batch delete operation, set name will be determined by the given
-     * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
+     * Delete existing records by ids using a single batch delete operation or throw an exception,
+     * set name will be determined by the given entityClass.
+     * The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
      * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
@@ -507,7 +508,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
      * Delete existing records by ids using a single batch delete operation, set name will be determined by the given
@@ -523,13 +524,13 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
-     * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
-     * {@link #deleteById(Object, String)}.
+     * Delete existing records by ids within the given set using a single batch delete operation or throw an exception.
+     * The policies are analogous to {@link #deleteById(Object, String)}.
      * <p>
-     * Deleting non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
+     * Trying to delete non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -539,7 +540,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    void deleteByIds(Iterable<?> ids, String setName);
+    void deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
      * Delete existing records by ids within the given set using a single batch delete operation. The policies are analogous to
@@ -555,7 +556,7 @@ public interface AerospikeOperations {
      * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
-    void deleteExistingByIds(Iterable<?> ids, String setName);
+    void deleteByIds(Iterable<?> ids, String setName);
 
     /**
      * Perform a single batch delete operation for records from different sets.
@@ -1162,34 +1163,10 @@ public interface AerospikeOperations {
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return quantity of matching records.
      */
-    <T> long countExistingByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
-
-    /**
-     * Count existing records by ids and a query using the given entityClass within the set.
-     * <p>
-     * The records will not be mapped to a Java class. The results are not processed (no pagination).
-     *
-     * @param ids     The ids of the documents to find. Must not be {@literal null}.
-     * @param setName Set name to use. Must not be {@literal null}.
-     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return quantity of matching records.
-     */
-    long countExistingByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
-
-    /**
-     * Count records by ids and a query using the given entityClass.
-     * <p>
-     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return quantity of matching records.
-     */
     <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
 
     /**
-     * Count records by ids and a query using the given entityClass within the set.
+     * Count existing records by ids and a query using the given entityClass within the set.
      * <p>
      * The records will not be mapped to a Java class. The results are not processed (no pagination).
      *

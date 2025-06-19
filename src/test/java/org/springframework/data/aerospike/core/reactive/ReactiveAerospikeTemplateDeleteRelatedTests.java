@@ -237,7 +237,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    public void deleteByIds_rejectsDuplicateIds() {
+    public void deleteExistingByIds_rejectsDuplicateIds() {
         String id1 = nextId();
         SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
         SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
@@ -245,20 +245,20 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         reactiveTemplate.save(document2).block();
 
         List<String> ids = List.of(id1, id1);
-        StepVerifier.create(reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class))
+        StepVerifier.create(reactiveTemplate.deleteExistingByIds(ids, SampleClasses.DocumentWithExpiration.class))
             .expectError(AerospikeException.BatchRecordArray.class)
             .verify();
     }
 
     @Test
-    public void deleteExistingByIds_skipsDuplicateIds() {
+    public void deleteByIds_skipsDuplicateIds() {
         List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(201);
         reactiveTemplate.deleteAll(persons).block();
         var ids = persons.stream().map(Person::getId).toList();
         assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
 
         // Ignores non-existing records
-        StepVerifier.create(reactiveTemplate.deleteExistingByIds(ids, Person.class))
+        StepVerifier.create(reactiveTemplate.deleteByIds(ids, Person.class))
             .expectComplete()
             .verify();
     }
