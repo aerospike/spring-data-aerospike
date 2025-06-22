@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
 import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
-import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesListFromTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.getKeys;
 import static org.springframework.data.aerospike.core.MappingUtils.getTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
@@ -439,7 +438,7 @@ public final class BatchUtils {
      */
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
-        if (binNames != null) {
+        if (binNames != null && binNames.length > 0) {
             return Arrays.stream(templateContext.client.get(batchPolicy, keys, binNames));
         }
         return Arrays.stream(templateContext.client.get(batchPolicy, keys));
@@ -927,9 +926,9 @@ public final class BatchUtils {
                                                          @Nullable Class<?> targetClass,
                                                          TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        if (targetClass != null) {
-            List<String> binNames = getBinNamesListFromTargetClass(targetClass, templateContext.mappingContext);
-            return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames.toArray(String[]::new)))
+        String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
+        if (binNames != null && binNames.length > 0) {
+            return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames))
                 .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
         }
         return reactorClient.get(batchPolicy, keys);

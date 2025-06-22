@@ -68,4 +68,6 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
      * @return Iterable of entities.
      */
     Iterable<T> findUsingQuery(Query query);
+
+    <S> Iterable<S> findUsingQuery(Query query, Class<S> targetClass);
 }

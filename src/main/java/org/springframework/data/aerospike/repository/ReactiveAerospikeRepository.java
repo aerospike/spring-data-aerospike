@@ -39,4 +39,6 @@ public interface ReactiveAerospikeRepository<T, ID> extends ReactiveCrudReposito
      * @return Flux of entities.
      */
     Flux<T> findUsingQuery(Query query);
+
+    <S> Flux<S> findUsingQuery(Query query, Class<S> targetClass);
 }
