@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -438,8 +439,20 @@ public final class BatchUtils {
      */
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
-        if (binNames != null && binNames.length > 0) {
-            return Arrays.stream(templateContext.client.get(batchPolicy, keys, binNames));
+        if (binNames != null) {
+            // When target class is given with no bin names (e.g., id projection with sendKeys=true),
+            // each BatchRead will be created with readAllBins=false
+            List<BatchRead> batchReads = getBatchReadsWithBinNames(keys, binNames);
+            templateContext.client.get(batchPolicy, batchReads);
+            if (binNames.length == 0) {
+                return batchReads.stream()
+                    .map(batchRead -> batchRead.record == null
+                        ? null
+                        // Return records using an empty Map of bins instead of null bins
+                        : new Record(Map.of(), batchRead.record.generation, batchRead.record.expiration));
+            }
+            return batchReads.stream()
+                .map(batchRead -> batchRead.record);
         }
         return Arrays.stream(templateContext.client.get(batchPolicy, keys));
     }
@@ -927,9 +940,11 @@ public final class BatchUtils {
                                                          TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
         String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
-        if (binNames != null && binNames.length > 0) {
+        // When target class is given with no bin names (e.g., id projection with sendKeys=true),
+        // each BatchRead will be created with readAllBins=false
+        if (binNames != null) {
             return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames))
-                .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
+                .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads, binNames.length == 0));
         }
         return reactorClient.get(batchPolicy, keys);
     }
@@ -938,13 +953,23 @@ public final class BatchUtils {
      * Converts an array of {@link Key}s and a list of {@link BatchRead} objects into a {@link Mono} of
      * {@link KeysRecords}.
      *
-     * @param keys       An array of {@link Key}s
-     * @param batchReads A {@link List} of {@link BatchRead} objects containing the results of the batch read
+     * @param keys         An array of {@link Key}s
+     * @param batchReads   A {@link List} of {@link BatchRead} objects containing the results of the batch read
+     * @param areEmptyBins {@code true} if bin names are empty
      * @return A {@link Mono} that emits a {@link KeysRecords} object
      */
-    private static Mono<KeysRecords> batchReadsToKeysRecords(Key[] keys, List<BatchRead> batchReads) {
+    private static Mono<KeysRecords> batchReadsToKeysRecords(Key[] keys, List<BatchRead> batchReads,
+                                                             boolean areEmptyBins) {
         Record[] records = batchReads.stream()
-            .map(batchRead -> batchRead.record)
+            .map(batchRead -> {
+                if (areEmptyBins) {
+                    return batchRead.record == null
+                        ? null
+                        // Return records using an empty Map of bins instead of null bins
+                        : new Record(Map.of(), batchRead.record.generation, batchRead.record.expiration);
+                }
+                return batchRead.record;
+            })
             .toArray(Record[]::new);
 
         return Mono.just(new KeysRecords(keys, records));
@@ -958,6 +983,10 @@ public final class BatchUtils {
      * @return A {@link List} of {@link BatchRead} objects
      */
     private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, String[] binNames) {
+        if (binNames == null || binNames.length == 0) {
+            return Arrays.stream(keys).map(key -> new BatchRead(key, false))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
+        }
         return Arrays.stream(keys).map(key -> new BatchRead(key, binNames))
             .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
     }
