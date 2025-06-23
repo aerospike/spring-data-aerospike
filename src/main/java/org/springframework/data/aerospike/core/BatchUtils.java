@@ -17,6 +17,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -440,8 +441,8 @@ public final class BatchUtils {
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
         if (binNames != null) {
-            // When target class is given with no bin names (e.g., id projection with sendKeys=true),
-            // each BatchRead will be created with readAllBins=false
+            // When target class is given with empty bin names (e.g., id projection with sendKeys=true),
+            // bins will not be read (each BatchRead will be created with readAllBins=false)
             List<BatchRead> batchReads = getBatchReadsWithBinNames(keys, binNames);
             templateContext.client.get(batchPolicy, batchReads);
             return batchReads.stream().map(batchRead -> batchRead.record);
@@ -932,9 +933,9 @@ public final class BatchUtils {
                                                          TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
         String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
-        // When target class is given with no bin names (e.g., id projection with sendKeys=true),
-        // each BatchRead will be created with readAllBins=false
         if (binNames != null) {
+            // When target class is given with empty bin names (e.g., id projection with sendKeys=true),
+            // bins will not be read (each BatchRead will be created with readAllBins=false)
             return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames))
                 .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
         }
@@ -965,7 +966,7 @@ public final class BatchUtils {
      *                 are not read from database. The array must not be {@code null}
      * @return A {@link List} of {@link BatchRead} objects
      */
-    private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, String[] binNames) {
+    private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, @NonNull String[] binNames) {
         Assert.notNull(binNames, "Bin names must not be null");
         if (binNames.length == 0) {
             // Explicitly request not to read bins if their names are not provided
