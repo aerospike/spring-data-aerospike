@@ -69,5 +69,15 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
      */
     Iterable<T> findUsingQuery(Query query);
 
+    /**
+     * Run a query to find entities providing a class to map entities to.
+     * <p>
+     * A {@link Query} can be created using a qualifier. A {@link Qualifier} may contain other qualifiers and combine
+     * them using either {@link FilterOperation#AND} or {@link FilterOperation#OR}.
+     *
+     * @param query A query to be performed. Must not be {@literal null}.
+     * @param targetClass Target class to map entities to.
+     * @return Iterable of entities of the given target class.
+     */
     <S> Iterable<S> findUsingQuery(Query query, Class<S> targetClass);
 }

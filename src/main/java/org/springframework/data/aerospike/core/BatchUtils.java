@@ -961,11 +961,14 @@ public final class BatchUtils {
      * Creates a list of {@link BatchRead} objects with specified bin names for each key.
      *
      * @param keys     An array of {@link Key}s, for each of them a {@link BatchRead} object is created
-     * @param binNames An array of bin names to include in each {@link BatchRead} object
+     * @param binNames An array of bin names to include in each {@link BatchRead} object. If the array is empty, bins
+     *                 are not read from database. The array must not be {@code null}
      * @return A {@link List} of {@link BatchRead} objects
      */
     private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, String[] binNames) {
-        if (binNames == null || binNames.length == 0) {
+        Assert.notNull(binNames, "Bin names must not be null");
+        if (binNames.length == 0) {
+            // Explicitly request not to read bins if their names are not provided
             return Arrays.stream(keys).map(key -> new BatchRead(key, false))
                 .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
         }

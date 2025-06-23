@@ -47,12 +47,8 @@ public class AerospikeReadData {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(aeroRecord, "Record must not be null");
 
-        Map<String, Object> binsMap = aeroRecord.bins;
-        if (aeroRecord.bins == null) {
-            // If null bins are given, an empty Map is used instead
-            binsMap = Map.of();
-        }
-
+        // If null bins are given, an empty Map is used instead
+        Map<String, Object> binsMap = aeroRecord.bins == null ? Map.of() : aeroRecord.bins;
         return new AerospikeReadData(key, binsMap, aeroRecord.getTimeToLive(), aeroRecord.generation);
     }
 
