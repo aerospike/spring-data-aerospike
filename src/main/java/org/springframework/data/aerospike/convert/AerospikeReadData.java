@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import lombok.Getter;
 import org.springframework.util.Assert;
 
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @author Oliver Gierke
  * @author Anastasiia Smirnova
  */
+@Getter
 public class AerospikeReadData {
 
     private final Key key;
@@ -44,28 +46,17 @@ public class AerospikeReadData {
     public static AerospikeReadData forRead(Key key, Record aeroRecord) {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(aeroRecord, "Record must not be null");
-        Assert.notNull(aeroRecord.bins, "Record bins must not be null");
 
-        return new AerospikeReadData(key, aeroRecord.bins, aeroRecord.getTimeToLive(), aeroRecord.generation);
-    }
+        Map<String, Object> binsMap = aeroRecord.bins;
+        if (aeroRecord.bins == null) {
+            // If null bins are given, an empty Map is used instead
+            binsMap = Map.of();
+        }
 
-    public Map<String, Object> getAeroRecord() {
-        return aeroRecord;
-    }
-
-    public Key getKey() {
-        return key;
+        return new AerospikeReadData(key, binsMap, aeroRecord.getTimeToLive(), aeroRecord.generation);
     }
 
     public Object getValue(String key) {
         return aeroRecord.get(key);
-    }
-
-    public int getExpiration() {
-        return expiration;
-    }
-
-    public int getVersion() {
-        return version;
     }
 }

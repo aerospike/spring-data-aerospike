@@ -444,15 +444,7 @@ public final class BatchUtils {
             // each BatchRead will be created with readAllBins=false
             List<BatchRead> batchReads = getBatchReadsWithBinNames(keys, binNames);
             templateContext.client.get(batchPolicy, batchReads);
-            if (binNames.length == 0) {
-                return batchReads.stream()
-                    .map(batchRead -> batchRead.record == null
-                        ? null
-                        // Return records using an empty Map of bins instead of null bins
-                        : new Record(Map.of(), batchRead.record.generation, batchRead.record.expiration));
-            }
-            return batchReads.stream()
-                .map(batchRead -> batchRead.record);
+            return batchReads.stream().map(batchRead -> batchRead.record);
         }
         return Arrays.stream(templateContext.client.get(batchPolicy, keys));
     }
@@ -944,7 +936,7 @@ public final class BatchUtils {
         // each BatchRead will be created with readAllBins=false
         if (binNames != null) {
             return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames))
-                .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads, binNames.length == 0));
+                .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
         }
         return reactorClient.get(batchPolicy, keys);
     }
@@ -953,23 +945,13 @@ public final class BatchUtils {
      * Converts an array of {@link Key}s and a list of {@link BatchRead} objects into a {@link Mono} of
      * {@link KeysRecords}.
      *
-     * @param keys         An array of {@link Key}s
-     * @param batchReads   A {@link List} of {@link BatchRead} objects containing the results of the batch read
-     * @param areEmptyBins {@code true} if bin names are empty
+     * @param keys       An array of {@link Key}s
+     * @param batchReads A {@link List} of {@link BatchRead} objects containing the results of the batch read
      * @return A {@link Mono} that emits a {@link KeysRecords} object
      */
-    private static Mono<KeysRecords> batchReadsToKeysRecords(Key[] keys, List<BatchRead> batchReads,
-                                                             boolean areEmptyBins) {
+    private static Mono<KeysRecords> batchReadsToKeysRecords(Key[] keys, List<BatchRead> batchReads) {
         Record[] records = batchReads.stream()
-            .map(batchRead -> {
-                if (areEmptyBins) {
-                    return batchRead.record == null
-                        ? null
-                        // Return records using an empty Map of bins instead of null bins
-                        : new Record(Map.of(), batchRead.record.generation, batchRead.record.expiration);
-                }
-                return batchRead.record;
-            })
+            .map(batchRead -> batchRead.record)
             .toArray(Record[]::new);
 
         return Mono.just(new KeysRecords(keys, records));
