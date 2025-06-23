@@ -155,4 +155,9 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     public Flux<T> findUsingQuery(Query query) {
         return operations.find(query, entityInformation.getJavaType());
     }
+
+    @Override
+    public <S> Flux<S> findUsingQuery(Query query, Class<S> targetClass) {
+        return operations.find(query, entityInformation.getJavaType(), targetClass);
+    }
 }

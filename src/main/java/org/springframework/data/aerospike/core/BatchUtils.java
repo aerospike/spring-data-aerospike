@@ -17,6 +17,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -33,7 +35,6 @@ import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
 import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesFromTargetClassOrNull;
-import static org.springframework.data.aerospike.core.MappingUtils.getBinNamesListFromTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.getKeys;
 import static org.springframework.data.aerospike.core.MappingUtils.getTargetClass;
 import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
@@ -440,7 +441,11 @@ public final class BatchUtils {
     private static Stream<Record> batchRead(BatchPolicy batchPolicy, Key[] keys, String[] binNames,
                                             TemplateContext templateContext) {
         if (binNames != null) {
-            return Arrays.stream(templateContext.client.get(batchPolicy, keys, binNames));
+            // When target class is given with empty bin names (e.g., id projection with sendKeys=true),
+            // bins will not be read (each BatchRead will be created with readAllBins=false)
+            List<BatchRead> batchReads = getBatchReadsWithBinNames(keys, binNames);
+            templateContext.client.get(batchPolicy, batchReads);
+            return batchReads.stream().map(batchRead -> batchRead.record);
         }
         return Arrays.stream(templateContext.client.get(batchPolicy, keys));
     }
@@ -927,9 +932,11 @@ public final class BatchUtils {
                                                          @Nullable Class<?> targetClass,
                                                          TemplateContext templateContext) {
         IAerospikeReactorClient reactorClient = templateContext.reactorClient;
-        if (targetClass != null) {
-            List<String> binNames = getBinNamesListFromTargetClass(targetClass, templateContext.mappingContext);
-            return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames.toArray(String[]::new)))
+        String[] binNames = getBinNamesFromTargetClassOrNull(null, targetClass, templateContext.mappingContext);
+        if (binNames != null) {
+            // When target class is given with empty bin names (e.g., id projection with sendKeys=true),
+            // bins will not be read (each BatchRead will be created with readAllBins=false)
+            return reactorClient.get(batchPolicy, getBatchReadsWithBinNames(keys, binNames))
                 .flatMap(batchReads -> batchReadsToKeysRecords(keys, batchReads));
         }
         return reactorClient.get(batchPolicy, keys);
@@ -955,10 +962,17 @@ public final class BatchUtils {
      * Creates a list of {@link BatchRead} objects with specified bin names for each key.
      *
      * @param keys     An array of {@link Key}s, for each of them a {@link BatchRead} object is created
-     * @param binNames An array of bin names to include in each {@link BatchRead} object
+     * @param binNames An array of bin names to include in each {@link BatchRead} object. If the array is empty, bins
+     *                 are not read from database. The array must not be {@code null}
      * @return A {@link List} of {@link BatchRead} objects
      */
-    private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, String[] binNames) {
+    private static List<BatchRead> getBatchReadsWithBinNames(Key[] keys, @NonNull String[] binNames) {
+        Assert.notNull(binNames, "Bin names must not be null");
+        if (binNames.length == 0) {
+            // Explicitly request not to read bins if their names are not provided
+            return Arrays.stream(keys).map(key -> new BatchRead(key, false))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
+        }
         return Arrays.stream(keys).map(key -> new BatchRead(key, binNames))
             .collect(Collectors.toCollection(() -> new ArrayList<>(keys.length)));
     }

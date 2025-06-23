@@ -157,4 +157,9 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     public Iterable<T> findUsingQuery(Query query) {
         return operations.find(query, entityInformation.getJavaType()).toList();
     }
+
+    @Override
+    public <S> Iterable<S> findUsingQuery(Query query, Class<S> targetClass) {
+        return operations.find(query, entityInformation.getJavaType(), targetClass).toList();
+    }
 }

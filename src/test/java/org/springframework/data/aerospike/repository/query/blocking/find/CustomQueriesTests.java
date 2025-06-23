@@ -6,6 +6,8 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonId;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -54,12 +56,35 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         repository.save(alicia);
 
         Qualifier emailEquals = Qualifier.builder()
-            // custom bin name has been set to "email " via @Field annotation
+            // custom bin name has been set to "email" via @Field annotation
             .setPath("email")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(email)
             .build();
         assertThat(repository.findUsingQuery(new Query(emailEquals))).containsOnly(alicia);
+    }
+
+    @Test
+    void findByIdEquals_String_withProjection() {
+        Qualifier idEquals = Qualifier.idEquals(oliver.getId());
+        Iterable<PersonId> results = repository.findUsingQuery(new Query(idEquals), PersonId.class);
+        assertThat(results).containsOnly(oliver.toPersonId());
+    }
+
+    @Test
+    void findBySimplePropertyEquals_String_withProjection() {
+        String email = "alicia@test.com";
+        alicia.setEmailAddress(email);
+        repository.save(alicia);
+
+        Qualifier emailEquals = Qualifier.builder()
+            // custom bin name has been set to "email" via @Field annotation
+            .setPath("email")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(email)
+            .build();
+        Iterable<PersonSomeFields> results = repository.findUsingQuery(new Query(emailEquals), PersonSomeFields.class);
+        assertThat(results).containsOnly(alicia.toPersonSomeFields());
     }
 
     @Test
