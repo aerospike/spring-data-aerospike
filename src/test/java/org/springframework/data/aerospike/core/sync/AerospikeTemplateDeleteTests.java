@@ -210,10 +210,9 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new CustomCollectionClassToDelete(id2));
 
         assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClassToDelete.class)).hasSize(2);
-
         template.deleteAll(CustomCollectionClassToDelete.class);
 
-        // truncate is async operation that is why we need to wait until it completes
+        // truncate is async operation, that is why we need to wait until it completes
         await().atMost(TEN_SECONDS)
             .untilAsserted(() -> assertThat(template.findByIds(Arrays.asList(id1, id2),
                 CustomCollectionClassToDelete.class)).isEmpty());
@@ -227,7 +226,6 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id2));
 
         template.deleteAll(DocumentWithExpiration.class);
-
         // truncate is async operation that is why we need to wait until
         // it completes
         await().atMost(TEN_SECONDS)
