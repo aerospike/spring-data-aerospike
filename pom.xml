@@ -34,7 +34,7 @@
         <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
         <reactor-test>3.7.7</reactor-test>
-        <embedded-aerospike>3.1.14</embedded-aerospike>
+        <embedded-aerospike>3.1.15</embedded-aerospike>
         <jodatime>2.14.0</jodatime>
         <lombok>1.18.38</lombok>
         <awaitility>4.3.0</awaitility>
