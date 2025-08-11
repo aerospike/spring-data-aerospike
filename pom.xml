@@ -31,7 +31,7 @@
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <central.publishing.maven.plugin>0.8.0</central.publishing.maven.plugin>
-        <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.1.0</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
         <reactor-test>3.7.7</reactor-test>
         <embedded-aerospike>3.1.14</embedded-aerospike>
