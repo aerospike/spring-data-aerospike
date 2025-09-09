@@ -28,6 +28,7 @@
         <spring-boot-starter-test>3.5.3</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.3.0</spring-cloud-starter-bootstrap>
         <spring-tx>6.2.10</spring-tx>
+        <spring-context>6.2.10</spring-context>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <central.publishing.maven.plugin>0.8.0</central.publishing.maven.plugin>
@@ -199,12 +200,12 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
-                <version>6.2.10</version>
+                <version>${spring-context}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context-support</artifactId>
-                <version>6.2.10</version>
+                <version>${spring-context}</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
