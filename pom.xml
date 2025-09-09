@@ -24,10 +24,10 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.5.1</springdata.commons>
+        <springdata.commons>3.5.3</springdata.commons>
         <spring-boot-starter-test>3.5.3</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.3.0</spring-cloud-starter-bootstrap>
-        <spring-tx>6.2.8</spring-tx>
+        <spring-tx>6.2.10</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <central.publishing.maven.plugin>0.8.0</central.publishing.maven.plugin>
@@ -195,6 +195,16 @@
                 <groupId>com.aerospike</groupId>
                 <artifactId>aerospike-reactor-client</artifactId>
                 <version>${aerospike-reactor-client}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>6.2.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
+                <version>6.2.10</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
