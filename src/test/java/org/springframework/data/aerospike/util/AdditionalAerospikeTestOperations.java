@@ -11,12 +11,15 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
@@ -42,6 +45,7 @@ import static com.aerospike.client.query.IndexCollectionType.DEFAULT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RequiredArgsConstructor
+@Slf4j
 public abstract class AdditionalAerospikeTestOperations {
 
     private final IndexInfoParser indexInfoParser;
@@ -155,6 +159,22 @@ public abstract class AdditionalAerospikeTestOperations {
         indexesRefresher.refreshIndexesCache();
     }
 
+    public void createIndexesAsyncBlocking(IAerospikeReactorClient reactorClient,
+                                           ReactiveAerospikeTemplate reactiveTemplate,
+                                           Collection<Index> indexesToBeCreated) {
+        indexesToBeCreated.forEach(index -> {
+                IndexCollectionType collType = index.getIndexCollectionType() == null
+                    ? DEFAULT : index.getIndexCollectionType();
+                CTX[] ctx = index.getCtx() == null
+                    ? new CTX[0] : index.getCtx();
+                log.info("Creating index " + index.getName() + ": ns " + getNamespace() + ", set " + index.getSet());
+                reactiveTemplate.createIndex(index.getSet(), index.getName(), index.getBin(), index.getIndexType(),
+                    collType, ctx).block();
+                log.info("Created index " + index.getName() + ": ns " + getNamespace() + ", set " + index.getSet());
+            }
+        );
+    }
+
     public <T> void dropIndex(String setName, String indexName) {
         IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), setName, indexName);
         indexesRefresher.refreshIndexesCache();
@@ -231,7 +251,6 @@ public abstract class AdditionalAerospikeTestOperations {
         @NonNull
         String status;
     }
-
 
     public abstract List<Customer> saveGeneratedCustomers(int count);
 

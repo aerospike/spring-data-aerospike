@@ -1,5 +1,7 @@
 package org.springframework.data.aerospike;
 
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.junit.jupiter.api.TestInfo;
@@ -7,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
-import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
@@ -157,6 +158,49 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         return statement.getFilter() != null;
     }
 
+    protected Filter getQuerySecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                            Object... methodParams) {
+        String setName = reactiveTemplate.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, methodName, methodParams);
+
+        return getQuerySecIndexFilter(namespace, setName, query, binNames);
+    }
+
+    protected Filter getQuerySecIndexFilter(Query query, Class<?> returnEntityClass) {
+        String setName = reactiveTemplate.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        return getQuerySecIndexFilter(namespace, setName, query, binNames);
+    }
+
+    protected Filter getQuerySecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
+        QueryContext queryContext = reactiveQueryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        // Checking that the statement has secondary index filter (which means it will be used)
+        return queryContext.statement().getFilter();
+    }
+
+    protected Expression getQueryExpression(String methodName, Class<?> returnEntityClass,
+                                            Object... methodParams) {
+        String setName = reactiveTemplate.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, methodName, methodParams);
+
+        return getQueryExpression(namespace, setName, query, binNames);
+    }
+
+    protected Expression getQueryExpression(String namespace, String setName, Query query, String[] binNames) {
+        QueryContext queryContext = reactiveQueryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        // Checking that the statement has secondary index filter (which means it will be used)
+        return reactiveQueryEngine.getFilterExpressionsBuilder().build(queryContext.qualifier());
+    }
+
+    protected Expression getQueryExpression(Query query, Class<?> returnEntityClass) {
+        String setName = reactiveTemplate.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        return getQueryExpression(namespace, setName, query, binNames);
+    }
     /**
      * Delete all entities of a class or a set.
      *

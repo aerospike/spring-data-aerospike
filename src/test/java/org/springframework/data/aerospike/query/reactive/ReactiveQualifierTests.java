@@ -28,14 +28,17 @@ import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.*;
+import static org.springframework.data.aerospike.util.CollectionUtils.countingInt;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
@@ -239,6 +242,200 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     }
 
     @Test
+    public void inQualifier() {
+        List<String> inColours = Arrays.asList(COLOURS[0], COLOURS[2]);
+        Map<String, Integer> expectedColorCounts = inColours.stream()
+            .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
+
+        Qualifier qualifier = Qualifier.builder()
+            .setPath("color")
+            .setFilterOperation(FilterOperation.IN)
+            .setValue(inColours)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                Map<String, Integer> actualColors = results.stream()
+                    .map(rec -> rec.record.getString("color"))
+                    .collect(Collectors.groupingBy(k -> k, countingInt()));
+                assertThat(actualColors).isEqualTo(expectedColorCounts);
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void containingQualifier() {
+        Map<String, Integer> expectedColorCounts = Arrays.stream(COLOURS)
+            .filter(c -> c.contains("l"))
+            .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
+
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("color")
+            .setFilterOperation(FilterOperation.CONTAINING)
+            .setValue("l")
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                Map<String, Integer> actualColors = results.stream()
+                    .map(rec -> rec.record.getString("color"))
+                    .collect(Collectors.groupingBy(k -> k, countingInt()));
+                assertThat(actualColors).isEqualTo(expectedColorCounts);
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void lTQualifier() {
+        // Ages range from 25 -> 29. We expected to only get back values with age < 26
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.LT)
+            .setValue(26)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .filteredOn(keyRecord -> {
+                        int age = keyRecord.record.getInt("age");
+                        assertThat(age).isLessThan(26);
+                        return age == 25;
+                    })
+                    .hasSize(queryEngineTestDataPopulator.ageCount.get(25));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void numericLTEQQualifier() {
+        // Ages range from 25 -> 29. We expected to only get back values with age <= 26
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.LTEQ)
+            .setValue(26)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                AtomicInteger age25Count = new AtomicInteger();
+                AtomicInteger age26Count = new AtomicInteger();
+                results.forEach(keyRecord -> {
+                    int age = keyRecord.record.getInt("age");
+                    assertThat(age).isLessThanOrEqualTo(26);
+
+                    if (age == 25) {
+                        age25Count.incrementAndGet();
+                    } else if (age == 26) {
+                        age26Count.incrementAndGet();
+                    }
+                });
+                assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+                assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void numericEQQualifier() {
+        // Ages range from 25 -> 29. We expected to only get back values with age == 26
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(26)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
+                    .hasSize(queryEngineTestDataPopulator.ageCount.get(26));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void numericGTEQQualifier() {
+        // Ages range from 25 -> 29. We expected to only get back values with age >= 28
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.GTEQ)
+            .setValue(28)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                AtomicInteger age28Count = new AtomicInteger();
+                AtomicInteger age29Count = new AtomicInteger();
+                results.forEach(keyRecord -> {
+                    int age = keyRecord.record.getInt("age");
+                    assertThat(age).isGreaterThanOrEqualTo(28);
+
+                    if (age == 28) {
+                        age28Count.incrementAndGet();
+                    } else if (age == 29) {
+                        age29Count.incrementAndGet();
+                    }
+                });
+                assertThat(age28Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+                assertThat(age29Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void numericGTQualifier() {
+        // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.GT)
+            .setValue(28)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
+                    .hasSize(queryEngineTestDataPopulator.ageCount.get(29));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void stringEndsWithEntireWordQualifier() {
+        Qualifier stringEqQualifier = Qualifier.builder()
+            .setPath("color")
+            .setFilterOperation(FilterOperation.ENDS_WITH)
+            .setValue(GREEN)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(stringEqQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(GREEN));
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
     public void listContainsQualifier() {
         String searchColor = COLOURS[0];
 
@@ -409,6 +606,57 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         } finally {
             tryDropIndex(namespace, SET_NAME, "color_index");
         }
+    }
+
+    @Test
+    public void testEndWithDoesNotUseSpecialCharacterQualifier() {
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath(SPECIAL_CHAR_BIN)
+            .setFilterOperation(FilterOperation.ENDS_WITH)
+            .setValue(".*")
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> {
+                        String scBin = rec.record.getString(SPECIAL_CHAR_BIN);
+                        assertThat(scBin).endsWith(".*");
+                    })
+                    .hasSize(1);
+                return true;
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void testMapValuesContainQualifier() {
+        String searchColor = COLOURS[0];
+
+        String binName = "ageColorMap";
+
+        Qualifier ageRangeQualifier = Qualifier.builder()
+            .setPath(binName)
+            .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
+            .setValue(searchColor)
+            .build();
+
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(ageRangeQualifier));
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                // Every Record with a color == "color" has a one element map {"color" => #}
+                // so there are an equal amount of records with the map {"color" => #} as with a color == "color"
+                assertThat(results)
+                    .allSatisfy(rec -> {
+                        @SuppressWarnings("unchecked") Map<?, String> colorMap =
+                            (Map<?, String>) rec.record.getMap(binName);
+                        assertThat(colorMap).containsValue(searchColor);
+                    })
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
+                return true;
+            })
+            .verifyComplete();
     }
 
     @Test

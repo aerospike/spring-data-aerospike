@@ -112,6 +112,14 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Flux<IndexedPerson> findByFirstName(String string);
 
+    Flux<IndexedPerson> findByFirstNameAndAgeAndLastName(QueryParam string, QueryParam age, QueryParam lastName);
+
+    Flux<IndexedPerson> findByFirstNameAndAgeOrLastName(QueryParam string, QueryParam age, QueryParam lastName);
+
+    Flux<IndexedPerson> findByFirstNameOrAgeOrLastName(QueryParam string, QueryParam age, QueryParam lastName);
+
+    Flux<IndexedPerson> findByFirstNameOrAgeAndLastName(QueryParam string, QueryParam age, QueryParam lastName);
+
     Flux<IndexedPerson> findByLastNameStartingWith(String string);
 
     Flux<IndexedPerson> findDistinctByLastNameStartingWith(String string);
@@ -121,7 +129,9 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      */
     Flux<IndexedPerson> findDistinctByFriendLastNameStartingWith(String string);
 
-    Flux<IndexedPerson> findByFirstNameAndAge(QueryParam string, QueryParam i);
+    Flux<IndexedPerson> findByFirstNameAndAge(QueryParam string, QueryParam age);
+
+    Flux<IndexedPerson> findByFirstNameOrAge(QueryParam string, QueryParam age);
 
     Flux<IndexedPerson> findByAgeBetweenAndLastName(QueryParam ageBetween, QueryParam lastName);
 }

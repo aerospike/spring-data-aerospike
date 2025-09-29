@@ -24,7 +24,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.5.3</springdata.commons>
+        <springdata.commons>3.5.4</springdata.commons>
         <spring-boot-starter-test>3.5.3</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.3.0</spring-cloud-starter-bootstrap>
         <spring-tx>6.2.10</spring-tx>
@@ -34,7 +34,7 @@
         <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
         <reactor-test>3.7.7</reactor-test>
-        <embedded-aerospike>3.1.14</embedded-aerospike>
+        <embedded-aerospike>3.1.16</embedded-aerospike>
         <jodatime>2.14.0</jodatime>
         <lombok>1.18.38</lombok>
         <awaitility>4.3.0</awaitility>
@@ -156,6 +156,26 @@
             <timezone>+3</timezone>
         </developer>
     </developers>
+
+    <profiles>
+        <!-- Default profile, nightly tests excluded - active by default -->
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <excludedGroups>nightly</excludedGroups>
+            </properties>
+        </profile>
+        <!-- All tests -->
+        <profile>
+            <id>all-tests</id>
+            <properties>
+                <excludedGroups/>
+            </properties>
+        </profile>
+    </profiles>
 
     <scm>
         <connection>scm:git:git://github.com/spring-projects/spring-data-aerospike.git</connection>
@@ -396,6 +416,7 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
+                    <excludedGroups>${excludedGroups}</excludedGroups>
                     <argLine>
                         --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.net=ALL-UNNAMED

@@ -398,6 +398,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
 
+    boolean existsByLastName(String lastName);
+
     long someCountQuery(String lastName);
 
     List<P> findByFirstNameIgnoreCase(String firstName);
@@ -891,6 +893,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param upperLimit - upper limit, exclusive
      */
     long countByAddressZipCodeBetween(String lowerLimit, String upperLimit);
+
+    long countByAddressApartmentBetween(int lowerLimit, int upperLimit);
+
+    boolean existsByAddressApartmentBetween(int lowerLimit, int upperLimit);
 
     /**
      * Delete entities that satisfy the condition "have address with zipCode between the given arguments" (find by
@@ -1700,4 +1706,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, exclusive
      */
     Iterable<P> findByAgeBetweenOrderByLastName(int from, int to);
+
+    boolean existsByFirstNameIn(List<String> firstNames);
+
+    long countByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    boolean existsByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
 }
