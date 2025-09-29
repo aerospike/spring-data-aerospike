@@ -1,4 +1,6 @@
 name: Nightly Tests on GCP
+permissions:
+  contents: read
 
 on:
   schedule:
