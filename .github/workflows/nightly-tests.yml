@@ -112,19 +112,19 @@ jobs:
           
               # Run commands on the VM to clone repo, set up, and execute tests
               gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
-                # Clean up any previous runs
-                rm -rf ~/spring_data_repo && mkdir -p ~/spring_data_repo
-          
-                # Clone the repository
-                git clone https://github.com/${{ github.repository }} ~/spring_data_repo
-                cd ~/spring_data_repo
-                git checkout ${{ github.ref_name }}
-          
-                # Run tests
-                mvn clean test -Pall-tests -B -U
-          
-                # Save exit code to report success/failure
-                echo \$? > ~/test_exit_code
+              # Clean up any previous runs
+              rm -rf ~/spring_data_repo && mkdir -p ~/spring_data_repo
+        
+              # Clone the repository
+              git clone https://github.com/${{ github.repository }} ~/spring_data_repo
+              cd ~/spring_data_repo
+              git checkout ${{ github.ref_name }}
+        
+              # Run tests
+              mvn clean test -Pall-tests -B -U
+        
+              # Save exit code to report success/failure
+              echo \$? > ~/test_exit_code
               "
           
               # Create timestamped directory for this test run
