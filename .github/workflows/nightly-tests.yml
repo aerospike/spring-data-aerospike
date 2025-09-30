@@ -6,14 +6,58 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Run at midnight UTC
   workflow_dispatch:     # Allow manual triggering
+  pull_request: # Temporary: for testing the workflow
+    branches:
+      - main
 
 jobs:
-  test:
+  check_changes:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Timeout for the entire job
+    timeout-minutes: 5  # Timeout to check for the changes
+    outputs:
+      should_run: ${{ steps.check.outputs.changed }}
 
     steps:
-      - name: Checkout
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to compare commits
+
+      - name: Check for changes since last successful run
+        id: check
+        run: |
+          # Get the last successful run SHA
+          # GITHUB_TOKEN is automatically provided by GitHub
+          LAST_SUCCESS_SHA=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/nightly-tests.yml/runs?status=success&branch=main" \
+            | jq -r '.workflow_runs[0].head_sha // ""')
+          
+          echo "Last successful run SHA: ${LAST_SUCCESS_SHA:-none}"
+          
+          if [ -z "$LAST_SUCCESS_SHA" ]; then
+            echo "No previous successful run found, running tests"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            # Check if there are any new commits since the last successful run
+            DIFF=$(git log --oneline $LAST_SUCCESS_SHA..HEAD)
+            if [ -n "$DIFF" ]; then
+              echo "Changes detected since last successful run"
+              echo "changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "No changes detected since last successful run"
+              echo "changed=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  test:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # Timeout for the entire job
+    env:
+      TEST_FOLDERS_TO_KEEP: 20  # Number of test result folders to keep
+
+    steps:
+      - name: Checkout for workflow files only
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
@@ -24,7 +68,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Start GCP VM
+      - name: Start GCP VM  # Start VM
         run: |
           gcloud compute instances start ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}
           # Wait for VM to fully boot
@@ -32,7 +76,7 @@ jobs:
 
       - name: Run tests on VM
         id: run_tests
-        timeout-minutes: 40  # Timeout for just the tests run
+        timeout-minutes: 45  # Timeout for just the tests run
         run: |
           # Get current timestamp for results directory
           TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -60,9 +104,9 @@ jobs:
           # Copy test results back
           gcloud compute scp --recurse ${{ secrets.GCP_VM_NAME }}:~/spring_data_repo/target/surefire-reports ./test-results/$TIMESTAMP --zone=${{ secrets.GCP_VM_ZONE }} || true
           
-          # Implement file rotation - keep only 20 latest test result directories
-          echo "Rotating test result directories, keeping only the 20 latest"
-          ls -t test-results | tail -n +21 | xargs -I {} rm -rf test-results/{}
+          # Implement file rotation - keep only N latest test result directories
+          echo "Rotating test result directories, keeping only the $TEST_FOLDERS_TO_KEEP latest"
+          ls -t test-results | tail -n +$((TEST_FOLDERS_TO_KEEP + 1)) | xargs -I {} rm -rf test-results/{}
           echo "Current test result directories after rotation:"
           ls -la test-results/
           
@@ -79,7 +123,7 @@ jobs:
         with:
           name: test-results-${{ github.run_id }}
           path: test-results
-          retention-days: 14
+          retention-days: 14  # Days to keep artifact
 
       - name: Stop GCP VM
         if: always()  # Ensure VM is stopped even if tests fail
