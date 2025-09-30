@@ -74,58 +74,87 @@ jobs:
           # Wait for VM to fully boot
           sleep 30
 
-      - name: Run tests on VM
-        id: run_tests
-        timeout-minutes: 45  # Timeout for just the tests run
+      - name: Set up VM prerequisites
         run: |
-          # Get current timestamp for results directory
-          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-          
-          # Run commands on the VM to clone repo, set up, and execute tests
+          # Install Git, JDK 17 and Maven on the VM if not already installed
           gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
-            # Clean up any previous runs
-            rm -rf ~/spring_data_repo && mkdir -p ~/spring_data_repo
-          
-            # Clone the repository
-            git clone https://github.com/${{ github.repository }} ~/spring_data_repo
-            cd ~/spring_data_repo
-            git checkout ${{ github.ref_name }}
-          
-            # Run tests
-            mvn clean test -Pall-tests -B -U
-          
-            # Save exit code to report success/failure
-            echo \$? > ~/test_exit_code
-          "
-          
-          # Create timestamped directory for this test run
-          mkdir -p test-results/$TIMESTAMP
-          
-          # Copy test results back
-          gcloud compute scp --recurse ${{ secrets.GCP_VM_NAME }}:~/spring_data_repo/target/surefire-reports ./test-results/$TIMESTAMP --zone=${{ secrets.GCP_VM_ZONE }} || true
-          
-          # Implement file rotation - keep only N latest test result directories
-          echo "Rotating test result directories, keeping only the $TEST_FOLDERS_TO_KEEP latest"
-          ls -t test-results | tail -n +$((TEST_FOLDERS_TO_KEEP + 1)) | xargs -I {} rm -rf test-results/{}
-          echo "Current test result directories after rotation:"
-          ls -la test-results/
-          
-          # Check if tests failed
-          TEST_EXIT_CODE=$(gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="cat ~/test_exit_code")
-          if [ "$TEST_EXIT_CODE" != "0" ]; then
-            echo "Tests failed with exit code $TEST_EXIT_CODE"
-            exit 1
+          if ! command -v git &> /dev/null; then
+           echo 'Installing Git...'
+           sudo apt-get update
+           sudo apt-get install -y git
+          else
+           echo 'Git is already installed'
           fi
+          
+          # Check for Java
+          if ! command -v java &> /dev/null || ! java -version 2>&1 | grep -q 'version \"17'; then
+            echo 'Installing JDK 17...'
+            sudo apt-get update
+            sudo apt-get install -y openjdk-17-jdk
+          else
+            echo 'JDK 17 is already installed'
+          fi
+          
+          # Check for Maven
+          if ! command -v mvn &> /dev/null; then
+            echo 'Installing Maven...'
+            sudo apt-get install -y maven
+          else
+            echo 'Maven is already installed'
+          fi
+          "
+          - name: Run tests on VM
+            id: run_tests
+            timeout-minutes: 45  # Timeout for just the tests run
+            run: |
+              # Get current timestamp for results directory
+              TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          
+              # Run commands on the VM to clone repo, set up, and execute tests
+              gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
+                # Clean up any previous runs
+                rm -rf ~/spring_data_repo && mkdir -p ~/spring_data_repo
+          
+                # Clone the repository
+                git clone https://github.com/${{ github.repository }} ~/spring_data_repo
+                cd ~/spring_data_repo
+                git checkout ${{ github.ref_name }}
+          
+                # Run tests
+                mvn clean test -Pall-tests -B -U
+          
+                # Save exit code to report success/failure
+                echo \$? > ~/test_exit_code
+              "
+          
+              # Create timestamped directory for this test run
+              mkdir -p test-results/$TIMESTAMP
+          
+              # Copy test results back
+              gcloud compute scp --recurse ${{ secrets.GCP_VM_NAME }}:~/spring_data_repo/target/surefire-reports ./test-results/$TIMESTAMP --zone=${{ secrets.GCP_VM_ZONE }} || true
+          
+              # Implement file rotation - keep only N latest test result directories
+              echo "Rotating test result directories, keeping only the $TEST_FOLDERS_TO_KEEP latest"
+              ls -t test-results | tail -n +$((TEST_FOLDERS_TO_KEEP + 1)) | xargs -I {} rm -rf test-results/{}
+              echo "Current test result directories after rotation:"
+              ls -la test-results/
+          
+              # Check if tests failed
+              TEST_EXIT_CODE=$(gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="cat ~/test_exit_code || echo 1")
+              if [ "$TEST_EXIT_CODE" != "0" ]; then
+                echo "Tests failed with exit code $TEST_EXIT_CODE"
+                exit 1
+              fi
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-${{ github.run_id }}
-          path: test-results
-          retention-days: 14  # Days to keep artifact
+          - name: Upload test results
+            uses: actions/upload-artifact@v4
+            if: always()
+            with:
+              name: test-results-${{ github.run_id }}
+              path: test-results
+              retention-days: 14  # Days to keep artifact
 
-      - name: Stop GCP VM
-        if: always()  # Ensure VM is stopped even if tests fail
-        run: |
-          gcloud compute instances stop ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}
+          - name: Stop GCP VM
+            if: always()  # Ensure VM is stopped even if tests fail
+            run: |
+              gcloud compute instances stop ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}
