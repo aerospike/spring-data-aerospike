@@ -2,7 +2,7 @@ package org.springframework.data.aerospike.query.reactive;
 
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -12,7 +12,7 @@ import reactor.test.StepVerifier;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.USERS_SET;
 
-@Nightly
+@Extensive
 public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
     @Test

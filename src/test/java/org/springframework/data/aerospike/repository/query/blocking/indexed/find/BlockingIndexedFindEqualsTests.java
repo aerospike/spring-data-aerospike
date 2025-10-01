@@ -7,7 +7,7 @@ import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryParam;
@@ -32,7 +32,7 @@ import static org.springframework.data.aerospike.query.QueryParam.of;
 /**
  * Tests for the "Equals" repository query. Keywords: Is, Equals (or no keyword).
  */
-@Nightly
+@Extensive
 public class BlockingIndexedFindEqualsTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

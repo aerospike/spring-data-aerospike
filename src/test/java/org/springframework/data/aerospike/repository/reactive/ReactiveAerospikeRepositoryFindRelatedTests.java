@@ -9,7 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerSomeFields;
@@ -30,7 +30,7 @@ import static org.springframework.data.domain.Sort.Order.asc;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
-@Nightly
+@Extensive
 public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveIntegrationTests {
 
     @Autowired

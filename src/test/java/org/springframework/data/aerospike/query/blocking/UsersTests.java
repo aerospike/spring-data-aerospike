@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.query.blocking;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.USERS_SET;
 
-@Nightly
+@Extensive
 class UsersTests extends BaseQueryEngineTests {
 
     @Test

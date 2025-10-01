@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.sample.CompositeObject;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCompositeObjectRepository;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Igor Ermolenko
  */
-@Nightly
+@Extensive
 public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveIntegrationTests {
 
     @Autowired

@@ -5,7 +5,7 @@ import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @Nested
-@Nightly
+@Extensive
 class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Override

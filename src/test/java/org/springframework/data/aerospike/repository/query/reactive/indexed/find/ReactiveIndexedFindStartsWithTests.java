@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.query.model.Index;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for the "Starts with" repository query. Keywords: StartingWith, IsStartingWith, StartsWith.
  */
-@Nightly
+@Extensive
 public class ReactiveIndexedFindStartsWithTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Override

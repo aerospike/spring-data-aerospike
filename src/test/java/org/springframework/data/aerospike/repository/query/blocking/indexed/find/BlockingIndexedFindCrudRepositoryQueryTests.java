@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the CrudRepository queries API.
  */
-@Nightly
+@Extensive
 public class BlockingIndexedFindCrudRepositoryQueryTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

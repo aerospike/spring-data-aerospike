@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is between" repository query. Keywords: Between, IsBetween.
  */
-@Nightly
+@Extensive
 public class ReactiveIndexedFindBetweenTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Override

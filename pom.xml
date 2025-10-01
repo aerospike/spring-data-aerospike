@@ -158,14 +158,14 @@
     </developers>
 
     <profiles>
-        <!-- Default profile, nightly tests excluded - active by default -->
+        <!-- Default profile with extensive tests excluded, active by default -->
         <profile>
             <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <excludedGroups>nightly</excludedGroups>
+                <excludedGroups>extensive</excludedGroups>
             </properties>
         </profile>
         <!-- All tests -->

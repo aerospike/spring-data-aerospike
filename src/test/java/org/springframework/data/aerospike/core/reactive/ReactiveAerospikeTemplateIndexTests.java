@@ -7,7 +7,7 @@ import lombok.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
-@Nightly
+@Extensive
 public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegrationTests {
 
     private static final String INDEX_TEST_1 = "index-test-77777";

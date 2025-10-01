@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -20,7 +20,7 @@ import static org.testcontainers.shaded.com.google.common.collect.ImmutableMap.o
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
-@Nightly
+@Extensive
 public abstract class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired

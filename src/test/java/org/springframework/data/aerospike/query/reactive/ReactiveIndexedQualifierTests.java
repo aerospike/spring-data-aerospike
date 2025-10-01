@@ -21,7 +21,7 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -47,7 +47,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 /*
  * These tests generate qualifiers on indexed bins.
  */
-@Nightly
+@Extensive
 public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests {
 
     @AfterEach

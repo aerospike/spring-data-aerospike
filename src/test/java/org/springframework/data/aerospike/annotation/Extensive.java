@@ -8,15 +8,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks tests that are intended for nightly runs.
+ * Marks extensive tests. Intended to run nightly.
  * <p>
- * Tests marked with {@code @Nightly} will be excluded from regular CI builds ({@code mvn test})
- * and included only when specifically requesting them ({@code mvn test -Dgroups="nightly"}) or when running all tests
+ * Tests marked with {@code @Extensive} are excluded from core testing within regular CI builds ({@code mvn test})
+ * and included only when specifically requesting them ({@code mvn test -Dgroups="extensive"}) or when running all tests
  * ({@code mvn clean test -Pall-tests})
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("nightly")
-public @interface Nightly {
+@Tag("extensive")
+public @interface Extensive {
 
 }

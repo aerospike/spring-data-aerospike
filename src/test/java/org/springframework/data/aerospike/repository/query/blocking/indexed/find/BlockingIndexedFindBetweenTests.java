@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.repository.query.blocking.indexed.fin
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryParam;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is between" repository query. Keywords: Between, IsBetween.
  */
-@Nightly
+@Extensive
 public class BlockingIndexedFindBetweenTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

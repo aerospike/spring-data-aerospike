@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.query.reactive;
 import com.aerospike.client.Value;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
@@ -21,7 +21,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SET_NAME;
 
-@Nightly
+@Extensive
 public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
     @Test

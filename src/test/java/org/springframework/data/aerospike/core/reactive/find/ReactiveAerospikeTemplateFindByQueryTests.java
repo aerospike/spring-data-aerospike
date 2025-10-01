@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -31,7 +31,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.VALUE;
 import static org.springframework.data.domain.Sort.Order.asc;
 
-@Nightly
+@Extensive
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveIntegrationTests {
 

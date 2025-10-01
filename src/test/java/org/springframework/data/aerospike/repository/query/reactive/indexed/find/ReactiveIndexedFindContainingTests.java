@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
@@ -24,7 +24,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 /**
  * Tests for the "Contains" repository query. Keywords: Containing, IsContaining, Contains.
  */
-@Nightly
+@Extensive
 public class ReactiveIndexedFindContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Override

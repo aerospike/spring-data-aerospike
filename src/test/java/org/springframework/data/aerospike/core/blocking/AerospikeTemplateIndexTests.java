@@ -7,7 +7,7 @@ import lombok.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.test.context.TestPropertySource;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
-@Nightly
+@Extensive
 @TestPropertySource(properties = {"spring.data.aerospike.create-indexes-on-startup=true"})
 // this test class requires secondary indexes created on startup
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {

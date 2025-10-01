@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.exists;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.query.QueryParam;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is in" reactive repository query. Keywords: In, IsIn.
  */
-@Nightly
+@Extensive
 public class BlockingIndexedExistsInTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

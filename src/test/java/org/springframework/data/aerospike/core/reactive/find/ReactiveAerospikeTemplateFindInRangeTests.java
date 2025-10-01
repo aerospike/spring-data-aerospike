@@ -2,7 +2,7 @@ package org.springframework.data.aerospike.core.reactive.find;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 import reactor.core.scheduler.Schedulers;
@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.domain.Sort.Order.asc;
 
-@Nightly
+@Extensive
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateFindInRangeTests extends ReactiveAerospikeTemplateFindByQueryTests {
 

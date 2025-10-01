@@ -7,7 +7,7 @@ import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.model.Index;
@@ -28,7 +28,7 @@ import static com.aerospike.client.query.IndexType.NUMERIC;
 import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Nightly
+@Extensive
 public class BlockingIndexedFindCustomQueriesTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

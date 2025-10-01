@@ -1,6 +1,7 @@
 name: Nightly Tests on GCP
 permissions:
   contents: read
+  actions: write  # Required to upload artifacts
 
 on:
   schedule:
@@ -15,33 +16,49 @@ jobs:
       should_run: ${{ steps.check.outputs.changed }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Fetch all history to compare commits
 
       - name: Check for changes since last successful run
         id: check
         run: |
-          # Get the last successful run SHA
-          # GITHUB_TOKEN is automatically provided by GitHub
-          LAST_SUCCESS_SHA=$(curl -s -H "Authorization: token ${{ github.token }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/nightly-tests.yml/runs?status=success&branch=main" \
-            | jq -r '.workflow_runs[0].head_sha // ""')
-          
+          # Get the last successful run SHA with error handling
+          echo "Fetching last successful run information..."
+
+          # Make API call with error checking
+          API_RESPONSE=$(curl -s -f -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/nightly-tests.yml/runs?status=success&branch=main" || echo "ERROR")
+
+          if [ "$API_RESPONSE" = "ERROR" ]; then
+            echo "API call failed, running tests as fallback"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Try to extract SHA with error handling
+          LAST_SUCCESS_SHA=$(echo "$API_RESPONSE" | jq -r '.workflow_runs[0].head_sha // ""')
           echo "Last successful run SHA: ${LAST_SUCCESS_SHA:-none}"
-          
-          if [ -z "$LAST_SUCCESS_SHA" ]; then
+
+          # Run tests if API returned no results or invalid data
+          if [ -z "$LAST_SUCCESS_SHA" ] || [ "$LAST_SUCCESS_SHA" = "null" ]; then
             echo "No previous successful run found, running tests"
             echo "changed=true" >> $GITHUB_OUTPUT
           else
-            # Check if there are any new commits since the last successful run
-            DIFF=$(git log --oneline $LAST_SUCCESS_SHA..HEAD)
-            if [ -n "$DIFF" ]; then
-              echo "Changes detected since last successful run"
+            # Verify SHA is valid
+            if ! git rev-parse --quiet --verify "$LAST_SUCCESS_SHA^{commit}" >/dev/null; then
+              echo "Retrieved SHA is not valid, running tests"
               echo "changed=true" >> $GITHUB_OUTPUT
             else
-              echo "No changes detected since last successful run"
-              echo "changed=false" >> $GITHUB_OUTPUT
+              # Check if there are any new commits since the last successful run
+              DIFF=$(git log --oneline $LAST_SUCCESS_SHA..HEAD)
+              if [ -n "$DIFF" ]; then
+                echo "Changes detected since last successful run"
+                echo "changed=true" >> $GITHUB_OUTPUT
+              else
+                echo "No changes detected since last successful run"
+                echo "changed=false" >> $GITHUB_OUTPUT
+              fi
             fi
           fi
 

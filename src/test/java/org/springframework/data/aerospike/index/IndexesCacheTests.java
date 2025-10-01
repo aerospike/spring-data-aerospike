@@ -5,7 +5,7 @@ import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 
@@ -20,7 +20,7 @@ import static com.aerospike.client.query.IndexType.NUMERIC;
 import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Nightly
+@Extensive
 public class IndexesCacheTests extends BaseBlockingIntegrationTests {
 
     private static final String SET = "index-test";

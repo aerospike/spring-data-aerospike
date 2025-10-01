@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
@@ -20,7 +20,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 /**
  * Tests for the "Does not contain" repository query. Keywords: IsNotContaining, NotContaining, NotContains.
  */
-@Nightly
+@Extensive
 public class BlockingIndexedFindNotContainingTests extends IndexedPersonRepositoryQueryTests {
 
     @Override

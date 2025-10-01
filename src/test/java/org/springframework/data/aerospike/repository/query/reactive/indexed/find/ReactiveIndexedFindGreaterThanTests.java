@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.annotation.Nightly;
+import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for the "Is greater than" repository query. Keywords: GreaterThan, IsGreaterThan.
  */
-@Nightly
+@Extensive
 public class ReactiveIndexedFindGreaterThanTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Override
