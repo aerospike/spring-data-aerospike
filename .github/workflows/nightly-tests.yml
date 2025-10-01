@@ -1,0 +1,175 @@
+name: Nightly Tests on GCP
+permissions:
+  contents: read
+  actions: write  # Required to upload artifacts
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run at midnight UTC
+  workflow_dispatch:     # Allow manual triggering
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Timeout to check for the changes
+    outputs:
+      should_run: ${{ steps.check.outputs.changed }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch all history to compare commits
+
+      - name: Check for changes since last successful run
+        id: check
+        run: |
+          # Get the last successful run SHA with error handling
+          echo "Fetching last successful run information..."
+
+          # Make API call with error checking
+          API_RESPONSE=$(curl -s -f -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/nightly-tests.yml/runs?status=success&branch=main" || echo "ERROR")
+
+          if [ "$API_RESPONSE" = "ERROR" ]; then
+            echo "API call failed, running tests as fallback"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Try to extract SHA with error handling
+          LAST_SUCCESS_SHA=$(echo "$API_RESPONSE" | jq -r '.workflow_runs[0].head_sha // ""')
+          echo "Last successful run SHA: ${LAST_SUCCESS_SHA:-none}"
+
+          # Run tests if API returned no results or invalid data
+          if [ -z "$LAST_SUCCESS_SHA" ] || [ "$LAST_SUCCESS_SHA" = "null" ]; then
+            echo "No previous successful run found, running tests"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            # Verify SHA is valid
+            if ! git rev-parse --quiet --verify "$LAST_SUCCESS_SHA^{commit}" >/dev/null; then
+              echo "Retrieved SHA is not valid, running tests"
+              echo "changed=true" >> $GITHUB_OUTPUT
+            else
+              # Check if there are any new commits since the last successful run
+              DIFF=$(git log --oneline $LAST_SUCCESS_SHA..HEAD)
+              if [ -n "$DIFF" ]; then
+                echo "Changes detected since last successful run"
+                echo "changed=true" >> $GITHUB_OUTPUT
+              else
+                echo "No changes detected since last successful run"
+                echo "changed=false" >> $GITHUB_OUTPUT
+              fi
+            fi
+          fi
+
+  test:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # Timeout for the entire job
+    env:
+      TEST_FOLDERS_TO_KEEP: 20  # Number of test result folders to keep
+
+    steps:
+      - name: Checkout for workflow files only
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Start GCP VM  # Start VM
+        run: |
+          gcloud compute instances start ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}
+          # Wait for VM to fully boot
+          sleep 30
+
+      - name: Set up VM prerequisites
+        run: |
+          # Install Git, JDK 17 and Maven on the VM if not already installed
+          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
+            if ! command -v git &> /dev/null; then
+              echo 'Installing Git...'
+              sudo apt-get update
+              sudo apt-get install -y git
+            else
+              echo 'Git is already installed'
+            fi
+          
+            # Check for Java
+            if ! command -v java &> /dev/null || ! java -version 2>&1 | grep -q 'version \"17'; then
+              echo 'Installing JDK 17...'
+              sudo apt-get update
+              sudo apt-get install -y openjdk-17-jdk
+            else
+              echo 'JDK 17 is already installed'
+            fi
+          
+            # Check for Maven
+            if ! command -v mvn &> /dev/null; then
+              echo 'Installing Maven...'
+              sudo apt-get install -y maven
+            else
+              echo 'Maven is already installed'
+            fi
+          "
+
+      - name: Run tests on VM
+        id: run_tests
+        timeout-minutes: 45  # Timeout for just the tests run
+        run: |
+          # Get current timestamp for results directory
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          
+          # Create timestamped directory for this test run
+          mkdir -p test-results/$TIMESTAMP
+          
+          # Run commands on the VM to clone repo, set up, and execute tests
+          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
+            # Clean up any previous runs
+            rm -rf ~/spring_data_repo && mkdir -p ~/spring_data_repo
+          
+            # Clone the repository
+            git clone https://github.com/${{ github.repository }} ~/spring_data_repo
+            cd ~/spring_data_repo
+            git checkout ${{ github.ref_name }}
+          
+            # Run tests
+            mvn clean test -Pall-tests -B -U
+          
+            # Save exit code to report success/failure
+            echo \$? > ~/test_exit_code
+          "
+          
+          # Copy test results back
+          gcloud compute scp --recurse ${{ secrets.GCP_VM_NAME }}:~/spring_data_repo/target/surefire-reports ./test-results/$TIMESTAMP --zone=${{ secrets.GCP_VM_ZONE }} || true
+          
+          # Implement file rotation - keep only N latest test result directories
+          echo "Rotating test result directories, keeping only the $TEST_FOLDERS_TO_KEEP latest"
+          ls -t test-results | tail -n +$((TEST_FOLDERS_TO_KEEP + 1)) | xargs -I {} rm -rf test-results/{}
+          echo "Current test result directories after rotation:"
+          ls -la test-results/
+          
+          # Check if tests failed
+          TEST_EXIT_CODE=$(gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="cat ~/test_exit_code || echo 1")
+          if [ "$TEST_EXIT_CODE" != "0" ]; then
+            echo "Tests failed with exit code $TEST_EXIT_CODE"
+            exit 1
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ github.run_id }}
+          path: test-results
+          retention-days: 14  # Days to keep artifact
+
+      - name: Stop GCP VM
+        if: always()  # Ensure VM is stopped even if tests fail
+        run: |
+          gcloud compute instances stop ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}

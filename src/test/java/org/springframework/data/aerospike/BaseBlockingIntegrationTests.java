@@ -1,6 +1,8 @@
 package org.springframework.data.aerospike;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,6 @@ import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor;
-import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
@@ -165,6 +166,60 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
         Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
+    }
+
+    /**
+     * Assert that the given method's query statement does not contain secondary index filter
+     *
+     * @param methodName        Query method to be performed
+     * @param returnEntityClass Class of Query return entity
+     * @param methodParams      Query parameters
+     */
+    protected void assertQueryHasNoSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                                  Object... methodParams) {
+        assertThat(queryHasSecIndexFilter(methodName, returnEntityClass, methodParams)).isFalse();
+    }
+
+    protected Filter getQuerySecIndexFilter(String methodName, Class<?> returnEntityClass, Object... methodParams) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, methodName, methodParams);
+
+        return getQuerySecIndexFilter(namespace, setName, query, binNames);
+    }
+
+    protected Filter getQuerySecIndexFilter(Query query, Class<?> returnEntityClass) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        return getQuerySecIndexFilter(namespace, setName, query, binNames);
+    }
+
+    protected Filter getQuerySecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
+        QueryContext queryContext = queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        // Checking that the statement has secondary index filter (which means it will be used)
+        return queryContext.statement().getFilter();
+    }
+
+    protected Expression getQueryExpression(String methodName, Class<?> returnEntityClass, Object... methodParams) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, methodName, methodParams);
+
+        return getQueryExpression(namespace, setName, query, binNames);
+    }
+
+    protected Expression getQueryExpression(Query query, Class<?> returnEntityClass) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        return getQueryExpression(namespace, setName, query, binNames);
+    }
+
+    protected Expression getQueryExpression(String namespace, String setName, Query query, String[] binNames) {
+        QueryContext queryContext = queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        // Checking that the statement has secondary index filter (which means it will be used)
+        return queryEngine.getFilterExpressionsBuilder().build(queryContext.qualifier());
     }
 
     protected Map<?, ?> pojoToMap(Object pojo) {

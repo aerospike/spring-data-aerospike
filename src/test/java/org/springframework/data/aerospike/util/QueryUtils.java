@@ -23,7 +23,9 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -68,6 +70,16 @@ public class QueryUtils {
             Class[] argTypesToPrimitives = Stream.of(argTypesCheckedForPageable).map(c -> {
                 if (ClassUtils.isPrimitiveOrWrapper(c)) {
                     return MethodType.methodType(c).unwrap().returnType();
+                }
+                // Look for List, Collection or Map class due to type erasure
+                if (List.class.isAssignableFrom(c)) {
+                    return List.class;
+                }
+                if (Collection.class.isAssignableFrom(c)) {
+                    return Collection.class;
+                }
+                if (Map.class.isAssignableFrom(c)) {
+                    return Map.class;
                 }
                 return c;
             }).toArray(Class[]::new);
