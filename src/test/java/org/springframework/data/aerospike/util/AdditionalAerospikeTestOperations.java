@@ -192,6 +192,15 @@ public abstract class AdditionalAerospikeTestOperations {
         indexesRefresher.refreshIndexesCache();
     }
 
+    public void dropIndexes(Class<?> entityClass) {
+        List<Index> indexes = getIndexes(getSetName(entityClass));
+        indexes.forEach(index -> {
+                IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
+            }
+        );
+        indexesRefresher.refreshIndexesCache();
+    }
+
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         try {
             repository.deleteAll(entities);

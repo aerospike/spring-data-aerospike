@@ -1,8 +1,10 @@
 package org.springframework.data.aerospike.core.reactive.count;
 
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -23,12 +25,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @author Igor Ermolenko
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegrationTests {
+
+    @BeforeAll
+    public void beforeAll() {
+        additionalAerospikeTestOperations.dropIndexes(Person.class);
+    }
 
     @Override
     @BeforeEach
     public void setUp() {
         super.setUp();
+        additionalAerospikeTestOperations.dropIndexes(Person.class);
         reactiveTemplate.deleteAll(Person.class).block();
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
