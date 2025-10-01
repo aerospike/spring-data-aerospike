@@ -38,6 +38,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
     public void setUp() {
         super.setUp();
         reactiveTemplate.deleteAll(Person.class).block();
+        additionalAerospikeTestOperations.dropIndexes(Person.class);
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(0L));
@@ -120,7 +121,6 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setFilterOperation(FilterOperation.EQ);
 
         Long count = reactiveTemplate.count(new Query(qb1.build()), Person.class).block();
-
         assertThat(count).isZero();
     }
 

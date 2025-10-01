@@ -191,14 +191,15 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
     public void dropIndexes(Class<?> entityClass) {
-        List<Index> indexes = getIndexes(getSetName(entityClass));
+        String setName = getSetName(entityClass);
+        List<Index> indexes = getIndexes(setName);
         if (!indexes.isEmpty()) {
-            log.info("Dropping {} indexes", indexes.size());
+            log.debug("Dropping {} indexes for set {}", indexes.size(), setName);
             indexes.forEach(index ->
                 IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName()));
             indexesRefresher.refreshIndexesCache();
         } else {
-            log.info("No indexes to drop");
+            log.debug("No indexes found for set {}", setName);
         }
     }
 
