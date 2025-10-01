@@ -185,20 +185,18 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
     public void dropIndexes(Collection<Index> indexesToBeDropped) {
-        indexesToBeDropped.forEach(index -> {
-                IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
-            }
+        indexesToBeDropped.forEach(index -> IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName())
         );
         indexesRefresher.refreshIndexesCache();
     }
 
     public void dropIndexes(Class<?> entityClass) {
         List<Index> indexes = getIndexes(getSetName(entityClass));
-        indexes.forEach(index -> {
-                IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
-            }
-        );
-        indexesRefresher.refreshIndexesCache();
+        if (!indexes.isEmpty()) {
+            indexes.forEach(index -> IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName())
+            );
+            indexesRefresher.refreshIndexesCache();
+        }
     }
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
