@@ -185,17 +185,20 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
     public void dropIndexes(Collection<Index> indexesToBeDropped) {
-        indexesToBeDropped.forEach(index -> IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName())
-        );
+        indexesToBeDropped.forEach(index ->
+            IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName()));
         indexesRefresher.refreshIndexesCache();
     }
 
     public void dropIndexes(Class<?> entityClass) {
         List<Index> indexes = getIndexes(getSetName(entityClass));
         if (!indexes.isEmpty()) {
-            indexes.forEach(index -> IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName())
-            );
+            log.info("Dropping {} indexes", indexes.size());
+            indexes.forEach(index ->
+                IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName()));
             indexesRefresher.refreshIndexesCache();
+        } else {
+            log.info("No indexes to drop");
         }
     }
 
