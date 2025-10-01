@@ -109,40 +109,69 @@ jobs:
             else
               echo 'JDK 17 is already installed'
             fi
-          
-            # Check for Maven with version requirement
+
+            # Check existing Maven version
             NEEDS_MAVEN=false
             if ! command -v mvn &> /dev/null; then
               echo 'Maven not found'
               NEEDS_MAVEN=true
             else
-              # Check Maven version
-              MVN_VERSION=\$(mvn --version | head -n 1 | awk '{print \$3}')
+              # Check current Maven version safely
+              MVN_VERSION=\$(mvn --version 2>/dev/null | head -n 1 | awk '{print \$3}' || echo 'unknown')
               echo \"Current Maven version: \$MVN_VERSION\"
-          
-              # Compare versions (requires basic version format like 3.9.0)
-              if [ \"\$(printf \"%s\\n%s\" \"$REQUIRED_MAVEN_VERSION\" \"\$MVN_VERSION\" | sort -V | head -n1)\" != \"$REQUIRED_MAVEN_VERSION\" ]; then
-                echo \"Maven version \$MVN_VERSION is older than required $REQUIRED_MAVEN_VERSION\"
+
+              # Compare versions
+              if [ \"\$(printf \"%s\\n%s\" \"\$REQUIRED_MAVEN_VERSION\" \"\$MVN_VERSION\" | sort -V | head -n1)\" != \"\$REQUIRED_MAVEN_VERSION\" ]; then
+                echo \"Maven version \$MVN_VERSION is older than required \$REQUIRED_MAVEN_VERSION\"
                 NEEDS_MAVEN=true
               else
                 echo \"Maven version \$MVN_VERSION meets requirement\"
               fi
             fi
-          
+
             # Install Maven if needed
             if [ \"\$NEEDS_MAVEN\" = true ]; then
-              echo 'Installing Maven 3.9.8...'
-          
-              # Download and extract Maven
-              cd /tmp
-              wget https://dlcdn.apache.org/maven/maven-3/3.9.8/binaries/apache-maven-3.9.8-bin.tar.gz
-              sudo tar xzf apache-maven-3.9.8-bin.tar.gz -C /opt
-          
-              # Set up Maven in path
-              sudo ln -sf /opt/apache-maven-3.9.8/bin/mvn /usr/bin/mvn
-          
-              # Verify installation
-              mvn --version
+              echo \"Checking available Maven version in apt...\"
+              sudo apt-get update
+
+              # Find the available Maven version
+              APT_MAVEN_VERSION=\$(apt-cache policy maven | grep Candidate | awk '{print \$2}' | cut -d':' -f2 | cut -d'-' -f1)
+              echo \"Available Maven version in apt: \$APT_MAVEN_VERSION\"
+
+              # Check if apt version meets our requirement
+              if [ -n \"\$APT_MAVEN_VERSION\" ] && [ \"\$(printf \"%s\\n%s\" \"\$REQUIRED_MAVEN_VERSION\" \"\$APT_MAVEN_VERSION\" | sort -V | head -n1)\" = \"\$REQUIRED_MAVEN_VERSION\" ]; then
+                echo \"Installing Maven \$APT_MAVEN_VERSION from apt...\"
+                sudo apt-get install -y maven
+                mvn --version
+              else
+                echo \"APT Maven version does not meet requirements. Installing from Apache website...\"
+
+                # Try several known versions from newest to oldest
+                for VERSION in '3.9.8' '3.9.5' '3.9.4' '3.9.3' '3.9.2' '3.9.1' '3.9.0'; do
+                  echo \"Trying to install Maven \$VERSION...\"
+                  cd /tmp
+                  wget -q https://archive.apache.org/dist/maven/maven-3/\$VERSION/binaries/apache-maven-\$VERSION-bin.tar.gz
+
+                  if [ -f apache-maven-\$VERSION-bin.tar.gz ]; then
+                    echo \"Downloaded Maven \$VERSION successfully\"
+                    sudo tar xzf apache-maven-\$VERSION-bin.tar.gz -C /opt
+                    sudo ln -sf /opt/apache-maven-\$VERSION/bin/mvn /usr/bin/mvn
+                    echo \"Maven \$VERSION installed successfully:\"
+                    mvn --version
+                    break
+                  else
+                    echo \"Failed to download Maven \$VERSION, trying next version...\"
+                  fi
+                done
+
+                # Verify Maven was installed by one of the versions
+                if ! command -v mvn &> /dev/null; then
+                  echo \"Failed to install any Maven version. Falling back to apt installation regardless of version...\"
+                  sudo apt-get install -y maven
+                  echo \"Installed Maven via apt fallback:\"
+                  mvn --version
+                fi
+              fi
             fi
           "
 
