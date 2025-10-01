@@ -69,6 +69,7 @@ jobs:
     timeout-minutes: 60  # Timeout for the entire job
     env:
       TEST_FOLDERS_TO_KEEP: 20  # Number of test result folders to keep
+      REQUIRED_MAVEN_VERSION: "3.9.0"
 
     steps:
       - name: Checkout for workflow files only
@@ -109,12 +110,39 @@ jobs:
               echo 'JDK 17 is already installed'
             fi
           
-            # Check for Maven
+            # Check for Maven with version requirement
+            NEEDS_MAVEN=false
             if ! command -v mvn &> /dev/null; then
-              echo 'Installing Maven...'
-              sudo apt-get install -y maven
+              echo 'Maven not found'
+              NEEDS_MAVEN=true
             else
-              echo 'Maven is already installed'
+              # Check Maven version
+              MVN_VERSION=\$(mvn --version | head -n 1 | awk '{print \$3}')
+              echo \"Current Maven version: \$MVN_VERSION\"
+          
+              # Compare versions (requires basic version format like 3.9.0)
+              if [ \"\$(printf \"%s\\n%s\" \"$REQUIRED_MAVEN_VERSION\" \"\$MVN_VERSION\" | sort -V | head -n1)\" != \"$REQUIRED_MAVEN_VERSION\" ]; then
+                echo \"Maven version \$MVN_VERSION is older than required $REQUIRED_MAVEN_VERSION\"
+                NEEDS_MAVEN=true
+              else
+                echo \"Maven version \$MVN_VERSION meets requirement\"
+              fi
+            fi
+          
+            # Install Maven if needed
+            if [ \"\$NEEDS_MAVEN\" = true ]; then
+              echo 'Installing Maven 3.9.8...'
+          
+              # Download and extract Maven
+              cd /tmp
+              wget https://dlcdn.apache.org/maven/maven-3/3.9.8/binaries/apache-maven-3.9.8-bin.tar.gz
+              sudo tar xzf apache-maven-3.9.8-bin.tar.gz -C /opt
+          
+              # Set up Maven in path
+              sudo ln -sf /opt/apache-maven-3.9.8/bin/mvn /usr/bin/mvn
+          
+              # Verify installation
+              mvn --version
             fi
           "
 
