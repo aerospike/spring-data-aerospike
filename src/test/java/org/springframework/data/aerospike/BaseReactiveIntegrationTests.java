@@ -4,7 +4,9 @@ import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.CommonTestConfig;
@@ -48,6 +50,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
         "indexSuffix: index1"
     }
 )
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests {
 
     @Autowired
@@ -67,6 +70,11 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     @Autowired
     protected ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
+
+    @BeforeAll
+    public void beforeTests() {
+        reactiveTemplate.refreshIndexesCache().block();
+    }
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();

@@ -25,14 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @author Igor Ermolenko
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegrationTests {
-
-    @BeforeAll
-    public void beforeAll() {
-        reactorIndexRefresher.refreshIndexes().block();
-        additionalAerospikeTestOperations.dropIndexes(Person.class);
-    }
 
     @Override
     @BeforeEach
