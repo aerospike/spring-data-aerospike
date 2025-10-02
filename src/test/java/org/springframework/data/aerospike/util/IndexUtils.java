@@ -46,7 +46,6 @@ public class IndexUtils {
         Node node = client.getCluster().getRandomNode();
         String response = InfoCommandUtils.request(client, node, "sindex-list:ns=" + namespace + ";b64=true");
         if (response.isBlank()) return List.of();
-
         return Arrays.stream(response.split(";"))
             .map(indexInfoParser::parse)
             .collect(Collectors.toList());
