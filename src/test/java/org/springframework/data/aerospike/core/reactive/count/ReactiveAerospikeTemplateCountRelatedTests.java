@@ -30,7 +30,8 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
     @BeforeAll
     public void beforeAll() {
-        additionalAerospikeTestOperations.dropIndexes(Person.class);
+//        additionalAerospikeTestOperations.dropIndexes(Person.class);
+        reactorIndexRefresher.refreshIndexes().block();
     }
 
     @Override
@@ -38,7 +39,6 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
     public void setUp() {
         super.setUp();
         reactiveTemplate.deleteAll(Person.class).block();
-        additionalAerospikeTestOperations.dropIndexes(Person.class);
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(0L));
