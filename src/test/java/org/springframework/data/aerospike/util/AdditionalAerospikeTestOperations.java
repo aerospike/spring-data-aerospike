@@ -200,10 +200,6 @@ public abstract class AdditionalAerospikeTestOperations {
             indexesRefresher.refreshIndexesCache();
         } else {
             log.debug("No indexes found for set {}", setName);
-            List<Index> overallIndexes = getIndexes();
-            int indexesAmount = overallIndexes.size();
-            String setNames = overallIndexes.stream().map(Index::getSet).distinct().collect(Collectors.joining(","));
-            log.debug("Overall indexes found: {}, sets: {}", indexesAmount, setNames);
         }
     }
 

@@ -30,8 +30,8 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
     @BeforeAll
     public void beforeAll() {
-//        additionalAerospikeTestOperations.dropIndexes(Person.class);
         reactorIndexRefresher.refreshIndexes().block();
+        additionalAerospikeTestOperations.dropIndexes(Person.class);
     }
 
     @Override
