@@ -196,7 +196,6 @@ public abstract class AdditionalAerospikeTestOperations {
         if (!indexes.isEmpty()) {
             log.debug("Dropping {} indexes for set {}", indexes.size(), setName);
             dropIndexes(indexes);
-            indexesRefresher.refreshIndexesCache();
         } else {
             log.debug("No indexes found for set {}", setName);
         }
