@@ -4,7 +4,9 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -49,6 +51,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
         "indexSuffix: index1"
     }
 )
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {
 
     @Autowired
@@ -69,6 +72,11 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     @Autowired
     protected AerospikeCacheKeyProcessor cacheKeyProcessor;
+
+    @BeforeAll
+    public void beforeTests() {
+        template.refreshIndexesCache();
+    }
 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));

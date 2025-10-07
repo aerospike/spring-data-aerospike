@@ -1,8 +1,10 @@
 package org.springframework.data.aerospike.core.reactive.count;
 
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -53,9 +55,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
         Query queryVasya1 = new Query(qbVasya1.build());
 
-        Long vasyaCount = reactiveTemplate.count(queryVasya1, Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .block();
+        Long vasyaCount = reactiveTemplate.count(queryVasya1, Person.class).block();
         assertThat(vasyaCount).isEqualTo(3);
 
         QualifierBuilder qbVasya2 = Qualifier.builder()
@@ -65,22 +65,17 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
         Query queryVasyaAnd = new Query(Qualifier.and(qbVasya1.build(), qbVasya2.build()));
 
-        Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .block();
+        Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class).block();
         assertThat(vasya51Count).isEqualTo(1);
 
         QualifierBuilder qbPetya = Qualifier.builder()
             .setPath("firstName")
             .setValue("petya")
             .setFilterOperation(FilterOperation.EQ);
-        Long petyaCount = reactiveTemplate.count(new Query(qbPetya.build()), Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .block();
+        Long petyaCount = reactiveTemplate.count(new Query(qbPetya.build()), Person.class).block();
         assertThat(petyaCount).isEqualTo(1);
 
-        assertThat(reactiveTemplate.count(null, Person.class).subscribeOn(Schedulers.parallel())
-            .block()).isEqualTo(4);
+        assertThat(reactiveTemplate.count(null, Person.class).block()).isEqualTo(4);
     }
 
     @Test
@@ -108,9 +103,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setFilterOperation(FilterOperation.STARTS_WITH);
 
         Query query2 = new Query(qbVasya2.build());
-        assertThat(reactiveTemplate.count(query2, Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .block()).isEqualTo(1);
+        assertThat(reactiveTemplate.count(query2, Person.class).block()).isEqualTo(1);
     }
 
     @Test
@@ -120,10 +113,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue("nastyushka")
             .setFilterOperation(FilterOperation.EQ);
 
-        Long count = reactiveTemplate.count(new Query(qb1.build()), Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .block();
-
+        Long count = reactiveTemplate.count(new Query(qb1.build()), Person.class).block();
         assertThat(count).isZero();
     }
 
@@ -136,13 +126,13 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
     @Test
     void count_shouldCountAllByPassingEntityClass() {
         String id1 = nextId();
-        reactiveTemplate.insert(new Person(id1, "vasili", 50)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(id1, "vasili", 50)).block();
         String id2 = nextId();
-        reactiveTemplate.insert(new Person(id2, "vasili", 51)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(id2, "vasili", 51)).block();
         String id3 = nextId();
-        reactiveTemplate.insert(new Person(id3, "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(id3, "vasili", 52)).block();
         String id4 = nextId();
-        reactiveTemplate.insert(new Person(id4, "petya", 52)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(id4, "petya", 52)).block();
 
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))

@@ -1,0 +1,36 @@
+name: 'Set up VM Prerequisites'
+description: 'Installs and configures Git, JDK, Maven, and Docker on a GCP VM'
+
+inputs:
+  gcp-vm-name:
+    description: 'Name of the GCP VM'
+    required: true
+  gcp-vm-zone:
+    description: 'Zone of the GCP VM'
+    required: true
+  required-maven-version:
+    description: 'Minimum required Maven version'
+    required: true
+    default: '3.9.0'
+  required-docker-version:
+    description: 'Minimum required Docker version'
+    required: true
+    default: '20.10.0'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Transfer setup script to VM
+      shell: bash
+      run: |
+        # Copy the setup script to the VM
+        gcloud compute scp ${{ github.action_path }}/setup-vm.sh ${{ inputs.gcp-vm-name }}:~/setup-vm.sh --zone=${{ inputs.gcp-vm-zone }}
+        
+        # Make the script executable on the VM
+        gcloud compute ssh ${{ inputs.gcp-vm-name }} --zone=${{ inputs.gcp-vm-zone }} --command="chmod +x ~/setup-vm.sh"
+
+    - name: Execute setup script on VM
+      shell: bash
+      run: |
+        # Run the setup script with the required versions as arguments
+        gcloud compute ssh ${{ inputs.gcp-vm-name }} --zone=${{ inputs.gcp-vm-zone }} --command="~/setup-vm.sh '${{ inputs.required-maven-version }}' '${{ inputs.required-docker-version }}'"

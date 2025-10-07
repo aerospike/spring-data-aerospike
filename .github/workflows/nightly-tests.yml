@@ -69,9 +69,11 @@ jobs:
     timeout-minutes: 60  # Timeout for the entire job
     env:
       TEST_FOLDERS_TO_KEEP: 20  # Number of test result folders to keep
+      REQUIRED_MAVEN_VERSION: "3.9.0"
+      REQUIRED_DOCKER_VERSION: "20.10.0"
 
     steps:
-      - name: Checkout for workflow files only
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
@@ -82,41 +84,19 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Start GCP VM  # Start VM
+      - name: Start GCP VM
         run: |
           gcloud compute instances start ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }}
           # Wait for VM to fully boot
           sleep 30
 
       - name: Set up VM prerequisites
-        run: |
-          # Install Git, JDK 17 and Maven on the VM if not already installed
-          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
-            if ! command -v git &> /dev/null; then
-              echo 'Installing Git...'
-              sudo apt-get update
-              sudo apt-get install -y git
-            else
-              echo 'Git is already installed'
-            fi
-          
-            # Check for Java
-            if ! command -v java &> /dev/null || ! java -version 2>&1 | grep -q 'version \"17'; then
-              echo 'Installing JDK 17...'
-              sudo apt-get update
-              sudo apt-get install -y openjdk-17-jdk
-            else
-              echo 'JDK 17 is already installed'
-            fi
-          
-            # Check for Maven
-            if ! command -v mvn &> /dev/null; then
-              echo 'Installing Maven...'
-              sudo apt-get install -y maven
-            else
-              echo 'Maven is already installed'
-            fi
-          "
+        uses: ./.github/actions/vm-prerequisites-composite-action
+        with:
+          gcp-vm-name: ${{ secrets.GCP_VM_NAME }}
+          gcp-vm-zone: ${{ secrets.GCP_VM_ZONE }}
+          required-maven-version: ${{ env.REQUIRED_MAVEN_VERSION }}
+          required-docker-version: ${{ env.REQUIRED_DOCKER_VERSION }}
 
       - name: Run tests on VM
         id: run_tests
@@ -137,6 +117,33 @@ jobs:
             git clone https://github.com/${{ github.repository }} ~/spring_data_repo
             cd ~/spring_data_repo
             git checkout ${{ github.ref_name }}
+          
+            # Verify prerequisites are available
+            echo \"Verifying prerequisites...\"
+          
+            if ! command -v mvn &> /dev/null; then
+              echo \"ERROR: Maven command not available. Cannot run tests.\"
+              exit 1
+            fi
+            echo \"Using Maven: \$(which mvn)\"
+            mvn --version
+          
+            if ! command -v docker &> /dev/null; then
+              echo \"WARNING: Docker command not available. Tests requiring Docker will fail.\"
+            else
+              echo \"Using Docker: \$(which docker)\"
+              docker --version
+          
+              # Check Docker daemon
+              if ! sudo docker info &> /dev/null; then
+                echo \"WARNING: Docker daemon is not running. Tests requiring Docker will fail.\"
+                sudo systemctl restart docker
+                sleep 5
+                if ! sudo docker info &> /dev/null; then
+                  echo \"CRITICAL: Could not start Docker daemon.\"
+                fi
+              fi
+            fi
           
             # Run tests
             mvn clean test -Pall-tests -B -U
