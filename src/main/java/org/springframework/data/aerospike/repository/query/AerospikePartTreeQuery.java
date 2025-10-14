@@ -17,6 +17,8 @@ package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,6 +32,7 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,25 +46,36 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>> {
 
     private final AerospikeTemplate template;
+    private final AerospikeQueryMethod queryMethod;
+    private final String namespace;
+    private final Map<IndexKey, Index> indexCache;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
                                   QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate template,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) template.getMappingContext(),
-            template.getAerospikeConverter(), template.getServerVersionSupport());
+            template.getAerospikeConverter(), template.getServerVersionSupport(), template.getDSLParser());
         this.template = template;
+        this.namespace = template.getNamespace();
+        this.indexCache = template.getIndexesCache();
+        // each queryMethod here is AerospikeQueryMethod
+        this.queryMethod = (AerospikeQueryMethod) queryMethod;
     }
 
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor, queryMethod);
+
+        if (queryMethod.hasQueryAnnotation()) {
+            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
+        }
+        Query query = prepareQuery(parameters, accessor);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
@@ -109,7 +123,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
      * Runs {@link AerospikeTemplate#find(Query, Class)} for given query, results are mapped
      * to the original entityClass or to the given {@code targetClass}, then post-processing is applied on the results.
      */
-    private Stream<?> findByQuery(Query query, @Nullable Class<?> targetClass) {
+    @Override
+    protected Stream<?> findByQuery(Query query, @Nullable Class<?> targetClass) {
         // Run query and map to different target class
         if (targetClass != null && targetClass != entityClass) {
             return template.find(query, entityClass, targetClass);

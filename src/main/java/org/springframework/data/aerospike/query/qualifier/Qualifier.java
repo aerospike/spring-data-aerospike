@@ -20,7 +20,13 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
+import com.aerospike.dsl.ExpressionContext;
+import com.aerospike.dsl.Index;
+import com.aerospike.dsl.IndexContext;
+import com.aerospike.dsl.ParsedExpression;
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -87,6 +93,16 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return new MetadataQualifierBuilder();
     }
 
+    @Beta
+    public static FilterQualifierBuilder filterBuilder() {
+        return new FilterQualifierBuilder();
+    }
+
+    @Beta
+    public static DSLStringQualifierBuilder dslStringBuilder() {
+        return new DSLStringQualifierBuilder();
+    }
+
     public FilterOperation getOperation() {
         return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
@@ -109,6 +125,21 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
         return (CriteriaDefinition.AerospikeMetadata) internalMap.get(METADATA_FIELD);
+    }
+
+    public void setHasSecIndexFilter(Boolean queryAsFilter) {
+        internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
+    }
+
+    public void parseDSLString(String dslString, DSLParser dslParser, String namespace, Collection<Index> indexes) {
+        ParsedExpression parsedExpr = dslParser.parseExpression(ExpressionContext.of(dslString), IndexContext.of(namespace, indexes));
+        Exp exp = parsedExpr.getResult().getExp();
+        internalMap.put(FILTER_EXPRESSION, exp == null ? null : Exp.build(exp));
+        internalMap.put(SINDEX_FILTER, parsedExpr.getResult().getFilter());
+    }
+
+    public Boolean hasSecIndexFilter() {
+        return internalMap.containsKey(HAS_SINDEX_FILTER) && (Boolean) internalMap.get(HAS_SINDEX_FILTER);
     }
 
     public void setDataSettings(AerospikeDataSettings dataSettings) {
@@ -171,8 +202,33 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
+    public boolean hasFilterExpression() {
+        return internalMap.get(FILTER_EXPRESSION) != null;
+    }
+
+    public boolean hasDSLString() {
+        return internalMap.get(DSL_STRING) != null;
+    }
+
+    public Expression getFilterExpression() {
+        return (Expression) internalMap.get(FILTER_EXPRESSION);
+    }
+
     public Exp getFilterExp() {
         return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
+    }
+
+    public Filter getFilter() {
+        return (Filter) internalMap.get(SINDEX_FILTER);
+    }
+
+    public String getDSLString() {
+        return (String) internalMap.get(DSL_STRING);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<Index> getDSLIndexes() {
+        return (Collection<Index>) internalMap.get(DSL_INDEXES);
     }
 
     protected String luaFieldString(String field) {

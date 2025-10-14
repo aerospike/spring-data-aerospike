@@ -29,16 +29,21 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.dsl.api.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
+import org.springframework.data.aerospike.index.IndexesCacheRetriever;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
@@ -83,7 +88,7 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    IndexesCacheRefresher<Mono<Integer>> {
+    IndexesCacheRefresher<Mono<Integer>>, IndexesCacheRetriever {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
@@ -91,6 +96,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
     private final TemplateContext templateContext;
+    private final IndexesCacheHolder indexCacheHolder;
+    private final DSLParser dslParser;
 
     public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
                                      String namespace,
@@ -98,7 +105,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
                                      ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
-                                     ServerVersionSupport serverVersionSupport) {
+                                     IndexesCacheHolder indexCacheHolder,
+                                     ServerVersionSupport serverVersionSupport,
+                                     DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator,
             reactorClient.getAerospikeClient().copyWritePolicyDefault(), serverVersionSupport);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
@@ -115,11 +124,22 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .batchWritePolicyDefault(batchWritePolicyDefault)
             .reactorQueryEngine(queryEngine)
             .build();
+        this.indexCacheHolder = indexCacheHolder;
+        this.dslParser = dslParser;
+    }
+
+    public DSLParser getDSLParser() {
+        return dslParser;
     }
 
     @Override
     public Mono<Integer> refreshIndexesCache() {
         return reactorIndexRefresher.refreshIndexes();
+    }
+
+    @Override
+    public Map<IndexKey, Index> getIndexesCache() {
+        return indexCacheHolder.getAllIndexes();
     }
 
     @Override
@@ -206,7 +226,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> insertAll(Iterable<  T> documents) {
+    public <T> Flux<T> insertAll(Iterable<T> documents) {
         if (ValidationUtils.isEmpty(documents)) {
             logEmptyItems(log, "Documents for inserting");
             return Flux.empty();

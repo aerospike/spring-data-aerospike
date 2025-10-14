@@ -15,9 +15,18 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.query.Filter;
+import com.aerospike.dsl.ExpressionContext;
+import com.aerospike.dsl.IndexContext;
+import com.aerospike.dsl.ParsedExpression;
+import com.aerospike.dsl.PlaceholderValues;
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +45,8 @@ import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
 
@@ -44,7 +55,7 @@ import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQu
  * @author Jean Mercier
  * @author Igor Ermolenko
  */
-public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
+public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
 
     protected final QueryMethod queryMethod;
     protected final Class<?> entityClass;
@@ -53,12 +64,15 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
     private final ServerVersionSupport versionSupport;
+    private final DSLParser dslParser;
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("(?<!\\.)\\?(\\d+)");
 
     protected BaseAerospikePartTreeQuery(QueryMethod queryMethod,
                                          QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                          Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
                                          AerospikeMappingContext context,
-                                         MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
+                                         MappingAerospikeConverter converter, ServerVersionSupport versionSupport,
+                                         DSLParser dslParser) {
         this.queryMethod = queryMethod;
         this.evaluationContextAccessor = evalContextAccessor;
         this.queryCreator = queryCreator;
@@ -66,6 +80,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.context = context;
         this.converter = converter;
         this.versionSupport = versionSupport;
+        this.dslParser = dslParser;
     }
 
     @Override
@@ -176,7 +191,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         if (!isEntityAssignableFromReturnType(queryMethod)) {
             return queryMethod.getReturnedObjectType();
         }
-        // No projection - target class will be the entity class.
+        // No projection - target class will be the entity class
         return queryMethod.getEntityInformation().getJavaType();
     }
 
@@ -236,5 +251,36 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         newQuery.setRows(query.getRows());
         newQuery.setDistinct(query.isDistinct());
         return newQuery;
+    }
+
+    protected abstract T findByQuery(Query query, Class<?> targetClass);
+
+    protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, String namespace,
+                                      Map<IndexKey, Index> indexCache, Object[] parameters) {
+        // Map cached indexes to DSL
+        List<com.aerospike.dsl.Index> indexes = indexCache.values().stream().map(value ->
+            com.aerospike.dsl.Index.builder()
+                .name(value.getName())
+                .namespace(value.getNamespace())
+                .bin(value.getBin())
+                .indexType(value.getIndexType())
+                .binValuesRatio(value.getBinValuesRatio())
+                .build())
+            .toList();
+        // Parse the given expression
+        ParsedExpression expr = dslParser.parseExpression(
+            ExpressionContext.of(queryMethod.getQueryAnnotation(), PlaceholderValues.of(parameters)),
+             indexes.isEmpty() ? null : IndexContext.of(namespace, indexes)
+        );
+        // Create the query
+        Filter filter = expr.getResult().getFilter();
+        Exp exp = expr.getResult().getExp();
+        Query query = new Query(
+            Qualifier.filterBuilder()
+                .setFilter(filter)
+                .setExpression(exp == null ? null : Exp.build(exp))
+                .build()
+        );
+        return findByQuery(query, targetClass);
     }
 }

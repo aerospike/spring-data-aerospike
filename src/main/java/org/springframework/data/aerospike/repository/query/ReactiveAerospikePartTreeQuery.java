@@ -17,6 +17,8 @@ package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +33,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,25 +45,36 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Flux<?>> {
 
     private final ReactiveAerospikeTemplate template;
+    private final AerospikeQueryMethod queryMethod;
+    private final String namespace;
+    private final Map<IndexKey, Index> indexCache;
 
     public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
                                           QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                           ReactiveAerospikeTemplate template,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) template.getMappingContext(),
-            template.getAerospikeConverter(), template.getServerVersionSupport());
+            template.getAerospikeConverter(), template.getServerVersionSupport(), template.getDSLParser());
         this.template = template;
+        this.namespace = template.getNamespace();
+        this.indexCache = template.getIndexesCache();
+        // each queryMethod here is AerospikeQueryMethod
+        this.queryMethod = (AerospikeQueryMethod) queryMethod;
     }
 
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor, queryMethod);
+
+        if (queryMethod.hasQueryAnnotation()) {
+            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
+        }
+        Query query = prepareQuery(parameters, accessor);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
@@ -110,12 +124,13 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
      * Runs {@link ReactiveAerospikeTemplate#find(Query, Class)} for given query, results are mapped
      * to the original entityClass or to the given {@code targetClass}, then post-processing is applied on the results.
      */
-    private Flux<?> findByQuery(Query query, Class<?> targetClass) {
-        // Run query and map to different target class.
+    @Override
+    protected Flux<?> findByQuery(Query query, Class<?> targetClass) {
+        // Run query and map to different target class
         if (targetClass != entityClass) {
             return template.find(query, entityClass, targetClass);
         }
-        // Run query and map to entity class type.
+        // Run query and map to entity class type
         return template.find(query, entityClass);
     }
 

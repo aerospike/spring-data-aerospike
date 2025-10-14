@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.sample;
 
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.aerospike.annotation.Query;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;

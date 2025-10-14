@@ -33,10 +33,11 @@
         <central.publishing.maven.plugin>0.8.0</central.publishing.maven.plugin>
         <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
-        <reactor-test>3.7.7</reactor-test>
-        <embedded-aerospike>3.1.16</embedded-aerospike>
-        <jodatime>2.14.0</jodatime>
-        <lombok>1.18.38</lombok>
+        <aerospike-expression-dsl.version>0.1.0_test</aerospike-expression-dsl.version>
+        <reactor-test>3.7.4</reactor-test>
+        <embedded-aerospike>3.1.11</embedded-aerospike>
+        <jodatime>2.13.1</jodatime>
+        <lombok>1.18.36</lombok>
         <awaitility>4.3.0</awaitility>
         <logback.test>1.5.18</logback.test>
         <hibernate.validator>9.0.1.Final</hibernate.validator>
@@ -217,6 +218,11 @@
                 <version>${aerospike-reactor-client}</version>
             </dependency>
             <dependency>
+                <groupId>com.aerospike</groupId>
+                <artifactId>aerospike-expression-dsl</artifactId>
+                <version>${aerospike-expression-dsl.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${jodatime}</version>
@@ -263,6 +269,10 @@
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aerospike</groupId>
+            <artifactId>aerospike-expression-dsl</artifactId>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>

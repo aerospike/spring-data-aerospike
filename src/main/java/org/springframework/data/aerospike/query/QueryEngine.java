@@ -131,6 +131,7 @@ public class QueryEngine {
 
     private KeyRecordIterator retryWithFilterExpression(String namespace, Qualifier qualifier, Statement statement) {
         // retry without sIndex filter
+        qualifier.setHasSecIndexFilter(false);
         QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
         statement.setFilter(null);
         RecordSet rs = client.query(localQueryPolicyFallback, statement);
@@ -149,7 +150,7 @@ public class QueryEngine {
         QueryContext queryContext = queryContextBuilder.build(namespace, set, query);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        Qualifier qualifier = queryContext.qualifier() != null ? queryContext.qualifier() : null;
+        Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
@@ -162,7 +163,9 @@ public class QueryEngine {
 
     private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
+        queryPolicy.filterExp = qualifier != null && qualifier.hasFilterExpression()
+            ? qualifier.getFilterExpression()
+            : filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
     }
