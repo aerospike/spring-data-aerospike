@@ -350,6 +350,12 @@
             <version>${hibernate.validator}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -410,6 +416,17 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <includes>
@@ -418,6 +435,7 @@
                     </includes>
                     <excludedGroups>${excludedGroups}</excludedGroups>
                     <argLine>
+                        -javaagent:${org.mockito:mockito-core:jar}
                         --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.net=ALL-UNNAMED
                         --add-opens java.base/java.math=ALL-UNNAMED
