@@ -435,6 +435,8 @@
                     </includes>
                     <excludedGroups>${excludedGroups}</excludedGroups>
                     <argLine>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <!-- Property is generated at build-time by maven-dependency-plugin -->
                         -javaagent:${org.mockito:mockito-core:jar}
                         --add-opens java.base/java.util=ALL-UNNAMED
                         --add-opens java.base/java.net=ALL-UNNAMED
