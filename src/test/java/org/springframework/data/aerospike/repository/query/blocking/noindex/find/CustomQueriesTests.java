@@ -8,6 +8,7 @@ import org.springframework.data.aerospike.repository.query.blocking.noindex.Pers
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonId;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
+import static org.springframework.data.aerospike.sample.SampleClasses.buildAnnotatedQueryForFirstName;
 
 public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
@@ -56,12 +58,46 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         repository.save(alicia);
 
         Qualifier emailEquals = Qualifier.builder()
-            // custom bin name has been set to "email" via @Field annotation
+            // custom bin name "email" has been set for emailAddress field in the Person object via @Field annotation
             .setPath("email")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(email)
             .build();
         assertThat(repository.findUsingQuery(new Query(emailEquals))).containsOnly(alicia);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_String_QueryAnnotation() {
+        String firstName = oliver.getFirstName();
+        assertThat(repository.findUsingQuery(buildAnnotatedQueryForFirstName(firstName))).containsOnly(oliver);
+    }
+
+    @Test
+    void findByIsActive_Boolean_QueryAnnotation() {
+        boolean isActiveAlicia = alicia.isActive();
+        boolean isActiveOliver = oliver.isActive();
+
+        alicia.setActive(false);
+        repository.save(alicia);
+        oliver.setActive(false);
+        repository.save(oliver);
+
+        assertThat(repository.findUsingQuery(new SampleClasses.PositiveActivityQuery()))
+            .doesNotContain(alicia, oliver);
+
+        alicia.setActive(true);
+        repository.save(alicia);
+        oliver.setActive(true);
+        repository.save(oliver);
+
+        assertThat(repository.findUsingQuery(new SampleClasses.PositiveActivityQuery()))
+            .contains(alicia, oliver);
+
+        // Cleanup
+        alicia.setActive(isActiveAlicia);
+        repository.save(alicia);
+        oliver.setActive(isActiveOliver);
+        repository.save(oliver);
     }
 
     @Test

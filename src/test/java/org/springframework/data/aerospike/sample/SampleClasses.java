@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.sample;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
+import com.aerospike.dsl.api.DSLParser;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,8 @@ import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.TypeAlias;
@@ -1150,6 +1153,40 @@ public class SampleClasses {
                 String[] split = source.split("::");
                 return new CompositeKey(split[0], Long.parseLong(split[1]));
             }
+        }
+    }
+
+    /**
+     * Builds a query to find all Persons with specified first name. This method uses a dynamic {@link DSLParser}
+     * expression with a placeholder The expression is set via {@link Qualifier#dslExpressionBuilder()}.
+     *
+     * @param firstName The given first name String
+     * @return {@link Query} object
+     */
+    @org.springframework.data.aerospike.annotation.Query(expression = "$.firstName == ?0")
+    public static Query buildAnnotatedQueryForFirstName(String firstName) {
+        return new Query(
+            Qualifier.dslExpressionBuilder()
+                .setDslExprString("$.firstName == ?0")
+                .setDSLExpressionValues(new Object[]{firstName})
+                .build()
+        );
+    }
+
+    /**
+     * This test class uses a static {@link DSLParser} expression with a fixed value. The expression is set via
+     * {@link Qualifier#dslExpressionBuilder()}
+     */
+    public static class PositiveActivityQuery extends Query {
+
+        /**
+         * Returns a {@link Query} to find all Persons with isActive field storing true
+         */
+        public PositiveActivityQuery() {
+            super(Qualifier.dslExpressionBuilder()
+                .setDslExprString("$.isActive == true")
+                .build()
+            );
         }
     }
 }

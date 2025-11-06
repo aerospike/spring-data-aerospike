@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.annotation;
 
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.data.annotation.QueryAnnotation;
 
 import java.lang.annotation.Documented;
@@ -9,8 +10,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Query annotation to define expressions for repository methods. Allows using either a fixed DSL String or
- * a String with placeholders like {@code ?0}, {@code ?1} etc.
+ * This query annotation expects a {@link DSLParser} expression. Allows using either a static DSL expression
+ * with a fixed value or a dynamic DSL expression with indexed placeholders like {@code ?0}, {@code ?1} etc.
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

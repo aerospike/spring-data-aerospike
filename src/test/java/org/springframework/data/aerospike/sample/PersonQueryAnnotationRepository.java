@@ -16,13 +16,9 @@
 package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.annotation.Query;
-import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This repository acts as a storage for invalid method names used for testing. For actual repository see
@@ -30,10 +26,15 @@ import java.util.Map;
  */
 public interface PersonQueryAnnotationRepository<P extends Person> extends AerospikeRepository<P, String> {
 
-    // Static DSL string, the value is hardcoded
+    /**
+     *
+     * @param name Actual value is omitted as a static DSL expression with fixed parameter value is used
+     * @return Result of a query "$.lastName == 'Macintire'"
+     */
     @Query(expression = "$.lastName == 'Macintire'")
     List<P> findByLastName(String name);
 
+    // Dynamic DSL String, different values can be transferred using placeholders
     @Query(expression = "$.firstName == ?0")
     List<P> findByFirstName(String name);
 

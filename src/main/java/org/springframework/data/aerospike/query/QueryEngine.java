@@ -18,15 +18,22 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
+import com.aerospike.dsl.ParsedExpression;
+import com.aerospike.dsl.api.DSLParser;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
@@ -60,6 +67,8 @@ public class QueryEngine {
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final AerospikeDataSettings dataSettings;
+    private final IndexesCacheHolder indexesCacheHolder;
+    private final DSLParser dslParser;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
@@ -71,11 +80,14 @@ public class QueryEngine {
     private long queryMaxRecords;
 
     public QueryEngine(IAerospikeClient client, QueryContextBuilder queryContextBuilder,
-                       FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
+                       FilterExpressionsBuilder filterExpressionsBuilder,
+                       AerospikeDataSettings dataSettings, IndexesCacheHolder indexesCache, DSLParser dslParser) {
         this.client = client;
         this.queryContextBuilder = queryContextBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
         this.dataSettings = dataSettings;
+        this.indexesCacheHolder = indexesCache;
+        this.dslParser = dslParser;
     }
 
     /**
@@ -107,6 +119,7 @@ public class QueryEngine {
         }
 
         QueryContext queryContext = queryContextBuilder.build(namespace, set, query, binNames);
+        processDslQualifier(queryContext, namespace);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = getQueryPolicy(queryContext.qualifier(), true);
@@ -122,10 +135,30 @@ public class QueryEngine {
             if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
                 log.warn("Got secondary index related exception (resultCode: {}), " +
                     "retrying with filter expression only (scan operation)", e.getResultCode());
-                Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
-                return retryWithFilterExpression(namespace, qualifier, statement);
+                return isQueryCriteriaNotNull(query)
+                    ? retryWithFilterExpression(namespace, query.getCriteriaObject(), statement)
+                    : null;
             }
             throw e;
+        }
+    }
+
+    /**
+     * If query context contains a DSL expression qualifier, process DSL and update query context with parsed results
+     *
+     * @param queryContext Given query context
+     * @param namespace Given namespace
+     */
+    public void processDslQualifier(QueryContext queryContext, String namespace) {
+        Qualifier qualifier = queryContext.qualifier();
+        if (qualifier != null && qualifier.hasDslExprString()) {
+            // Parse DSL expression
+            ParsedExpression parsedExpr = AerospikeQueryCreatorUtils.parseDslExpression(qualifier.getDslExprString(),
+                namespace, indexesCacheHolder.getAllIndexes(), qualifier.getDslExprValues(), dslParser);
+            // Update query context
+            queryContext.statement().setFilter(parsedExpr.getResult().getFilter());
+            Exp exp = parsedExpr.getResult().getExp();
+            qualifier.setFilterExpression(exp == null ? null : Exp.build(exp));
         }
     }
 
@@ -163,10 +196,19 @@ public class QueryEngine {
 
     private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = qualifier != null && qualifier.hasFilterExpression()
-            ? qualifier.getFilterExpression()
-            : filterExpressionsBuilder.build(qualifier);
+        queryPolicy.filterExp = qualifier == null
+            ? null
+            : getFilterExpression(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
+    }
+
+    private Expression getFilterExpression(@NonNull Qualifier qualifier) {
+        // If a filter Exp is already set, use it
+        if (qualifier.hasFilterExpression()) {
+            return qualifier.getFilterExpression();
+        }
+        // Otherwise build filter Exp
+        return filterExpressionsBuilder.build(qualifier);
     }
 }

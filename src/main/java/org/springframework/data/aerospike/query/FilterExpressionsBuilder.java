@@ -27,13 +27,13 @@ public class FilterExpressionsBuilder {
 
     public Expression build(Qualifier qualifier) {
         if (qualifier != null && requiresFilterExp(qualifier)) {
-            Exp exp = qualifier.getFilterExp();
+            Exp exp = qualifier.getFilterExp(); // build Exp based on filter operation or return null
             if (exp == null) {
                 log.debug("Query #{}, filterExp is not set", qualifier.hashCode());
             } else {
                 log.debug("Query #{}, filterExp is set", qualifier.hashCode());
+                return Exp.build(exp);
             }
-            return Exp.build(exp);
         }
         return null;
     }

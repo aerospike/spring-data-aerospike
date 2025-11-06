@@ -13,6 +13,11 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PA
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
+/**
+ * Abstract base qualifier builder
+ *
+ * @param <T>
+ */
 @SuppressWarnings("unchecked")
 public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
 

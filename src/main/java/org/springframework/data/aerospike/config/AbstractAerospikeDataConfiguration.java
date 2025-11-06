@@ -56,11 +56,12 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     }
 
     @Bean(name = "aerospikeQueryEngine")
-    public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
-                                   QueryContextBuilder queryContextBuilder,
-                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings) {
+    public QueryEngine queryEngine(IAerospikeClient aerospikeClient, QueryContextBuilder queryContextBuilder,
+                                   IndexesCacheHolder indexCacheHolder,
+                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings,
+                                   DSLParser dslParser) {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, queryContextBuilder, filterExpressionsBuilder,
-            settings.getDataSettings());
+            settings.getDataSettings(), indexCacheHolder, dslParser);
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         log.info("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);

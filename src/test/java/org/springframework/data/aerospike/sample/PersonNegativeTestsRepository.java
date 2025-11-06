@@ -205,6 +205,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      */
     @Query(expression = "$.strings == ?0")
     List<P> findByStringsEquals(Collection<String> strings);
+
     /**
      * Invalid number of arguments: expecting one
      */

@@ -833,7 +833,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return TemplateUtils.findWithPostProcessing(setName, targetClass, query, templateContext);
+        return findWithPostProcessing(setName, targetClass, query, templateContext);
     }
 
     @Override

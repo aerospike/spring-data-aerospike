@@ -3,6 +3,9 @@ package org.springframework.data.aerospike.query.qualifier;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.MULTIPLE_IDS_EQ_FIELD;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SINGLE_ID_EQ_FIELD;
 
+/**
+ * Builder for id query qualifier (transferring ids)
+ **/
 class IdQualifierBuilder extends BaseQualifierBuilder<IdQualifierBuilder> {
 
     IdQualifierBuilder() {

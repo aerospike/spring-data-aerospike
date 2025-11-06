@@ -5,9 +5,11 @@ import com.aerospike.client.query.Filter;
 import org.springframework.data.aerospike.annotation.Beta;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FILTER_EXPRESSION;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SINDEX_FILTER;
 
+/**
+ * Builder for filter qualifier (transferring secondary index {@link Filter} and filtering {@link Expression})
+ **/
 @Beta
 public class FilterQualifierBuilder extends BaseQualifierBuilder<FilterQualifierBuilder> {
 

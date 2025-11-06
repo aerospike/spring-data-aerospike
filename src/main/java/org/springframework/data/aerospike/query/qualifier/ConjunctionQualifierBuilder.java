@@ -4,6 +4,9 @@ import org.springframework.util.Assert;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.QUALIFIERS;
 
+/**
+ * Builder for conjunction qualifier (transferring multiple qualifiers)
+ **/
 class ConjunctionQualifierBuilder extends BaseQualifierBuilder<ConjunctionQualifierBuilder> {
 
     ConjunctionQualifierBuilder() {

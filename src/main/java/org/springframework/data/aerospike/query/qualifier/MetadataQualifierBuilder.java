@@ -9,6 +9,9 @@ import java.util.Collection;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.METADATA_FIELD;
 
+/**
+ * Builder for metadata query qualifier (transferring metadata field)
+ **/
 @Beta
 public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
 

@@ -20,6 +20,9 @@ import static org.springframework.data.aerospike.index.AerospikeContextDslResolv
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 
+/**
+ * Builder for generic query qualifier (transferring path)
+ **/
 @Beta
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
@@ -192,5 +195,4 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
             .filter(Objects::nonNull)
             .toArray(CTX[]::new);
     }
-
 }

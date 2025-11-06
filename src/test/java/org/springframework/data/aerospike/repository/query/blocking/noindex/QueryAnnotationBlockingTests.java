@@ -71,8 +71,8 @@ public class QueryAnnotationBlockingTests extends BaseBlockingIntegrationTests {
     @Test
     void findByCollectionEquals_QueryAnnotation_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsEquals(List.of("string1", "string2")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Element at index 0 is expected to be a String, number or boolean");
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("only String, boolean, float, double, long and integer values are currently supported");
     }
 
     @Test
