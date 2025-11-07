@@ -1,0 +1,318 @@
+[[dsl.expressions]]
+= Using DSL Expressions
+
+[[dsl.expressions.intro]]
+== Introduction
+
+Aerospike DSL (Domain Specific Language) expressions represent a functional language for applying predicates to bin data and record metadata. They provide a powerful and flexible way to query Aerospike data using a dot-separated infix notation. DSL expressions can act as the WHERE clause in your queries, allowing to filter records based on bin values, metadata, navigating through complex nested structures.
+
+DSL expressions offer several advantages:
+
+* **Human-readable syntax**: Use recognizable text-based notation (`$.binName > 0`)
+* **Aerospike data structures support**: Support for strings, numbers, booleans, and complex data types
+* **Flexible querying**: Work with maps, lists, and nested structures
+* **Two usage patterns in Spring Data Aerospike**: Available both as annotations on repository methods and programmatically in custom queries.
+
+The DSL Parser API converts dot-separated string paths into Aerospike filters for applying predicates.
+
+[[dsl.expressions.api]]
+== DSL Expressions API
+
+[[dsl.expressions.api.syntax]]
+=== Path Syntax
+
+DSL expressions use the following syntax for navigating through basic elements:
+
+.Basic Path Elements
+[cols="1,3"]
+|===
+|Path Element |Description
+
+|`$.binName`
+|Reference to bin "binName"
+
+|`a`
+|Map key "a"
+
+|`'1'`
+|Map key (String) "1"
+
+|`1`
+|Map key 1 (numeric)
+
+|`{1}`
+|Map index 1
+
+|`{=1}`
+|Map value (int) 1
+
+|`{=bb}`
+|Map value "bb"
+
+|`{='1'}`
+|Map value (String) "1"
+
+|`{#1}`
+|Map rank 1
+
+|`[1]`
+|List index 1
+
+|`[=1]`
+|List value 1
+
+|`[#1]`
+|List rank 1
+|===
+
+Here are some examples for navigating through nested elements:
+
+.Examples of Nested Element Navigation
+[cols="1,3"]
+|===
+|Nested Element |Description
+
+|`$.mapBinName.a`
+|mapBinName -> mapKey("a")
+
+|`$.mapBinName.a.aa.aaa`
+|mapBinName -> mapKey("a") -> mapKey("aa") -> mapKey("aaa")
+
+|`$.mapBinName.a.55`
+|mapBinName -> mapKey("a") -> mapKey(55)
+
+|`$.listBinName.[1].aa`
+|listBinName -> listIndex(1) -> mapKey("aa")
+
+|`$.mapBinName.ab.cd.[-1].'10'`
+|mapBinName -> mapKey("ab") -> mapKey("cd") -> listIndex(-1) -> mapKey("10")
+|===
+
+[[dsl.expressions.api.operators]]
+=== Supported Operators
+
+DSL expressions support standard comparison and logical operators:
+
+* **Comparison**: `==`, `!=`, `>`, `>=`, `<`, `\<=`
+* **Logical**: `and`, `or`, `not`, `exclusive`
+* **Grouping**: `()`
+* **Type Access**: `.get(type: TYPE_NAME)` for explicit Aerospike type casting
+* **Control Structures**: `with`, `when`
+
+For more details, see link:https://github.com/aerospike/expression-dsl-java[DSLParser project].
+
+[[dsl.expressions.repository.methods]]
+== Usage with Repository Query Methods
+
+You can annotate repository methods in Spring Data Aerospike with `@Query` to define DSL expression. The expressions will be executed automatically when the annotated repository method is called.
+
+=== Static Expressions in Repository Queries
+
+Static expressions have fixed values embedded directly in the DSL string:
+
+.Static DSL expression example
+====
+[source,java]
+----
+@Query(expression = "$.lastName == 'Macintire'")
+List<P> findByLastName(String name);
+----
+====
+
+NOTE: In static expressions, the method parameters are ignored - the query always uses the fixed value in the expression.
+
+=== Dynamic Expressions with Placeholders in Repository Queries
+
+Dynamic expressions use placeholders that are replaced with actual method parameter values at runtime:
+
+* `?0` - First parameter
+* `?1` - Second parameter
+* And so on
+
+.Examples of repository methods annotated with `@Query`
+====
+[source,java]
+----
+public interface PersonQueryAnnotationRepository<P extends Person>
+        extends AerospikeRepository<P, String> {
+
+    // Dynamic expression with placeholder for first parameter
+    @Query(expression = "$.firstName == ?0")
+    List<P> findByFirstName(String name);
+
+    // Numeric comparison
+    @Query(expression = "$.age > ?0")
+    List<P> findByAgeGreaterThan(int age);
+
+    // Boolean with explicit type casting
+    @Query(expression = "$.isActive.get(type: BOOL) == ?0")
+    List<P> findByIsActive(boolean isActive);
+}
+----
+====
+
+[[dsl.expressions.custom.queries]]
+== Usage with Custom Queries
+
+For more complex scenarios or programmatic query construction, you can use DSL expressions with the custom query API through `Qualifier.dslExpressionBuilder()`.
+
+[[dsl.expressions.custom.queries.static]]
+=== Static DSL Expressions in Custom Queries
+
+Create qualifiers with fixed values embedded in the expression:
+
+.Static DSL expression in custom query
+====
+[source,java]
+----
+// Setting a static DSL expression with a fixed value
+Qualifier positiveActivityQualifier = Qualifier.dslExpressionBuilder()
+    .setDslExprString("$.isActive == true")
+    .build();
+
+List<Person> activePersons = repository.findUsingQuery(new Query(positiveActivityQualifier));
+----
+====
+
+[[dsl.expressions.custom.queries.dynamic]]
+=== Dynamic DSL Expressions in Custom Queries
+
+Create qualifiers with placeholders and provide values separately:
+
+.Examples of custom queries using DSL expressions
+====
+[source,java]
+----
+// Setting a dynamic DSL expression with a placeholder and its value
+String firstName = "Oliver";
+Query firstNameQuery = new Query(
+    Qualifier.dslExpressionBuilder()
+        .setDslExprString("$.firstName == ?0")
+        .setDSLExpressionValues(new Object[]{firstName})
+        .build()
+);
+
+List<Person> persons = repository.findUsingQuery(firstNameQuery);
+----
+====
+
+Placeholder values are transferred as an array of Objects (`Object[]`).
+
+[[dsl.expressions.custom.queries.complex]]
+=== Complex Expressions
+
+You can create comprehensive DSL expressions that combine multiple conditions:
+
+.Complex DSL expression with multiple conditions
+====
+[source,java]
+----
+// Using a comprehensive static DSL expression with fixed values
+Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .build();
+
+Query query = new Query(colorAndAge);
+List<Person> results = repository.findUsingQuery(query);
+----
+====
+
+[[dsl.expressions.indexing]]
+== Secondary Indexes and DSL Expressions
+
+DSL expressions work seamlessly with Aerospike secondary indexes.
+When there is one index for a query, it is used to create secondary index Filter.
+
+When multiple indexes are available for bins of a complex query, DSLParser automatically does the following:
+
+1. Selects one index to build the secondary index `Filter` (always one per query) based on index cardinality (preferring higher `binValuesRatio`)
+2. Falls back to alphabetical order if cardinality of indexes is equal
+3. Uses filtering `Expression` for remaining parts of the query
+
+.Using static DSL expression with indexed bins in a custom query
+====
+[source,java]
+----
+Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .build();
+
+Query query = new Query(colorAndAge);
+
+// Assuming indexes exist on 'age' and 'favColor' bins
+// DSLParser will choose the optimal index for the secondary index filter -
+// in this case, for "$.age >= 28" part based on alphabetical order due to the same cardinality,
+// and apply the remaining conditions as filtering Expression
+Iterable<Person> result = repository.findUsingQuery(query);
+----
+====
+
+[[dsl.expressions.limitations]]
+== Limitations and Restrictions
+
+[WARNING]
+====
+**Combining custom Qualifiers**: For custom queries, it is currently NOT allowed to combine DSL expression qualifiers with non-DSL qualifiers using `Qualifier.and()` or `Qualifier.or()`. This limitation is irrelevant to regular repository queries.
+====
+
+.Invalid qualifier combination
+====
+[source,java]
+----
+// DSL expression qualifier
+Qualifier colorEqGreen = Qualifier.dslExpressionBuilder()
+    .setDslExprString("$.favColor == 'green'")
+    .build();
+
+// Regular qualifier
+Qualifier ageBetween28And29 = Qualifier.builder()
+    .setPath("age")
+    .setFilterOperation(FilterOperation.BETWEEN)
+    .setValue(28)
+    .setSecondValue(29)
+    .build();
+
+// This will throw UnsupportedOperationException
+Query invalidQuery = new Query(Qualifier.and(colorEqGreen, ageBetween28And29));
+----
+====
+
+**Solution**: Incorporate all conditions into one comprehensive DSL expression or combine only non-DSL qualifiers:
+
+.Valid alternatives for custom queries
+====
+[source,java]
+----
+// Option 1: Combine everything in one DSL expression
+Qualifier combined = Qualifier.dslExpressionBuilder()
+    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .build();
+
+Query validQuery = new Query(combined);
+
+// Option 2: Use only non-DSL qualifiers with AND/OR
+Qualifier color = Qualifier.builder()
+    .setPath("favColor")
+    .setFilterOperation(FilterOperation.EQ)
+    .setValue("green")
+    .build();
+Qualifier age = Qualifier.builder()
+    .setPath("age")
+    .setFilterOperation(FilterOperation.BETWEEN)
+    .setValue(28)
+    .setSecondValue(29)
+    .build();
+
+Query validQuery2 = new Query(Qualifier.and(color, age));
+----
+====
+
+[[dsl.expressions.best.practices]]
+== Best Practices
+
+* Use static expressions for fixed filters that don't change
+* Use placeholders when filter values are determined at runtime
+* Consolidate conditions into comprehensive DSL expressions if using custom DSL qualifier
+* Leverage indexes by including indexed bin conditions in your DSL expressions
+* Use explicit type casting (e.g., `.get(type: BOOL)`) when working with bins that may have ambiguous types
+

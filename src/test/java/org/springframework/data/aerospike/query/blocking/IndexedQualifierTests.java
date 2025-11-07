@@ -303,13 +303,12 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     void selectOnIndexedAndQualifier_withOneIndex_usingDslExpression() {
-        // Combining in one DSL expression
         Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
-            // Using a static DSL expression with fixed values
+            // Using a comprehensive static DSL expression with fixed values
             .setDslExprString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
             .build();
-
         Query query = new Query(colorAndAge);
+
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Assert that the query has both a secondary index Filter and a filtering Expression
             assertQueryHasSecIndexFilter(query, KeyRecord.class);

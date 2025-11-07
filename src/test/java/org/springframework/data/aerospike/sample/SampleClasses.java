@@ -1155,38 +1155,4 @@ public class SampleClasses {
             }
         }
     }
-
-    /**
-     * Builds a query to find all Persons with specified first name. This method uses a dynamic {@link DSLParser}
-     * expression with a placeholder The expression is set via {@link Qualifier#dslExpressionBuilder()}.
-     *
-     * @param firstName The given first name String
-     * @return {@link Query} object
-     */
-    @org.springframework.data.aerospike.annotation.Query(expression = "$.firstName == ?0")
-    public static Query buildAnnotatedQueryForFirstName(String firstName) {
-        return new Query(
-            Qualifier.dslExpressionBuilder()
-                .setDslExprString("$.firstName == ?0")
-                .setDSLExpressionValues(new Object[]{firstName})
-                .build()
-        );
-    }
-
-    /**
-     * This test class uses a static {@link DSLParser} expression with a fixed value. The expression is set via
-     * {@link Qualifier#dslExpressionBuilder()}
-     */
-    public static class PositiveActivityQuery extends Query {
-
-        /**
-         * Returns a {@link Query} to find all Persons with isActive field storing true
-         */
-        public PositiveActivityQuery() {
-            super(Qualifier.dslExpressionBuilder()
-                .setDslExprString("$.isActive == true")
-                .build()
-            );
-        }
-    }
 }

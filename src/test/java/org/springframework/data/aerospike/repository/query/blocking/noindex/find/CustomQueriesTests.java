@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.noindex.find;
 
+import com.aerospike.client.exp.Exp;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -8,7 +9,6 @@ import org.springframework.data.aerospike.repository.query.blocking.noindex.Pers
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonId;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -16,7 +16,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
-import static org.springframework.data.aerospike.sample.SampleClasses.buildAnnotatedQueryForFirstName;
 
 public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
@@ -67,13 +66,20 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findBySimplePropertyEquals_String_QueryAnnotation() {
+    void findBySimplePropertyEquals_String_DslExpression() {
         String firstName = oliver.getFirstName();
-        assertThat(repository.findUsingQuery(buildAnnotatedQueryForFirstName(firstName))).containsOnly(oliver);
+        // Setting a dynamic DSL expression with a placeholder and its value
+        Query firstNameQuery = new Query(
+            Qualifier.dslExpressionBuilder()
+                .setDslExprString("$.firstName == ?0")
+                .setDSLExpressionValues(new Object[]{firstName})
+                .build()
+        );
+        assertThat(repository.findUsingQuery(firstNameQuery)).containsOnly(oliver);
     }
 
     @Test
-    void findByIsActive_Boolean_QueryAnnotation() {
+    void findByIsActive_Boolean_DslExpression() {
         boolean isActiveAlicia = alicia.isActive();
         boolean isActiveOliver = oliver.isActive();
 
@@ -82,7 +88,12 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         oliver.setActive(false);
         repository.save(oliver);
 
-        assertThat(repository.findUsingQuery(new SampleClasses.PositiveActivityQuery()))
+        // Setting a static DSL expression with a fixed value
+        Qualifier positiveActivityQualifier = Qualifier.dslExpressionBuilder()
+            .setDslExprString("$.isActive == true")
+            .build();
+
+        assertThat(repository.findUsingQuery(new Query(positiveActivityQualifier)))
             .doesNotContain(alicia, oliver);
 
         alicia.setActive(true);
@@ -90,7 +101,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         oliver.setActive(true);
         repository.save(oliver);
 
-        assertThat(repository.findUsingQuery(new SampleClasses.PositiveActivityQuery()))
+        assertThat(repository.findUsingQuery(new Query(positiveActivityQualifier)))
             .contains(alicia, oliver);
 
         // Cleanup
@@ -484,5 +495,45 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Iterable<Person> result = repository.findUsingQuery(new Query(combinedQualifier));
         assertThat(result).containsExactlyInAnyOrder(carter, leroi2, douglas);
     }
-}
 
+    @Test
+    void findBySimpleProperty_withLogicalAnd_usingDslExpression() {
+        Qualifier firstNameAndAge = Qualifier.dslExpressionBuilder()
+            // Using a comprehensive static DSL expression with fixed values
+            .setDslExprString("$.firstName == 'Leroi' and $.age >= 25 and $.age < 45")
+            .build();
+        Query query = new Query(firstNameAndAge);
+
+        // Assert that the query has no secondary index and only a filtering Expression
+        assertQueryHasNoSecIndexFilter(query, Person.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.and(
+                Exp.eq(Exp.bin("firstName", Exp.Type.STRING), Exp.val("Leroi")),
+                Exp.ge(Exp.bin("age", Exp.Type.INT), Exp.val(25)),
+                Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(45))
+            )
+        ));
+
+        Iterable<Person> result = repository.findUsingQuery(new Query(firstNameAndAge));
+        assertThat(result).containsExactlyInAnyOrder(leroi, leroi2);
+
+        // It is currently NOT allowed to combine qualifiers if at least one of them is a DSL expression qualifier
+        Qualifier firstNameEq = Qualifier.dslExpressionBuilder()
+            // Using a comprehensive static DSL expression with fixed values
+            .setDslExprString("$.firstName == 'Leroi'")
+            .build();
+        Qualifier ageBetween = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue(25)
+            .setSecondValue(45)
+            .build();
+
+        assertThatThrownBy(() -> new Query(Qualifier.and(firstNameEq, ageBetween)))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
+                "qualifiers");
+
+    }
+}

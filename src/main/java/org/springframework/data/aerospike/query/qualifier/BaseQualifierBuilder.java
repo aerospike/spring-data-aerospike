@@ -14,9 +14,9 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SE
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 /**
- * Abstract base qualifier builder
+ * Abstract base qualifier builder to be instantiated using a specific builder
  *
- * @param <T>
+ * @param <T> Generic type extending base builder
  */
 @SuppressWarnings("unchecked")
 public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
