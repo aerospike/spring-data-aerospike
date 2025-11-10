@@ -28,7 +28,7 @@ public class AerospikeQueryMethod extends QueryMethod {
      * @param factory  must not be {@literal null}.
      */
     public AerospikeQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
-        super(method, metadata, factory);
+        super(method, metadata, factory, null);
         this.method = method;
         this.annotationCache = new ConcurrentReferenceHashMap<>();
     }
@@ -41,7 +41,6 @@ public class AerospikeQueryMethod extends QueryMethod {
 
     /**
      * Returns whether the method has an annotated query.
-     *
      */
     public boolean hasQueryAnnotation() {
         return findQueryAnnotation().isPresent();
@@ -50,7 +49,6 @@ public class AerospikeQueryMethod extends QueryMethod {
     /**
      * Returns the DSL expression string declared in the {@link org.springframework.data.aerospike.annotation.Query}
      * annotation or {@literal null}.
-     *
      */
     @Nullable
     String getQueryAnnotation() {

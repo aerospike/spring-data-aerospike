@@ -321,7 +321,6 @@ public class AerospikeQueryCreatorUtils {
         return false;
     }
 
-
     /**
      * Parse DSL expression by providing DSL string, existing indexes and placeholder values to {@link DSLParser}
      *

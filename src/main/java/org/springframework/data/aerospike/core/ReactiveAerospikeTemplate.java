@@ -128,6 +128,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         this.dslParser = dslParser;
     }
 
+    @Override
     public DSLParser getDSLParser() {
         return dslParser;
     }

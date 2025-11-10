@@ -24,6 +24,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -93,6 +94,11 @@ public interface AerospikeOperations {
      * @return Value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
      */
     long getQueryMaxRecords();
+
+    /**
+     * @return DSLParser in use.
+     */
+    DSLParser getDSLParser();
 
     /**
      * Save a document.

@@ -49,7 +49,6 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
 public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>> {
 
     private final AerospikeTemplate template;
-    private final AerospikeQueryMethod queryMethod;
     private final String namespace;
     private final Map<IndexKey, Index> indexCache;
 
@@ -63,7 +62,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>
         this.namespace = template.getNamespace();
         this.indexCache = template.getIndexesCache();
         // each queryMethod here is AerospikeQueryMethod
-        this.queryMethod = (AerospikeQueryMethod) queryMethod;
     }
 
     @Override
@@ -72,8 +70,10 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Class<?> targetClass = getTargetClass(accessor, queryMethod);
 
-        if (queryMethod.hasQueryAnnotation()) {
-            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
+        // Each queryMethod here is AerospikeQueryMethod
+        AerospikeQueryMethod method = (AerospikeQueryMethod) queryMethod;
+        if (method.hasQueryAnnotation()) {
+            return findByQueryAnnotation(method, targetClass, namespace, indexCache, parameters);
         }
         Query query = prepareQuery(parameters, accessor);
 

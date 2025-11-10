@@ -306,7 +306,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         if (getMetadataField() != null) {
             field = getMetadataField().toString();
         }
-        if (getMetadataField() != null) {
+        if (getDslExprString() != null) {
             field = getDslExprString();
         }
         return String.format("%s:%s:%s:%s:%s", field, getOperation(), getKey(), getValue(), getSecondValue());
@@ -481,16 +481,25 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     /**
+     * Checks if there are any DSL expression qualifiers, and if yes, throws exception
+     *
+     * @param qualifiers An array of {@link Qualifier} objects
+     */
+    private static void checkForNonDslQualifiers(Qualifier[] qualifiers) {
+        if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
+            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers with custom OR query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL qualifiers");
+        }
+    }
+
+    /**
      * Create a parent qualifier that contains the given qualifiers combined using logical OR
      *
      * @param qualifiers Two or more qualifiers
      * @return Parent qualifier
      */
     public static Qualifier or(Qualifier... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
-            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers with custom OR query, " +
-                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL qualifiers");
-        }
+        checkForNonDslQualifiers(qualifiers);
         return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualifiers));
@@ -503,10 +512,8 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
      * @return Parent qualifier
      */
     public static Qualifier and(Qualifier... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
-            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers with custom AND query, " +
-                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL qualifiers");
-        }
+        checkForNonDslQualifiers(qualifiers);
+
         return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(qualifiers));

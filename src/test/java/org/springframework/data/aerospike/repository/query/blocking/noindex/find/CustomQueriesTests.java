@@ -71,7 +71,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         // Setting a dynamic DSL expression with a placeholder and its value
         Query firstNameQuery = new Query(
             Qualifier.dslExpressionBuilder()
-                .setDslExprString("$.firstName == ?0")
+                .setDSLExpressionString("$.firstName == ?0")
                 .setDSLExpressionValues(new Object[]{firstName})
                 .build()
         );
@@ -90,7 +90,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
         // Setting a static DSL expression with a fixed value
         Qualifier positiveActivityQualifier = Qualifier.dslExpressionBuilder()
-            .setDslExprString("$.isActive == true")
+            .setDSLExpressionString("$.isActive == true")
             .build();
 
         assertThat(repository.findUsingQuery(new Query(positiveActivityQualifier)))
@@ -500,7 +500,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     void findBySimpleProperty_withLogicalAnd_usingDslExpression() {
         Qualifier firstNameAndAge = Qualifier.dslExpressionBuilder()
             // Using a comprehensive static DSL expression with fixed values
-            .setDslExprString("$.firstName == 'Leroi' and $.age >= 25 and $.age < 45")
+            .setDSLExpressionString("$.firstName == 'Leroi' and $.age >= 25 and $.age < 45")
             .build();
         Query query = new Query(firstNameAndAge);
 
@@ -520,7 +520,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         // It is currently NOT allowed to combine qualifiers if at least one of them is a DSL expression qualifier
         Qualifier firstNameEq = Qualifier.dslExpressionBuilder()
             // Using a comprehensive static DSL expression with fixed values
-            .setDslExprString("$.firstName == 'Leroi'")
+            .setDSLExpressionString("$.firstName == 'Leroi'")
             .build();
         Qualifier ageBetween = Qualifier.builder()
             .setPath("age")
@@ -534,6 +534,5 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
                 "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
                 "qualifiers");
-
     }
 }

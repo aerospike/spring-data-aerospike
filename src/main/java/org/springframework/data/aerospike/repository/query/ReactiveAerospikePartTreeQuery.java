@@ -48,7 +48,6 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Flux<?>> {
 
     private final ReactiveAerospikeTemplate template;
-    private final AerospikeQueryMethod queryMethod;
     private final String namespace;
     private final Map<IndexKey, Index> indexCache;
 
@@ -61,8 +60,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         this.template = template;
         this.namespace = template.getNamespace();
         this.indexCache = template.getIndexesCache();
-        // each queryMethod here is AerospikeQueryMethod
-        this.queryMethod = (AerospikeQueryMethod) queryMethod;
     }
 
     @Override
@@ -71,8 +68,10 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Class<?> targetClass = getTargetClass(accessor, queryMethod);
 
-        if (queryMethod.hasQueryAnnotation()) {
-            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
+        // Each queryMethod here is AerospikeQueryMethod
+        AerospikeQueryMethod method = (AerospikeQueryMethod) queryMethod;
+        if (method.hasQueryAnnotation()) {
+            return findByQueryAnnotation(method, targetClass, namespace, indexCache, parameters);
         }
         Query query = prepareQuery(parameters, accessor);
 

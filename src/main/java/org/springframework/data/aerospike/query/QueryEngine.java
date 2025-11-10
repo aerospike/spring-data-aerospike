@@ -132,7 +132,10 @@ public class QueryEngine {
         try {
             return new KeyRecordIterator(namespace, rs);
         } catch (AerospikeException e) {
-            if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
+            if (queryContext.qualifier() != null // No sense to retry if qualifier is null
+                && statement.getFilter() != null
+                && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode()))
+            {
                 log.warn("Got secondary index related exception (resultCode: {}), " +
                     "retrying with filter expression only (scan operation)", e.getResultCode());
                 return isQueryCriteriaNotNull(query)

@@ -140,6 +140,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return indexCacheHolder.getAllIndexes();
     }
 
+    @Override
     public DSLParser getDSLParser() {
         return dslParser;
     }

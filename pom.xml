@@ -34,10 +34,10 @@
         <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
         <aerospike-expression-dsl.version>0.2.0</aerospike-expression-dsl.version>
-        <reactor-test>3.7.4</reactor-test>
-        <embedded-aerospike>3.1.11</embedded-aerospike>
-        <jodatime>2.13.1</jodatime>
-        <lombok>1.18.36</lombok>
+        <reactor-test>3.7.7</reactor-test>
+        <embedded-aerospike>3.1.16</embedded-aerospike>
+        <jodatime>2.14.0</jodatime>
+        <lombok>1.18.38</lombok>
         <awaitility>4.3.0</awaitility>
         <logback.test>1.5.18</logback.test>
         <hibernate.validator>9.0.1.Final</hibernate.validator>

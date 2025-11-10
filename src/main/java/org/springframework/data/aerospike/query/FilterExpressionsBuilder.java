@@ -48,9 +48,8 @@ public class FilterExpressionsBuilder {
         } else if (qualifier.hasSecIndexFilter() && dualFilterOperations.contains(qualifier.getOperation())) {
             qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
             return true;
-        } else {
-            qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
-            return false;
         }
+        qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+        return false;
     }
 }

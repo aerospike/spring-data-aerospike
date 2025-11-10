@@ -21,6 +21,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -65,6 +66,11 @@ public interface ReactiveAerospikeOperations {
      * @return Value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
      */
     long getQueryMaxRecords();
+
+    /**
+     * @return DSLParser in use.
+     */
+    DSLParser getDSLParser();
 
     /**
      * Reactively save a document.

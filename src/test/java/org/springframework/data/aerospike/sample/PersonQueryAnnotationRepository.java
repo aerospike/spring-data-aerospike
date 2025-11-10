@@ -21,8 +21,7 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 import java.util.List;
 
 /**
- * This repository acts as a storage for invalid method names used for testing. For actual repository see
- * {@link PersonRepository}
+ * This repository contains @Query-annotated methods
  */
 public interface PersonQueryAnnotationRepository<P extends Person> extends AerospikeRepository<P, String> {
 

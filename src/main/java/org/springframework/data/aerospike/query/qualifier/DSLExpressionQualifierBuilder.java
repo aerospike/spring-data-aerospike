@@ -19,7 +19,7 @@ public class DSLExpressionQualifierBuilder extends BaseQualifierBuilder<DSLExpre
     /**
      * Set DSL expression String. Mandatory parameter.
      */
-    public DSLExpressionQualifierBuilder setDslExprString(String dslString) {
+    public DSLExpressionQualifierBuilder setDSLExpressionString(String dslString) {
         map.put(DSL_EXPR_STRING, dslString);
         return this;
     }
@@ -32,14 +32,14 @@ public class DSLExpressionQualifierBuilder extends BaseQualifierBuilder<DSLExpre
         return this;
     }
 
-    public boolean hasDslExprString() {
+    private boolean hasDslExprString() {
         return map.get(DSL_EXPR_STRING) != null;
     }
 
     @Override
     protected void validate() {
         if (!hasDslExprString()) {
-            throw new IllegalArgumentException("Expecting DSL String to be provided");
+            throw new IllegalStateException("Expecting DSL String to be provided");
         }
     }
 }

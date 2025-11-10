@@ -154,7 +154,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
             Qualifier colorEqBlue = Qualifier.dslExpressionBuilder()
                 // Using a static DSL expression with a fixed value
-                .setDslExprString("$.color == '" + BLUE + "'")
+                .setDSLExpressionString("$.color == '" + BLUE + "'")
                 .build();
 
             assertQueryHasSecIndexFilter(new Query(colorEqBlue), KeyRecord.class);
@@ -305,7 +305,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedAndQualifier_withOneIndex_usingDslExpression() {
         Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
             // Using a comprehensive static DSL expression with fixed values
-            .setDslExprString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
             .build();
         Query query = new Query(colorAndAge);
 
@@ -325,7 +325,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         // It is currently NOT allowed to combine qualifiers if at least one of them is a DSL expression qualifier
         Qualifier colorEqGreen = Qualifier.dslExpressionBuilder()
             // Using a static DSL expression with a fixed value
-            .setDslExprString("$.color == '" + GREEN + "'")
+            .setDSLExpressionString("$.color == '" + GREEN + "'")
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setPath("age")
@@ -342,7 +342,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
         Qualifier ageBetween28And29_DslExpr = Qualifier.dslExpressionBuilder()
             // Using a static DSL expression with fixed values
-            .setDslExprString("$.age > 28 and $.age <= 29")
+            .setDSLExpressionString("$.age > 28 and $.age <= 29")
             .build();
 
         assertThatThrownBy(() -> new Query(Qualifier.and(colorEqGreen, colorEqGreen, ageBetween28And29_DslExpr)))
@@ -389,7 +389,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         // Combining in one DSL expression
         Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
             // Using a static DSL expression with fixed values
-            .setDslExprString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
             .build();
 
         Query query = new Query(colorAndAge);
@@ -430,7 +430,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         // Combining in one DSL expression
         Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
             // Using a static DSL expression with fixed values
-            .setDslExprString("$.color == '" + GREEN + "' or ($.age >= 28 and $.age < 29)")
+            .setDSLExpressionString("$.color == '" + GREEN + "' or ($.age >= 28 and $.age < 29)")
             .build();
 
         Query query = new Query(colorAndAge);
