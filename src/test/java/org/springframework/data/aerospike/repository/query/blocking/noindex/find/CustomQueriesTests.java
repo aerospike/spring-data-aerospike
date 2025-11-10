@@ -530,7 +530,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             .build();
 
         assertThatThrownBy(() -> new Query(Qualifier.and(firstNameEq, ageBetween)))
-            .isInstanceOf(UnsupportedOperationException.class)
+            .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
                 "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
                 "qualifiers");
