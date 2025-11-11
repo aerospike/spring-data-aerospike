@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>5.2.0</version>
+    <version>5.3.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.5.4</version>
+        <version>3.5.5</version>
     </parent>
 
     <properties>
@@ -24,26 +24,26 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.5.4</springdata.commons>
-        <spring-boot-starter-test>3.5.3</spring-boot-starter-test>
+        <springdata.commons>3.5.5</springdata.commons>
+        <spring-boot-starter-test>3.5.7</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.3.0</spring-cloud-starter-bootstrap>
-        <spring-tx>6.2.11</spring-tx>
+        <spring-tx>6.2.12</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <central.publishing.maven.plugin>0.8.0</central.publishing.maven.plugin>
-        <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
+        <central.publishing.maven.plugin>0.9.0</central.publishing.maven.plugin>
+        <aerospike-client-jdk8>9.2.0</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
         <aerospike-expression-dsl.version>0.2.0</aerospike-expression-dsl.version>
-        <reactor-test>3.7.7</reactor-test>
-        <embedded-aerospike>3.1.16</embedded-aerospike>
+        <reactor-test>3.8.0</reactor-test>
+        <embedded-aerospike>3.1.17</embedded-aerospike>
         <jodatime>2.14.0</jodatime>
-        <lombok>1.18.38</lombok>
+        <lombok>1.18.42</lombok>
         <awaitility>4.3.0</awaitility>
-        <logback.test>1.5.18</logback.test>
-        <hibernate.validator>9.0.1.Final</hibernate.validator>
-        <netty.version>4.2.2.Final</netty.version>
+        <logback.test>1.5.21</logback.test>
+        <hibernate.validator>9.1.0.Final</hibernate.validator>
+        <netty.version>4.2.7.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
-        <apacheCommonsCodec.version>1.18.0</apacheCommonsCodec.version>
+        <apacheCommonsCodec.version>1.20.0</apacheCommonsCodec.version>
     </properties>
 
     <licenses>
