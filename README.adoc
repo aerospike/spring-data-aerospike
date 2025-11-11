@@ -51,10 +51,12 @@ Data Aerospike 5.0.0: Important Updates]
 
 == Spring Data Aerospike Compatibility
 
-.Compatibility Table. Shows versions of components used by default (i.e. lower limit for custom versions if needed).
+.Compatibility Table. Shows versions used by default (indicating the lower limit for custom versions).
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|5.3.x  |3.5.x |9.2.x |9.0.x |6.1.x.x +
+
 |5.2.x  |3.5.x |9.0.x |9.0.x |6.1.x.x +
 
 |5.1.x  |3.4.x |9.0.x |9.0.x |6.1.x.x +
