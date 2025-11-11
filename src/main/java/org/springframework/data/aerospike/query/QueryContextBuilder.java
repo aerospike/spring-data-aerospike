@@ -69,12 +69,18 @@ public class QueryContextBuilder {
         if (isQueryCriteriaNotNull(query)) {
             // logging query
             logQualifierDetails(query.getCriteriaObject(), log);
-            // Process qualifier and apply filters
-            // Statement's filter is set based either on cardinality (the lowest bin values ratio)
-            // or on order (the first processed filter)
-            processedParentQualifier = setFilterAndProcessQualifier(stmt, query.getCriteriaObject());
-        }
 
+            if (!query.getCriteriaObject().hasFilterExpression()) {
+                // Process qualifier and apply filters
+                // Statement's filter is set based either on cardinality (the lowest bin values ratio)
+                // or on order (the first processed filter)
+                processedParentQualifier = setFilterAndProcessQualifier(stmt, query.getCriteriaObject());
+            } else {
+                // statement's filter is set based on parsed DSL expression
+                stmt.setFilter(query.getCriteriaObject().getFilter());
+                processedParentQualifier = query.getCriteriaObject();
+            }
+        }
         return new QueryContext(stmt, processedParentQualifier);
     }
 

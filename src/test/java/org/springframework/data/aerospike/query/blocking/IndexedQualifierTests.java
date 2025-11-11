@@ -17,7 +17,10 @@
 package org.springframework.data.aerospike.query.blocking;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
@@ -33,6 +36,8 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
@@ -62,14 +67,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedLTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age < 26
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier ageLt26 = Qualifier.builder()
                 .setPath("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue(26)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(ageLt26));
 
             assertThat(iterator)
                 .toIterable()
@@ -83,14 +88,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedLTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier ageLteq26 = Qualifier.builder()
                 .setPath("age")
                 .setFilterOperation(FilterOperation.LTEQ)
                 .setValue(26)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(ageLteq26));
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
                 .map(rec -> rec.record.getInt("age"))
@@ -107,14 +112,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedNumericEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier ageEq26 = Qualifier.builder()
                 .setPath("age")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(26)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(ageEq26));
 
             assertThat(iterator)
                 .toIterable()
@@ -125,15 +130,35 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectWithBlueColorQuery() {
+    void selectOnIndexedBlueColorQuery_withIndexOnDifferentBin() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qual1 = Qualifier.builder()
+            Qualifier colorEqBlue = Qualifier.builder()
                 .setPath("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(BLUE)
                 .build();
 
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
+            assertQueryHasNoSecIndexFilter(new Query(colorEqBlue), KeyRecord.class);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(colorEqBlue));
+
+            assertThat(it)
+                .toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec -> assertThat(rec.record.getInt("age")).isBetween(25, 29))
+                .hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
+        });
+    }
+
+    @Test
+    void selectOnIndexedBlueColorQuery_withDslExpression() {
+        withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
+            Qualifier colorEqBlue = Qualifier.dslExpressionBuilder()
+                // Using a static DSL expression with a fixed value
+                .setDSLExpressionString("$.color == '" + BLUE + "'")
+                .build();
+
+            assertQueryHasSecIndexFilter(new Query(colorEqBlue), KeyRecord.class);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(colorEqBlue));
 
             assertThat(it)
                 .toIterable()
@@ -147,14 +172,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedGTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier ageGteq28 = Qualifier.builder()
                 .setPath("age")
                 .setFilterOperation(FilterOperation.GTEQ)
                 .setValue(28)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(ageGteq28));
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
                 .map(rec -> rec.record.getInt("age"))
@@ -170,14 +195,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     void selectOnIndexedGTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier ageGt28 = Qualifier.builder()
                 .setPath("age")
                 .setFilterOperation(FilterOperation.GT)
                 .setValue(28)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(ageGt28));
 
             assertThat(iterator)
                 .toIterable()
@@ -190,14 +215,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier qualifier = Qualifier.builder()
+            Qualifier colorEqOrange = Qualifier.builder()
                 .setPath("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(ORANGE)
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(qualifier));
+                new Query(colorEqOrange));
 
             assertThat(iterator)
                 .toIterable()
@@ -208,7 +233,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectWithGeoWithin() {
+    void selectOnIndexedGeoWithinQualifier() {
         if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
                 double lon = -122.0;
@@ -218,14 +243,14 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                         + "\"coordinates\": [[%.8f, %.8f], %f] }",
                     lon, lat, radius);
 
-                Qualifier qualifier = Qualifier.builder()
+                Qualifier geoWithin = Qualifier.builder()
                     .setPath(GEO_BIN_NAME)
                     .setFilterOperation(FilterOperation.GEO_WITHIN)
                     .setValue(Value.getAsGeoJSON(rgnstr))
                     .build();
 
                 KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null,
-                    new Query(qualifier));
+                    new Query(geoWithin));
 
                 assertThat(iterator).toIterable()
                     .isNotEmpty()
@@ -252,13 +277,13 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectWithQualifiersOnly() {
-        Qualifier qual1 = Qualifier.builder()
+    void selectOnIndexedAndQualifier_withOneIndex() {
+        Qualifier colorEqGreen = Qualifier.builder()
             .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(GREEN)
             .build();
-        Qualifier qual2 = Qualifier.builder()
+        Qualifier ageBetween28And29 = Qualifier.builder()
             .setPath("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(28)
@@ -267,7 +292,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null,
-                new Query(Qualifier.and(qual1, qual2)));
+                new Query(Qualifier.and(colorEqGreen, ageBetween28And29)));
 
             assertThat(it).toIterable()
                 .isNotEmpty()
@@ -277,8 +302,59 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectWithAndQualifier() {
-        Qualifier colorIsGreen = Qualifier.builder()
+    void selectOnIndexedAndQualifier_withOneIndex_usingDslExpression() {
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a comprehensive static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .build();
+        Query query = new Query(colorAndAge);
+
+        withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
+            // Assert that the query has both a secondary index Filter and a filtering Expression
+            assertQueryHasSecIndexFilter(query, KeyRecord.class);
+            assertThat(query.getCriteriaObject().hasFilterExpression()).isTrue();
+
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
+                .allSatisfy(rec -> assertThat(rec.record.getInt("age")).isBetween(28, 29));
+        });
+
+        // It is currently NOT allowed to combine qualifiers if at least one of them is a DSL expression qualifier
+        Qualifier colorEqGreen = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with a fixed value
+            .setDSLExpressionString("$.color == '" + GREEN + "'")
+            .build();
+        Qualifier ageBetween28And29 = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue(28)
+            .setSecondValue(29)
+            .build();
+
+        assertThatThrownBy(() -> new Query(Qualifier.and(colorEqGreen, ageBetween28And29)))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
+                "qualifiers");
+
+        Qualifier ageBetween28And29_DslExpr = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.age > 28 and $.age <= 29")
+            .build();
+
+        assertThatThrownBy(() -> new Query(Qualifier.and(colorEqGreen, colorEqGreen, ageBetween28And29_DslExpr)))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
+                "qualifiers");
+    }
+
+    @Test
+    void selectOnIndexedAndQualifier_withTwoIndexes() {
+        Qualifier colorEqGreen = Qualifier.builder()
             .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(GREEN)
@@ -293,7 +369,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
         try {
-            Qualifier qualifier = Qualifier.and(colorIsGreen, ageBetween28And29);
+            Qualifier qualifier = Qualifier.and(colorEqGreen, ageBetween28And29);
 
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
@@ -301,6 +377,85 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .allSatisfy(rec -> {
                     assertThat(rec.record.getInt("age")).isBetween(28, 29);
                     assertThat(rec.record.getString("color")).isEqualTo(GREEN);
+                });
+        } finally {
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
+        }
+    }
+
+    @Test
+    void selectOnIndexedAndQualifier_withTwoIndexes_usingDslExpression() {
+        // Combining in one DSL expression
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .build();
+
+        Query query = new Query(colorAndAge);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+
+        // Assert that the query has both a secondary index Filter and a filtering Expression
+        assertQueryHasSecIndexFilter(query, KeyRecord.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.and(
+                Exp.eq(Exp.bin("color", Exp.Type.STRING), Exp.val(GREEN)),
+                Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(29))
+            )
+        ));
+
+        // When there are multiple indexes available for bins in a complex DSL expression query, the index
+        // for secondary index Filter is chosen by cardinality (preferring indexes with a higher `binValuesRatio`).
+        // If cardinality of indexes is the same, then one is chosen based on alphabetical order (like in this test)
+        assertThat(getQuerySecIndexFilter(query, KeyRecord.class))
+            .isEqualTo(Filter.range("age", 28, Long.MAX_VALUE));
+
+        try {
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable().isNotEmpty()
+                .allSatisfy(rec -> {
+                    assertThat(rec.record.getInt("age")).isBetween(28, 29);
+                    assertThat(rec.record.getString("color")).isEqualTo(GREEN);
+                });
+        } finally {
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
+        }
+    }
+
+    @Test
+    void selectOnIndexedOrQualifier_withTwoIndexes_usingDslExpression() {
+        // Combining in one DSL expression
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' or ($.age >= 28 and $.age < 29)")
+            .build();
+
+        Query query = new Query(colorAndAge);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+
+        // Assert that the query has only filtering Expression and no secondary index Filter due to being an OR query
+        assertQueryHasNoSecIndexFilter(query, KeyRecord.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.or(
+                Exp.eq(Exp.bin("color", Exp.Type.STRING), Exp.val(GREEN)),
+                Exp.and(
+                    Exp.ge(Exp.bin("age", Exp.Type.INT), Exp.val(28)),
+                    Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(29))
+                )
+            )
+        ));
+
+        try {
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable().isNotEmpty()
+                .allSatisfy(rec -> {
+                    assertTrue(
+                        rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN));
                 });
         } finally {
             tryDropIndex(INDEXED_SET_NAME, "age_index");

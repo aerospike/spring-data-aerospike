@@ -27,16 +27,21 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
+import com.aerospike.dsl.api.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
+import org.springframework.data.aerospike.index.IndexesCacheRetriever;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.InfoCommandUtils;
@@ -75,7 +80,7 @@ import static org.springframework.data.aerospike.core.TemplateUtils.*;
  */
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations,
-    IndexesCacheRefresher<Integer> {
+    IndexesCacheRefresher<Integer>, IndexesCacheRetriever {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
@@ -83,6 +88,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
     private final TemplateContext templateContext;
+    private final IndexesCacheHolder indexCacheHolder;
+    private final DSLParser dslParser;
 
     public AerospikeTemplate(IAerospikeClient client,
                              String namespace,
@@ -91,7 +98,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                              AerospikeExceptionTranslator exceptionTranslator,
                              QueryEngine queryEngine,
                              IndexRefresher indexRefresher,
-                             ServerVersionSupport serverVersionSupport) {
+                             IndexesCacheHolder indexCacheHolder,
+                             ServerVersionSupport serverVersionSupport,
+                             DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator, client.copyWritePolicyDefault(),
             serverVersionSupport);
         this.client = client;
@@ -107,6 +116,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .batchWritePolicyDefault(batchWritePolicyDefault)
             .queryEngine(queryEngine)
             .build();
+        this.indexCacheHolder = indexCacheHolder;
+        this.dslParser = dslParser;
     }
 
     @Override
@@ -122,6 +133,16 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public Integer refreshIndexesCache() {
         return indexRefresher.refreshIndexes();
+    }
+
+    @Override
+    public Map<IndexKey, Index> getIndexesCache() {
+        return indexCacheHolder.getAllIndexes();
+    }
+
+    @Override
+    public DSLParser getDSLParser() {
+        return dslParser;
     }
 
     @Override
@@ -813,7 +834,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return TemplateUtils.findWithPostProcessing(setName, targetClass, query, templateContext);
+        return findWithPostProcessing(setName, targetClass, query, templateContext);
     }
 
     @Override

@@ -23,6 +23,8 @@ import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.dsl.api.DSLParser;
+import com.aerospike.dsl.impl.DSLParserImpl;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -326,5 +328,10 @@ public abstract class AerospikeDataConfigurationSupport {
         if ((namespace = nameSpace()) != null) dataSettings.setNamespace(namespace);
 
         return new AerospikeSettings(connectionSettings, dataSettings);
+    }
+
+    @Bean
+    public DSLParser dslParser() {
+        return new DSLParserImpl();
     }
 }

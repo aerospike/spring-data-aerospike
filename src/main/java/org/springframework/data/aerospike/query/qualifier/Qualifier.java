@@ -20,6 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,6 +89,16 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return new MetadataQualifierBuilder();
     }
 
+    @Beta
+    public static FilterQualifierBuilder filterBuilder() {
+        return new FilterQualifierBuilder();
+    }
+
+    @Beta
+    public static DSLExpressionQualifierBuilder dslExpressionBuilder() {
+        return new DSLExpressionQualifierBuilder();
+    }
+
     public FilterOperation getOperation() {
         return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
@@ -109,6 +121,14 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
         return (CriteriaDefinition.AerospikeMetadata) internalMap.get(METADATA_FIELD);
+    }
+
+    public void setHasSecIndexFilter(Boolean queryAsFilter) {
+        internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
+    }
+
+    public Boolean hasSecIndexFilter() {
+        return internalMap.containsKey(HAS_SINDEX_FILTER) && (Boolean) internalMap.get(HAS_SINDEX_FILTER);
     }
 
     public void setDataSettings(AerospikeDataSettings dataSettings) {
@@ -171,8 +191,37 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
+    public void setFilterExpression(Expression filterExp) {
+        internalMap.put(FILTER_EXPRESSION, filterExp);
+    }
+
+    public boolean hasFilterExpression() {
+        return internalMap.get(FILTER_EXPRESSION) != null;
+    }
+
+    public boolean hasDslExprString() {
+        return internalMap.get(DSL_EXPR_STRING) != null;
+    }
+
+    public Expression getFilterExpression() {
+        return (Expression) internalMap.get(FILTER_EXPRESSION);
+    }
+
     public Exp getFilterExp() {
-        return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
+        return getOperation() == null ? null : FilterOperation.valueOf(getOperation().toString())
+            .filterExp(internalMap);
+    }
+
+    public Filter getFilter() {
+        return (Filter) internalMap.get(SINDEX_FILTER);
+    }
+
+    public String getDslExprString() {
+        return (String) internalMap.get(DSL_EXPR_STRING);
+    }
+
+    public Object[] getDslExprValues() {
+        return (Object[]) internalMap.get(DSL_EXPR_VALUES);
     }
 
     protected String luaFieldString(String field) {
@@ -250,12 +299,17 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     @Override
     public String toString() {
+        String field = "";
         if (StringUtils.hasLength(getBinName()) && getMetadataField() == null) {
-            return String.format("%s:%s:%s:%s:%s", getBinName(), getOperation(), getKey(), getValue(),
-                getSecondValue());
+            field = getBinName();
         }
-        return String.format("(metadata) %s:%s:%s:%s:%s", getMetadataField().toString(),
-            getOperation(), getKey(), getValue(), getSecondValue());
+        if (getMetadataField() != null) {
+            field = getMetadataField().toString();
+        }
+        if (getDslExprString() != null) {
+            field = getDslExprString();
+        }
+        return String.format("%s:%s:%s:%s:%s", field, getOperation(), getKey(), getValue(), getSecondValue());
     }
 
     /**
@@ -427,12 +481,25 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     /**
+     * Checks if there are any DSL expression qualifiers, and if yes, throws exception
+     *
+     * @param qualifiers An array of {@link Qualifier} objects
+     */
+    private static void checkForNonDslQualifiers(Qualifier[] qualifiers) {
+        if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
+            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers in a custom logical query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL qualifiers");
+        }
+    }
+
+    /**
      * Create a parent qualifier that contains the given qualifiers combined using logical OR
      *
      * @param qualifiers Two or more qualifiers
      * @return Parent qualifier
      */
     public static Qualifier or(Qualifier... qualifiers) {
+        checkForNonDslQualifiers(qualifiers);
         return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualifiers));
@@ -445,6 +512,8 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
      * @return Parent qualifier
      */
     public static Qualifier and(Qualifier... qualifiers) {
+        checkForNonDslQualifiers(qualifiers);
+
         return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(qualifiers));

@@ -169,11 +169,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     }
 
     protected boolean queryHasSecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
-        QueryContext queryContext =
-            queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
-        Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
-        return statement.getFilter() != null;
+        return getQuerySecIndexFilter(namespace, setName, query, binNames) != null;
     }
 
     /**
@@ -186,6 +183,21 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected void assertQueryHasNoSecIndexFilter(String methodName, Class<?> returnEntityClass,
                                                   Object... methodParams) {
         assertThat(queryHasSecIndexFilter(methodName, returnEntityClass, methodParams)).isFalse();
+    }
+
+    /**
+     * Assert that the given query's statement contains no secondary index filter
+     *
+     * @param query             Query to be performed
+     * @param returnEntityClass Class of Query return entity
+     */
+    protected void assertQueryHasNoSecIndexFilter(Query query, Class<?> returnEntityClass) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        assertThat(queryHasSecIndexFilter(namespace, setName, query, binNames))
+            .as(String.format("Expecting the query '%s' statement to have no secondary index filter",
+                query.getCriteriaObject())).isFalse();
     }
 
     protected Filter getQuerySecIndexFilter(String methodName, Class<?> returnEntityClass, Object... methodParams) {
@@ -203,9 +215,10 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
         return getQuerySecIndexFilter(namespace, setName, query, binNames);
     }
 
-    protected Filter getQuerySecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
-        QueryContext queryContext = queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
-        // Checking that the statement has secondary index filter (which means it will be used)
+    public Filter getQuerySecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
+        QueryContext queryContext =
+            queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        queryEngine.processDslQualifier(queryContext, namespace);
         return queryContext.statement().getFilter();
     }
 

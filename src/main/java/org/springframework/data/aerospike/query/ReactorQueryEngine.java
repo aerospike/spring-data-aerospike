@@ -17,8 +17,6 @@
 package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Key;
-import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
@@ -48,7 +46,7 @@ public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
     @Getter
-    private final QueryContextBuilder QueryContextBuilder;
+    private final QueryContextBuilder queryContextBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final AerospikeDataSettings dataSettings;
@@ -62,10 +60,11 @@ public class ReactorQueryEngine {
     @Getter
     private long queryMaxRecords;
 
-    public ReactorQueryEngine(IAerospikeReactorClient client, QueryContextBuilder QueryContextBuilder,
+    public ReactorQueryEngine(IAerospikeReactorClient client,
+                              QueryContextBuilder queryContextBuilder,
                               FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
-        this.QueryContextBuilder = QueryContextBuilder;
+        this.queryContextBuilder = queryContextBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
         this.dataSettings = dataSettings;
     }
@@ -92,15 +91,13 @@ public class ReactorQueryEngine {
      * @return A Flux<KeyRecord> to iterate over the results
      */
     public Flux<KeyRecord> select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
-
         /*
          *  query with filters
          */
         if (query != null) {
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
-        QueryContext queryContext = QueryContextBuilder.build(namespace, set, query, binNames);
+        QueryContext queryContext = queryContextBuilder.build(namespace, set, query, binNames);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = getQueryPolicy(queryContext.qualifier(), true);
@@ -111,23 +108,25 @@ public class ReactorQueryEngine {
 
         return client.query(localQueryPolicy, statement)
             .onErrorResume(throwable -> {
-                if (throwable instanceof AerospikeException ae
+                if (queryContext.qualifier() != null // No sense to retry if qualifier is null
                     && statement.getFilter() != null
+                    && throwable instanceof AerospikeException ae
                     && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
                 {
                     log.warn(
                         "Got secondary index related exception (resultCode: {}), " +
                             "retrying with filter expression only (scan operation)",
                         ae.getResultCode());
-                    return retryWithFilterExpression(qualifier, statement);
+                    return retryWithFilterExpressionOnly(queryContext.qualifier(), statement);
                 }
                 // for other exceptions
                 return Mono.error(throwable);
             });
     }
 
-    private Publisher<? extends KeyRecord> retryWithFilterExpression(Qualifier qualifier, Statement statement) {
+    private Publisher<KeyRecord> retryWithFilterExpressionOnly(Qualifier qualifier, Statement statement) {
         // retry without sIndex filter
+        if (qualifier != null) qualifier.setHasSecIndexFilter(false);
         QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
         statement.setFilter(null);
         return client.query(localQueryPolicyFallback, statement);
@@ -142,10 +141,10 @@ public class ReactorQueryEngine {
      * @return A Flux<KeyRecord> for counting
      */
     public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
-        QueryContext queryContext = QueryContextBuilder.build(namespace, set, query);
+        QueryContext queryContext = queryContextBuilder.build(namespace, set, query);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        Qualifier qualifier = queryContext.qualifier() != null ? queryContext.qualifier() : null;
+        Qualifier qualifier = isQueryCriteriaNotNull(query) ? query.getCriteriaObject() : null;
         QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
@@ -157,16 +156,10 @@ public class ReactorQueryEngine {
 
     private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
+        queryPolicy.filterExp = qualifier != null && qualifier.hasFilterExpression()
+            ? qualifier.getFilterExpression()
+            : filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private Mono<KeyRecord> getRecord(Policy policy, Key key, String[] binNames) {
-        if (binNames == null || binNames.length == 0) {
-            return client.get(policy, key);
-        }
-        return client.get(policy, key, binNames);
     }
 }

@@ -2,10 +2,17 @@ package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.dsl.ExpressionContext;
+import com.aerospike.dsl.IndexContext;
+import com.aerospike.dsl.ParsedExpression;
+import com.aerospike.dsl.PlaceholderValues;
+import com.aerospike.dsl.api.DSLParser;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
@@ -19,6 +26,7 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -311,5 +319,35 @@ public class AerospikeQueryCreatorUtils {
             return className != null && className.equals(propertyType.getName());
         }
         return false;
+    }
+
+    /**
+     * Parse DSL expression by providing DSL string, existing indexes and placeholder values to {@link DSLParser}
+     *
+     * @param dslExpression DSL string to use
+     * @param namespace Namespace to use
+     * @param indexCache Cache of existing secondary indexes
+     * @param parameters Values to replace DSL expression placeholders with
+     * @param dslParser {@link DSLParser} instance
+     * @return {@link ParsedExpression}
+     */
+    public static ParsedExpression parseDslExpression(String dslExpression, String namespace,
+                                                      Map<IndexKey, Index> indexCache, Object[] parameters,
+                                                      DSLParser dslParser) {
+        // Map cached indexes to DSLParser input
+        List<com.aerospike.dsl.Index> indexes = indexCache.values().stream().map(value ->
+                com.aerospike.dsl.Index.builder()
+                    .name(value.getName())
+                    .namespace(value.getNamespace())
+                    .bin(value.getBin())
+                    .indexType(value.getIndexType())
+                    .binValuesRatio(value.getBinValuesRatio())
+                    .build())
+            .toList();
+        // Parse the given expression
+        return dslParser.parseExpression(
+            ExpressionContext.of(dslExpression, PlaceholderValues.of(parameters)),
+            indexes.isEmpty() ? null : IndexContext.of(namespace, indexes)
+        );
     }
 }

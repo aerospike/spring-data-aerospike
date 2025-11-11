@@ -20,19 +20,36 @@ import com.aerospike.client.exp.Expression;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
+import static org.springframework.data.aerospike.query.FilterOperation.dualFilterOperations;
+
 @Slf4j
 public class FilterExpressionsBuilder {
 
     public Expression build(Qualifier qualifier) {
-        if (qualifier != null && !qualifier.isEmpty()) {
-            Exp exp = qualifier.getFilterExp();
+        if (qualifier != null && requiresFilterExp(qualifier)) {
+            Exp exp = qualifier.getFilterExp(); // build Exp based on filter operation or return null
             if (exp == null) {
                 log.debug("Query #{}, filterExp is not set", qualifier.hashCode());
-                return null;
+            } else {
+                log.debug("Query #{}, filterExp is set", qualifier.hashCode());
+                return Exp.build(exp);
             }
-            log.debug("Query #{}, filterExp is set", qualifier.hashCode());
-            return Exp.build(exp);
         }
         return null;
+    }
+
+    /**
+     * FilterExp is built only for a qualifier without sIndexFilter or for dualFilterOperation that requires both
+     * sIndexFilter and FilterExpression. The filter is irrelevant for AND operation (nested qualifiers)
+     */
+    private boolean requiresFilterExp(Qualifier qualifier) {
+        if (!qualifier.hasSecIndexFilter()) {
+            return true;
+        } else if (qualifier.hasSecIndexFilter() && dualFilterOperations.contains(qualifier.getOperation())) {
+            qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+            return true;
+        }
+        qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+        return false;
     }
 }

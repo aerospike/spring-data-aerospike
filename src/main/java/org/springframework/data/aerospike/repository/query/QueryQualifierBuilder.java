@@ -13,6 +13,9 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 
+/**
+ * Builder for regular query qualifier (transferring filter operation, ignore case, bin name, bin type etc.)
+ **/
 public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
     QueryQualifierBuilder() {

@@ -19,6 +19,7 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
+import org.springframework.data.aerospike.repository.query.AerospikeQueryMethod;
 import org.springframework.data.aerospike.repository.query.ReactiveAerospikePartTreeQuery;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
@@ -144,7 +145,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
         public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
                                             ProjectionFactory projectionFactory,
                                             NamedQueries namedQueries) {
-            QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
+            AerospikeQueryMethod queryMethod = new AerospikeQueryMethod(method, metadata, projectionFactory);
             return new ReactiveAerospikePartTreeQuery(queryMethod, evaluationContextAccessor, this.aerospikeTemplate,
                 this.queryCreator);
         }

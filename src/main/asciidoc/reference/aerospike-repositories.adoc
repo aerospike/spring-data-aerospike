@@ -1,7 +1,7 @@
 [[aerospike.repositories]]
 = Aerospike repositories
 
-[[aerospike-repo-intro]]
+[[aerospike.repositories.intro]]
 == Introduction
 
 One of the main goals of the Spring Data is to significantly reduce the amount of boilerplate code required to implement
@@ -16,7 +16,7 @@ This builds on the
 link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories.html[Core Spring Data Repository Support],
 so make sure you've got a sound understanding of this concept.
 
-[[aerospike-repo-usage]]
+[[aerospike.repositories.usage]]
 == Usage
 
 To access entities stored in Aerospike you can leverage repository support that eases implementing those quite

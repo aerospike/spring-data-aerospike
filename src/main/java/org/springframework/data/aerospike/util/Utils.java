@@ -28,6 +28,7 @@ import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.util.StringUtils;
@@ -40,7 +41,15 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -168,8 +177,8 @@ public class Utils {
             Arrays.stream(qualifiers).forEach(innerQualifier -> logQualifierDetails(innerQualifier, logger));
         }
 
-        String operation = qualifier.getOperation().toString();
-        operation = (hasLength(operation) ? operation : "N/A");
+        FilterOperation operation = qualifier.getOperation();
+        String strOperation = (operation != null && hasLength(operation.toString()) ? operation.toString() : "N/A");
 
         String values = "";
         String value = valueToString(qualifier.getValue());
@@ -194,7 +203,7 @@ public class Utils {
             ? String.format(", qualifiers = %s,", qualifiersHashesToString(qualifier.getQualifiers()))
             : "";
 
-        logger.debug("Created qualifier #{}:{} operation = {}{}{}", qualifier.hashCode(), path, operation, values,
+        logger.debug("Created qualifier #{}:{} operation = {}{}{}", qualifier.hashCode(), path, strOperation, values,
             qualifiersStr);
     }
 
@@ -218,11 +227,8 @@ public class Utils {
     }
 
     public static <T> List<T> iterableToList(Iterable<T> iterable) {
-        if (iterable instanceof List) {
-            // If Iterable is a Collection already, it is cast directly
-            return (List<T>) iterable;
-        }
-        return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+        return StreamSupport.stream(iterable.spliterator(), false)
+            .collect(Collectors.toList());
     }
 
     /**
