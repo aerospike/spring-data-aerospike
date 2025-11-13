@@ -1,7 +1,7 @@
 name: Build project
 on:
   push:
-    branches: [ main ]
+    branches: [ main, FMWK-802-parameterize-embedded-aerospike-server ]
   pull_request:
     branches: [ main ]
 
