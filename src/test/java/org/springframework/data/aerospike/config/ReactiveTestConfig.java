@@ -56,6 +56,15 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
             serverVersionSupport);
     }
 
+    @Bean
+    public AerospikeTestOperations aerospikeTestOperations(ObjectProvider<GenericContainer<?>> containerObjectProvider, IAerospikeClient client) {
+        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
+        return new AerospikeTestOperations(
+            new AerospikeExpiredDocumentsCleaner(client, "test"),
+            container
+        );
+    }
+
     @Override
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
