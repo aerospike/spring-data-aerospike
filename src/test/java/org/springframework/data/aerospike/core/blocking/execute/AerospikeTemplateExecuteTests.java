@@ -20,7 +20,6 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -30,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class AerospikeTemplateExecuteTests extends BaseBlockingIntegrationTests {
 
     @Test
-    @Disabled
     public void shouldTranslateException() {
         Key key = new Key(template.getNamespace(), "shouldTranslateException", "shouldTranslateException");
         Bin bin = new Bin("bin_name", "bin_value");

@@ -307,7 +307,6 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    @Disabled
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
         String id1 = nextId();
         String id2 = nextId();

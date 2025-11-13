@@ -2,7 +2,6 @@ package org.springframework.data.aerospike.index;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.IndexedField;
@@ -24,7 +23,6 @@ public class IndexNotScheduledCacheRefreshTest extends BaseBlockingIntegrationTe
     String binName = "testBin";
 
     @Test
-    @Disabled
     public void indexesCacheIsNotRefreshedOnSchedule() {
         client.createIndex(null, getNameSpace(), setName, indexName, binName, STRING).waitTillComplete();
         log.debug("Test index {} is created", indexName);

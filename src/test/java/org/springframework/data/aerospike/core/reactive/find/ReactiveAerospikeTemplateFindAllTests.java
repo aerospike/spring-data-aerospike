@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.core.reactive.find;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.annotation.Extensive;
@@ -58,7 +57,6 @@ public class ReactiveAerospikeTemplateFindAllTests extends ReactiveAerospikeTemp
     }
 
     @Test
-    @Disabled
     public void findAll_findIdOnlyRecord() {
         var id = 100;
         var doc = new SampleClasses.DocumentWithPrimitiveIntId(id); // id-only document

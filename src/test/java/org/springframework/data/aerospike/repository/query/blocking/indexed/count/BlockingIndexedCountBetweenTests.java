@@ -75,7 +75,6 @@ public class BlockingIndexedCountBetweenTests extends IndexedPersonRepositoryQue
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "address", entityClass = IndexedPerson.class)
     void countByNestedSimplePropertyBetween_Integer() {
         assertThat(jane.getAddress().getApartment()).isEqualTo(2);
