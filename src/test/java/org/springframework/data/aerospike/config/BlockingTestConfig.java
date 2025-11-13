@@ -6,6 +6,7 @@ import com.aerospike.client.policy.ClientPolicy;
 import com.playtika.testcontainer.aerospike.AerospikeExpiredDocumentsCleaner;
 import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -30,6 +31,9 @@ import java.util.List;
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
 @EnableTransactionManagement
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
+
+    @Value("${spring.data.aerospike.namespace}")
+    protected String namespace;
 
     @Override
     protected List<Object> customConverters() {
@@ -65,7 +69,7 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     public AerospikeTestOperations aerospikeTestOperations(ObjectProvider<GenericContainer<?>> containerObjectProvider, IAerospikeClient client) {
         GenericContainer<?> container = containerObjectProvider.getIfAvailable();
         return new AerospikeTestOperations(
-            new AerospikeExpiredDocumentsCleaner(client, "test"),
+            new AerospikeExpiredDocumentsCleaner(client, namespace),
             container
         );
     }

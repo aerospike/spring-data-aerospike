@@ -7,6 +7,7 @@ import com.playtika.testcontainer.aerospike.AerospikeExpiredDocumentsCleaner;
 import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
@@ -38,6 +39,9 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Autowired
     Environment env;
 
+    @Value("${spring.data.aerospike.namespace}")
+    protected String namespace;
+
     @Override
     protected List<Object> customConverters() {
         return List.of(
@@ -60,7 +64,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     public AerospikeTestOperations aerospikeTestOperations(ObjectProvider<GenericContainer<?>> containerObjectProvider, IAerospikeClient client) {
         GenericContainer<?> container = containerObjectProvider.getIfAvailable();
         return new AerospikeTestOperations(
-            new AerospikeExpiredDocumentsCleaner(client, "test"),
+            new AerospikeExpiredDocumentsCleaner(client, namespace),
             container
         );
     }
