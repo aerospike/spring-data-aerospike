@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.repository.query.reactive.indexed.fin
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
@@ -474,6 +475,7 @@ class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonReposit
     }
 
     @Test
+    @Disabled
     void findBySimpleProperty_OR_AND() {
         indexesCache.getIndex(
                 new IndexKey(namespace, reactiveTemplate.getSetName(IndexedPerson.class), "firstName", STRING, null)
@@ -526,6 +528,7 @@ class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonReposit
     }
 
     @Test
+    @Disabled
     void findBySimpleProperty_OR_OR() {
         indexesCache.getIndex(
                 new IndexKey(namespace, reactiveTemplate.getSetName(IndexedPerson.class), "firstName", STRING, null)

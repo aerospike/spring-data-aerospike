@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.util;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.cdt.CTX;
@@ -52,10 +53,9 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
     private final IndexesCacheRefresher indexesRefresher;
-    private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {
-        List<ScanJob> jobs = getScans();
+        List<ScanJob> jobs = getScans(client);
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> job.set.equals(setName)).collect(Collectors.toList());
         assertThat(jobsForSet)
             .as("Scan jobs for set: " + setName)
@@ -63,20 +63,20 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
     public void assertNoScansForSet(String setName) {
-        List<ScanJob> jobs = getScans();
+        List<ScanJob> jobs = getScans(client);
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).toList();
         jobsForSet.forEach(job -> assertThat(job.getStatus()).isEqualTo("done(ok)"));
     }
 
-    @SneakyThrows
-    public List<ScanJob> getScans() {
-        String showCmd = "query-show";
+    public List<ScanJob> getScans(IAerospikeClient client) {
         if (!serverVersionSupport.isSIndexCardinalitySupported()) {
             throw new UnsupportedOperationException("Minimal supported Aerospike Server version is 6.1");
         }
-        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", showCmd);
-        String stdout = execResult.getStdout();
-        return getScanJobs(stdout);
+        // info command sent directly to the server
+        String host = client.getNodes()[0].getHost().name; // pick first node
+        int port = client.getNodes()[0].getHost().port;
+        String response = Info.request(host, port, "query-show");
+        return getScanJobs(response);
     }
 
     private List<ScanJob> getScanJobs(String stdout) {

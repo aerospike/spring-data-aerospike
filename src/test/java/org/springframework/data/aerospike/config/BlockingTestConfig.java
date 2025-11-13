@@ -3,6 +3,9 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
+import com.playtika.testcontainer.aerospike.AerospikeExpiredDocumentsCleaner;
+import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -49,10 +52,15 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Bean
+    public AerospikeTestOperations aerospikeTestOperations(IAerospikeClient client, ObjectProvider<GenericContainer<?>> containerObjectProvider) {
+        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
+        return new AerospikeTestOperations(new AerospikeExpiredDocumentsCleaner(client, "test", true), container);
+    }
+
+    @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike,
                                                                  ServerVersionSupport serverVersionSupport) {
-        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client,
             serverVersionSupport);
     }
 

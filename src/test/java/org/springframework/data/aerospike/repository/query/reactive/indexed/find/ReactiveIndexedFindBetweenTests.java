@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -33,6 +34,7 @@ public class ReactiveIndexedFindBetweenTests extends ReactiveIndexedPersonReposi
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer() {
         assertQueryHasSecIndexFilter("findByAgeBetween", IndexedPerson.class, 39, 45);

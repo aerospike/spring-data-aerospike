@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.find;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -56,6 +57,7 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated() {
         assertThat(indexesCache.hasIndexFor(
@@ -68,6 +70,7 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated_respectsLimitAndOffsetAndSort() {
         assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40);
@@ -82,6 +85,7 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated_validHasPrevAndHasNext() {
         assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40);

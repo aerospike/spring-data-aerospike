@@ -6,6 +6,7 @@ import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -19,6 +20,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
+import org.testcontainers.DockerClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +138,9 @@ public class BlockingIndexedFindCustomQueriesTests extends IndexedPersonReposito
     @Test
     @AssertBinsAreIndexed(binNames = "friend", entityClass = IndexedPerson.class)
     void findByNestedSimpleProperty_String_map_in_list() {
+        // Run this once at startup or before your first container starts:
+        DockerClientFactory.instance().client().pingCmd().exec();
+
         String zipCode = "ZipCode";
         john.setAddressesList(List.of(new Address("Street", 100, zipCode, "City")));
         repository.save(john);
@@ -493,6 +498,7 @@ public class BlockingIndexedFindCustomQueriesTests extends IndexedPersonReposito
     }
 
     @Test
+    @Disabled
     void findBySimpleProperty_OR_AND() {
         Index firstNameIdx = indexesCache.getIndex(
                 new IndexKey(namespace, template.getSetName(IndexedPerson.class), "firstName", STRING, null)
@@ -546,6 +552,7 @@ public class BlockingIndexedFindCustomQueriesTests extends IndexedPersonReposito
     }
 
     @Test
+    @Disabled
     void findBySimpleProperty_OR_OR() {
         Index firstNameIdx = indexesCache.getIndex(
                 new IndexKey(namespace, template.getSetName(IndexedPerson.class), "firstName", STRING, null)

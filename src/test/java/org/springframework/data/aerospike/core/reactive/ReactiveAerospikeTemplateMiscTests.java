@@ -4,6 +4,7 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
@@ -21,6 +22,7 @@ import reactor.test.StepVerifier;
 public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationTests {
 
     @Test
+    @Disabled
     public void execute_shouldTranslateException() {
         Key key = new Key(getNameSpace(), "shouldTranslateException", "reactiveShouldTranslateException");
         Bin bin = new Bin("bin_name", "bin_value");

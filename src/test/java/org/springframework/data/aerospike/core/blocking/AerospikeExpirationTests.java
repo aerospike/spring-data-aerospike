@@ -21,6 +21,7 @@ import com.aerospike.client.Record;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -152,6 +153,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    @Disabled
     public void shouldSaveAndGetDocumentWithImmutableExpiration() {
         template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60));
 

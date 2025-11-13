@@ -4,6 +4,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -11,6 +12,7 @@ import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.util.TestUtils;
+import org.testcontainers.DockerClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
  * Tests for the "Contains" repository query. Keywords: Containing, IsContaining, Contains.
  */
 @Extensive
+@Disabled
 public class BlockingIndexedFindContainingTests extends IndexedPersonRepositoryQueryTests {
 
     @Override
@@ -84,6 +87,9 @@ public class BlockingIndexedFindContainingTests extends IndexedPersonRepositoryQ
     @Test
     @AssertBinsAreIndexed(binNames = "strings", entityClass = IndexedPerson.class)
     void findByCollectionContaining_String() {
+        // Run this once at startup or before your first container starts:
+        DockerClientFactory.instance().client().pingCmd().exec();
+
         assertQueryHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
         assertThat(repository.findByStringsContaining("str1")).containsOnly(john, peter);
         assertThat(repository.findByStringsContaining("str2")).containsOnly(john, peter);

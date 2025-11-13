@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.count;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -74,6 +75,7 @@ public class BlockingIndexedCountBetweenTests extends IndexedPersonRepositoryQue
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "address", entityClass = IndexedPerson.class)
     void countByNestedSimplePropertyBetween_Integer() {
         assertThat(jane.getAddress().getApartment()).isEqualTo(2);

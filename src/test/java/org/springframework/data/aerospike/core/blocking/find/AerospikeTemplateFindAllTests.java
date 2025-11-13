@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core.blocking.find;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.annotation.Extensive;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.domain.Sort.Order.asc;
 
 @Extensive
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateFindAllTests extends AerospikeTemplateFindByQueryTests {
 

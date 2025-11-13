@@ -13,6 +13,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
+import org.testcontainers.DockerClientFactory;
 
 import java.util.List;
 
@@ -77,6 +78,9 @@ public abstract class IndexedPersonRepositoryQueryTests extends BaseBlockingInte
     @BeforeAll
     public void beforeAll() {
         //  additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
+        // Run this once at startup or before your first container starts:
+        DockerClientFactory.instance().client().pingCmd().exec();
+
         additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
 
         try {

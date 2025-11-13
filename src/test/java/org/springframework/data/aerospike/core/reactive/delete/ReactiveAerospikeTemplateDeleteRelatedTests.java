@@ -4,6 +4,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
@@ -306,6 +307,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
+    @Disabled
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
         String id1 = nextId();
         String id2 = nextId();

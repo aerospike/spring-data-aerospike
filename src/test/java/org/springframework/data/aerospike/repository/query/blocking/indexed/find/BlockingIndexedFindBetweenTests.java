@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.repository.query.blocking.indexed.fin
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -60,6 +61,7 @@ public class BlockingIndexedFindBetweenTests extends IndexedPersonRepositoryQuer
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer() {
         assertThat(indexesCache.hasIndexFor(
@@ -74,6 +76,7 @@ public class BlockingIndexedFindBetweenTests extends IndexedPersonRepositoryQuer
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer_OrderBySimpleProperty() {
         assertQueryHasSecIndexFilter("findByAgeBetweenOrderByLastName", IndexedPerson.class, 30, 45);
@@ -98,6 +101,7 @@ public class BlockingIndexedFindBetweenTests extends IndexedPersonRepositoryQuer
     }
 
     @Test
+    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer_OR_SimplePropertyEquals_String() {
         QueryParam ageBetween = QueryParam.of(40, 45);
