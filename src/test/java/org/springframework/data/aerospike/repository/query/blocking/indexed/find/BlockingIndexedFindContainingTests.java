@@ -84,7 +84,6 @@ public class BlockingIndexedFindContainingTests extends IndexedPersonRepositoryQ
     @Test
     @AssertBinsAreIndexed(binNames = "strings", entityClass = IndexedPerson.class)
     void findByCollectionContaining_String() {
-
         assertQueryHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
         assertThat(repository.findByStringsContaining("str1")).containsOnly(john, peter);
         assertThat(repository.findByStringsContaining("str2")).containsOnly(john, peter);

@@ -22,7 +22,6 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -52,7 +51,6 @@ import static org.springframework.data.aerospike.util.CollectionUtils.countingIn
  * These tests generate qualifiers on indexed bins.
  */
 @Extensive
-@Disabled
 class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @AfterEach

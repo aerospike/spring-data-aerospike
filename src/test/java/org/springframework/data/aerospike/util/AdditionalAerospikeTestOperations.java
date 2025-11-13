@@ -16,7 +16,6 @@ import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -29,7 +28,6 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
 import java.time.Duration;
@@ -67,17 +65,6 @@ public abstract class AdditionalAerospikeTestOperations {
         List<ScanJob> jobs = getScans(client);
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).toList();
         jobsForSet.forEach(job -> assertThat(job.getStatus()).isEqualTo("done(ok)"));
-    }
-
-    @SneakyThrows
-    public List<ScanJob> getScans() {
-        String showCmd = "query-show";
-        if (!serverVersionSupport.isSIndexCardinalitySupported()) {
-            throw new UnsupportedOperationException("Minimal supported Aerospike Server version is 6.1");
-        }
-        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", showCmd);
-        String stdout = execResult.getStdout();
-        return getScanJobs(stdout);
     }
 
     public List<ScanJob> getScans(IAerospikeClient client) {

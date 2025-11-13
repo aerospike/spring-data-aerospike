@@ -77,7 +77,6 @@ public abstract class IndexedPersonRepositoryQueryTests extends BaseBlockingInte
     @BeforeAll
     public void beforeAll() {
         //  additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
-
         additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
 
         try {
