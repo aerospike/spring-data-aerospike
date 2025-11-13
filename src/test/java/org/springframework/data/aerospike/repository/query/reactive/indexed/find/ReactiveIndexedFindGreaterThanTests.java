@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -42,7 +41,6 @@ public class ReactiveIndexedFindGreaterThanTests extends ReactiveIndexedPersonRe
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated() {
         assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 1, PageRequest.of(0, 1));

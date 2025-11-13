@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.find;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -78,7 +77,6 @@ public class ReactiveIndexedFindContainingTests extends ReactiveIndexedPersonRep
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "strings", entityClass = IndexedPerson.class)
     public void findByCollectionContaining_String() {
         assertQueryHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
@@ -88,7 +86,6 @@ public class ReactiveIndexedFindContainingTests extends ReactiveIndexedPersonRep
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "ints", entityClass = IndexedPerson.class)
     public void findByCollectionContaining_Integer() {
         assertQueryHasSecIndexFilter("findByIntsContaining", IndexedPerson.class, 550);
@@ -131,7 +128,6 @@ public class ReactiveIndexedFindContainingTests extends ReactiveIndexedPersonRep
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "intMap", entityClass = IndexedPerson.class)
     public void findByExactMapKeyAndValue_Integer() {
         assertThat(emilien.getIntMap().containsKey("key1")).isTrue();

@@ -57,7 +57,6 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated() {
         assertThat(indexesCache.hasIndexFor(
@@ -70,7 +69,6 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated_respectsLimitAndOffsetAndSort() {
         assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40);
@@ -85,7 +83,6 @@ public class BlockingIndexedFindGreaterThanTests extends IndexedPersonRepository
     }
 
     @Test
-    @Disabled
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated_validHasPrevAndHasNext() {
         assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40);
