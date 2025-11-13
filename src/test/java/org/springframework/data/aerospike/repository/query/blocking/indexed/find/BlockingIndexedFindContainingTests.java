@@ -4,7 +4,6 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
@@ -31,7 +30,6 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
  * Tests for the "Contains" repository query. Keywords: Containing, IsContaining, Contains.
  */
 @Extensive
-@Disabled
 public class BlockingIndexedFindContainingTests extends IndexedPersonRepositoryQueryTests {
 
     @Override
