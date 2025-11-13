@@ -51,16 +51,13 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         return clientPolicy;
     }
 
-    @Bean
-    public AerospikeTestOperations aerospikeTestOperations(IAerospikeClient client, ObjectProvider<GenericContainer<?>> containerObjectProvider) {
-        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
-        return new AerospikeTestOperations(new AerospikeExpiredDocumentsCleaner(client, "TEST", true), container);
-    }
 
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
+                                                                 ObjectProvider<GenericContainer<?>> containerObjectProvider,
                                                                  ServerVersionSupport serverVersionSupport) {
-        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client,
+        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, container,
             serverVersionSupport);
     }
 

@@ -49,15 +49,11 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(ReactiveAerospikeTemplate template,
                                                                  IAerospikeClient client,
+                                                                 ObjectProvider<GenericContainer<?>> containerObjectProvider,
                                                                  ServerVersionSupport serverVersionSupport) {
-        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, template,
-            serverVersionSupport);
-    }
-
-    @Bean
-    public AerospikeTestOperations aerospikeTestOperations(IAerospikeClient client, ObjectProvider<GenericContainer<?>> containerObjectProvider) {
         GenericContainer<?> container = containerObjectProvider.getIfAvailable();
-        return new AerospikeTestOperations(new AerospikeExpiredDocumentsCleaner(client, "TEST", true), container);
+        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, container, template,
+            serverVersionSupport);
     }
 
     @Override

@@ -53,6 +53,7 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
     private final IndexesCacheRefresher indexesRefresher;
+    private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {
         List<ScanJob> jobs = getScans(client);
@@ -66,6 +67,17 @@ public abstract class AdditionalAerospikeTestOperations {
         List<ScanJob> jobs = getScans(client);
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).toList();
         jobsForSet.forEach(job -> assertThat(job.getStatus()).isEqualTo("done(ok)"));
+    }
+
+    @SneakyThrows
+    public List<ScanJob> getScans() {
+        String showCmd = "query-show";
+        if (!serverVersionSupport.isSIndexCardinalitySupported()) {
+            throw new UnsupportedOperationException("Minimal supported Aerospike Server version is 6.1");
+        }
+        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", showCmd);
+        String stdout = execResult.getStdout();
+        return getScanJobs(stdout);
     }
 
     public List<ScanJob> getScans(IAerospikeClient client) {

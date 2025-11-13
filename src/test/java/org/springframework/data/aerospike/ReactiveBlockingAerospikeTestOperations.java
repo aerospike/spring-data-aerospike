@@ -9,6 +9,7 @@ import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
+import org.testcontainers.containers.GenericContainer;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,10 +24,10 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
     private final ServerVersionSupport serverVersionSupport;
 
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
-                                                   IAerospikeClient client,
+                                                   IAerospikeClient client, GenericContainer<?> aerospike,
                                                    ReactiveAerospikeTemplate reactiveAerospikeTemplate,
                                                    ServerVersionSupport serverVersionSupport) {
-        super(indexInfoParser, client, serverVersionSupport, reactiveAerospikeTemplate);
+        super(indexInfoParser, client, serverVersionSupport, reactiveAerospikeTemplate, aerospike);
         this.template = reactiveAerospikeTemplate;
         this.serverVersionSupport = serverVersionSupport;
     }

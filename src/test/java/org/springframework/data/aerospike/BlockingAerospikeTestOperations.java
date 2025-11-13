@@ -22,8 +22,9 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
     public BlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                            AerospikeTemplate template,
                                            IAerospikeClient client,
+                                           GenericContainer<?> aerospikeContainer,
                                            ServerVersionSupport serverVersionSupport) {
-        super(indexInfoParser, client, serverVersionSupport, template);
+        super(indexInfoParser, client, serverVersionSupport, template, aerospikeContainer);
         this.template = template;
     }
 
