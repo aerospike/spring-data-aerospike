@@ -22,8 +22,6 @@ import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithDefaultConstructor;
@@ -164,7 +162,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void save_expiresDocumentWithVersion(@Autowired Environment env) {
+    public void save_expiresDocumentWithVersion() {
         template.save(new DocumentWithExpirationOneDay(id));
         aerospikeTestOperations.addDuration(Duration.ofHours(24).plus(Duration.ofMinutes(1)));
 

@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.exists;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
