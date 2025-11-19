@@ -336,7 +336,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
         assertThatThrownBy(() -> new Query(Qualifier.and(colorEqGreen, ageBetween28And29)))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
+            .hasMessageContaining("Cannot combine DSL expression qualifiers in a custom logical query, " +
                 "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
                 "qualifiers");
 
@@ -347,7 +347,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
         assertThatThrownBy(() -> new Query(Qualifier.and(colorEqGreen, colorEqGreen, ageBetween28And29_DslExpr)))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Cannot combine DSL expression qualifiers with custom AND query, " +
+            .hasMessageContaining("Cannot combine DSL expression qualifiers in a custom logical query, " +
                 "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
                 "qualifiers");
     }
