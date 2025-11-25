@@ -14,11 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Aerospike Database
-        uses: reugn/github-action-aerospike@v1
-        with:
-          server-version: "7.1.0.7"
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
