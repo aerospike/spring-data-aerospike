@@ -3,6 +3,10 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
+import com.playtika.testcontainer.aerospike.AerospikeExpiredDocumentsCleaner;
+import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -28,6 +32,9 @@ import java.util.List;
 @EnableTransactionManagement
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
+    @Value("${spring.data.aerospike.namespace}")
+    protected String namespace;
+
     @Override
     protected List<Object> customConverters() {
         return List.of(
@@ -48,12 +55,23 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         return clientPolicy;
     }
 
+
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike,
+                                                                 ObjectProvider<GenericContainer<?>> containerObjectProvider,
                                                                  ServerVersionSupport serverVersionSupport) {
-        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
+        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, container,
             serverVersionSupport);
+    }
+
+    @Bean
+    public AerospikeTestOperations aerospikeTestOperations(ObjectProvider<GenericContainer<?>> containerObjectProvider, IAerospikeClient client) {
+        GenericContainer<?> container = containerObjectProvider.getIfAvailable();
+        return new AerospikeTestOperations(
+            new AerospikeExpiredDocumentsCleaner(client, namespace),
+            container
+        );
     }
 
     @Override

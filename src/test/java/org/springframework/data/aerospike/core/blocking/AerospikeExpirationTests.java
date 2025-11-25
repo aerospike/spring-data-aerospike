@@ -164,7 +164,6 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     @Test
     public void save_expiresDocumentWithVersion() {
         template.save(new DocumentWithExpirationOneDay(id));
-
         aerospikeTestOperations.addDuration(Duration.ofHours(24).plus(Duration.ofMinutes(1)));
 
         DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
