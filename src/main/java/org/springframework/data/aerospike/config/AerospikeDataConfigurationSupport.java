@@ -36,6 +36,7 @@ import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -72,16 +73,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.springframework.data.aerospike.util.Utils.setStringFromConfig;
+
 /**
  * @author Taras Danylchuk
  */
 @Slf4j
 @Configuration
-public abstract class AerospikeDataConfigurationSupport {
+public abstract class AerospikeDataConfigurationSupport implements EnvironmentAware {
 
     public static final String CONFIG_PREFIX = "spring";
     public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data.aerospike";
     public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".aerospike";
+
+    protected Environment environment;
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
     @Bean(name = "aerospikeQueryContextBuilder")
     public QueryContextBuilder queryContextBuilder(IndexesCache indexesCache) {
@@ -293,6 +303,10 @@ public abstract class AerospikeDataConfigurationSupport {
         clientPolicy.queryPolicyDefault.sendKey = sendKey;
         clientPolicy.scanPolicyDefault.sendKey = sendKey;
         clientPolicy.eventLoops = eventLoops();
+
+        setStringFromConfig(clientPolicy::setUser, environment, CONFIG_PREFIX_CONNECTION, "user");
+        setStringFromConfig(clientPolicy::setPassword, environment, CONFIG_PREFIX_CONNECTION, "password");
+
         return clientPolicy;
     }
 
