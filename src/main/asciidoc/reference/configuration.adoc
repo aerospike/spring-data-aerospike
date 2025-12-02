@@ -19,6 +19,9 @@ Here is an example of this approach:
 ----
 # Aerospike
 spring.aerospike.hosts=localhost:3000
+### Auth (if required)
+# spring.aerospike.user=user
+# spring.aerospike.password=password
 spring.data.aerospike.namespace=test
 spring.data.aerospike.scans-enabled=false
 spring.data.aerospike.send-key=true
@@ -128,6 +131,37 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 *Default:* `localhost:3000`.
 
+[[configuration.user]]
+=== user
+----
+# application.properties
+spring.aerospike.user=user
+----
+
+Specifies the username used to authenticate against the Aerospike database cluster.
+This property is optional and only required when connecting to Aerospike deployments that enforce access control.
+If the cluster is running without authentication enabled, this property can be omitted.
+
+NOTE: Another way of defining username is overriding the `gatClientPolicy()` method.
+It has precedence over `user` parameter from application.properties.
+
+See <<configuration.client-policy>> for more details.
+
+[[configuration.password]]
+=== password
+----
+# application.properties
+spring.aerospike.password=password
+----
+
+Defines the password associated with the configured Aerospike user.
+Like the username, this property is optional and only needed when the Aerospike cluster requires authentication.
+
+NOTE: Another way of defining password is overriding the `getClientPolicy()` method.
+It has precedence over `user` parameter from application.properties.
+
+See <<configuration.client-policy>> for more details.
+
 [[configuration.namespace]]
 === namespace
 
@@ -139,7 +173,7 @@ spring.data.aerospike.namespace=test
 
 Aerospike DB namespace.
 
-NOTE: Another way of defining hosts is overriding the `nameSpace()` method.
+NOTE: Another way of defining namespace is overriding the `nameSpace()` method.
 It has precedence over `namespace` parameter from application.properties.
 Here is an example:
 
@@ -481,6 +515,9 @@ public class MyConfiguration extends AbstractAerospikeDataConfiguration {
         clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
         clientPolicy.infoPolicyDefault.timeout = totalTimeout;
         clientPolicy.readPolicyDefault.maxRetries = 3;
+        // optionally set user authentication properties
+        // clientPolicy.setUser("user");
+        // clientPolicy.setPassword("password");
         return clientPolicy;
     }
 }

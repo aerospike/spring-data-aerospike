@@ -37,14 +37,9 @@ public class AerospikeConnectionSettings {
     // Storing hosts
     Host[] hostsArray;
 
-    String user;
-    String password;
-
     public AerospikeConnectionSettings(Environment environment) {
         if (environment != null) {
             setStringFromConfig(this::setHosts, environment, CONFIG_PREFIX_CONNECTION, "hosts");
-            setStringFromConfig(this::setUser, environment, CONFIG_PREFIX_CONNECTION, "user");
-            setStringFromConfig(this::setPassword, environment, CONFIG_PREFIX_CONNECTION, "password");
         }
     }
 }

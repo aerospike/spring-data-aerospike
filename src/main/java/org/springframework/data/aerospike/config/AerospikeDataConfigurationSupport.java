@@ -73,6 +73,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.springframework.data.aerospike.util.Utils.setStringFromConfig;
+
 /**
  * @author Taras Danylchuk
  */
@@ -302,9 +304,9 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
         clientPolicy.scanPolicyDefault.sendKey = sendKey;
         clientPolicy.eventLoops = eventLoops();
 
-        AerospikeConnectionSettings aerospikeConnectionSettings = readAerospikeSettings(this.environment);
-        clientPolicy.setUser(aerospikeConnectionSettings.getUser());
-        clientPolicy.setPassword(aerospikeConnectionSettings.getPassword());
+        setStringFromConfig(clientPolicy::setUser, environment, CONFIG_PREFIX_CONNECTION, "user");
+        setStringFromConfig(clientPolicy::setPassword, environment, CONFIG_PREFIX_CONNECTION, "password");
+
         return clientPolicy;
     }
 
