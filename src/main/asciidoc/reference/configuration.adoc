@@ -158,7 +158,7 @@ Defines the password associated with the configured Aerospike user.
 Like the username, this property is optional and only needed when the Aerospike cluster requires authentication.
 
 NOTE: Another way of defining password is overriding the `getClientPolicy()` method.
-It has precedence over `user` parameter from application.properties.
+It has precedence over `password` parameter from application.properties.
 
 See <<configuration.client-policy>> for more details.
 
