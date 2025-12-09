@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DSL_EXPR_INDEX_TO_USE;
 
 /**
  * Generic Bin qualifier. It acts as a filter to exclude records that do not meet the given criteria.
@@ -220,6 +221,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (String) internalMap.get(DSL_EXPR_STRING);
     }
 
+    public String getDslExprIndexToUse() {
+        return (String) internalMap.get(DSL_EXPR_INDEX_TO_USE);
+    }
+
     public Object[] getDslExprValues() {
         return (Object[]) internalMap.get(DSL_EXPR_VALUES);
     }
@@ -306,8 +311,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         if (getMetadataField() != null) {
             field = getMetadataField().toString();
         }
-        if (getDslExprString() != null) {
+        if (hasDslExprString()) {
             field = getDslExprString();
+        }
+        if (getDslExprIndexToUse() != null) {
+            field += ", indexToUse=%s".formatted(getDslExprIndexToUse());
         }
         return String.format("%s:%s:%s:%s:%s", field, getOperation(), getKey(), getValue(), getSecondValue());
     }
@@ -513,7 +521,6 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
      */
     public static Qualifier and(Qualifier... qualifiers) {
         checkForNonDslQualifiers(qualifiers);
-
         return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(qualifiers));

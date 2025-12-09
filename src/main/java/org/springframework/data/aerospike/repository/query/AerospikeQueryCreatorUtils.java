@@ -7,6 +7,7 @@ import com.aerospike.dsl.IndexContext;
 import com.aerospike.dsl.ParsedExpression;
 import com.aerospike.dsl.PlaceholderValues;
 import com.aerospike.dsl.api.DSLParser;
+import com.aerospike.dsl.client.query.IndexType;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -257,6 +258,7 @@ public class AerospikeQueryCreatorUtils {
         if ((op == FilterOperation.IN || op == FilterOperation.NOT_IN)
             && queryParameters.size() == 1
             && queryParameters.get(0) instanceof Collection<?>) {
+            //noinspection unchecked
             params = ((Collection<Object>) queryParameters.get(0)).stream();
         }
 
@@ -321,17 +323,23 @@ public class AerospikeQueryCreatorUtils {
         return false;
     }
 
+    private static boolean areNamesEqual(com.aerospike.dsl.Index idx, String indexToUse) {
+        return idx != null && idx.getName() != null && idx.getName().equals(indexToUse);
+    }
+
     /**
      * Parse DSL expression by providing DSL string, existing indexes and placeholder values to {@link DSLParser}
      *
-     * @param dslExpression DSL string to use
-     * @param namespace Namespace to use
-     * @param indexCache Cache of existing secondary indexes
-     * @param parameters Values to replace DSL expression placeholders with
-     * @param dslParser {@link DSLParser} instance
+     * @param dslExpression             DSL string to use
+     * @param namespace                 Namespace to use
+     * @param indexToUse                Explicitly given secondary index name
+     * @param indexCache                Cache of existing secondary indexes
+     * @param parameters                Values to replace DSL expression placeholders with
+     * @param dslParser                 {@link DSLParser} instance
      * @return {@link ParsedExpression}
      */
     public static ParsedExpression parseDslExpression(String dslExpression, String namespace,
+                                                      String indexToUse,
                                                       Map<IndexKey, Index> indexCache, Object[] parameters,
                                                       DSLParser dslParser) {
         // Map cached indexes to DSLParser input
@@ -340,14 +348,18 @@ public class AerospikeQueryCreatorUtils {
                     .name(value.getName())
                     .namespace(value.getNamespace())
                     .bin(value.getBin())
-                    .indexType(value.getIndexType())
+                    .indexType(value.getIndexType() == null ? null : IndexType.valueOf(value.getIndexType().name()))
                     .binValuesRatio(value.getBinValuesRatio())
                     .build())
             .toList();
+
+        // Use explicitly given secondary index if it is provided
+        List<com.aerospike.dsl.Index> singleIndexList = indexes.stream().filter(idx -> areNamesEqual(idx, indexToUse)).toList();
+
         // Parse the given expression
         return dslParser.parseExpression(
             ExpressionContext.of(dslExpression, PlaceholderValues.of(parameters)),
-            indexes.isEmpty() ? null : IndexContext.of(namespace, indexes)
+            indexes.isEmpty() ? null : IndexContext.of(namespace, singleIndexList.isEmpty() ? indexes : singleIndexList)
         );
     }
 }

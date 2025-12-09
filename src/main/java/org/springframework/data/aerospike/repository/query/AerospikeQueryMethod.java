@@ -47,7 +47,7 @@ public class AerospikeQueryMethod extends QueryMethod {
     }
 
     /**
-     * Returns the DSL expression string declared in the {@link org.springframework.data.aerospike.annotation.Query}
+     * Returns the DSL expression string declared in the {@link Query}
      * annotation or {@literal null}.
      */
     @Nullable
@@ -63,5 +63,20 @@ public class AerospikeQueryMethod extends QueryMethod {
 
     Optional<Query> lookupQueryAnnotation() {
         return lookupInAnnotationCache(Query.class);
+    }
+
+    /**
+     * Returns the specified name of secondary index to use declared in the {@link Query}
+     * annotation or {@literal null}.
+     */
+    @Nullable
+    String getQueryAnnotationIndexToUse() {
+        return findQueryAnnotationIndexToUse().orElse(null);
+    }
+
+    private Optional<String> findQueryAnnotationIndexToUse() {
+        return lookupQueryAnnotation() //
+            .map(Query::indexToUse) //
+            .filter(StringUtils::hasText);
     }
 }
