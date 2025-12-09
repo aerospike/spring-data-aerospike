@@ -545,9 +545,11 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         try {
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
 
-            assertThat(it).toIterable().isNotEmpty()
-                .allSatisfy(rec -> assertTrue(
-                    rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN)));
+            assertThat(it).toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec ->
+                    assertTrue(rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN))
+                );
         } finally {
             tryDropIndex(INDEXED_SET_NAME, "age_index");
             tryDropIndex(INDEXED_SET_NAME, "color_index");
@@ -585,9 +587,11 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         try {
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
 
-            assertThat(it).toIterable().isNotEmpty()
-                .allSatisfy(rec -> assertTrue(
-                    rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN)));
+            assertThat(it).toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec ->
+                    assertTrue(rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN))
+                );
         } finally {
             tryDropIndex(INDEXED_SET_NAME, "age_index");
             tryDropIndex(INDEXED_SET_NAME, "color_index");
