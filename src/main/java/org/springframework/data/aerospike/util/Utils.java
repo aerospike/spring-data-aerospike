@@ -23,6 +23,9 @@ import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
+
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
@@ -180,7 +183,7 @@ public class Utils {
         FilterOperation operation = qualifier.getOperation();
         String strOperation = (operation != null && hasLength(operation.toString()) ? operation.toString() : "N/A");
 
-        String values = "";
+        String values;
         String value = valueToString(qualifier.getValue());
         String value2 = valueToString(qualifier.getSecondValue());
         values = hasLength(value) ? String.format(", value = %s", value) : "";
@@ -320,5 +323,271 @@ public class Utils {
                                         String propertyName) {
         String value = getProperty(environment, prefix, propertyName);
         if (value != null) setter.accept(Integer.parseInt(value));
+    }
+    /**
+     * Converts a DSL {@link com.aerospike.dsl.client.query.Filter} to an Aerospike client {@link Filter} based on the type.
+     * Supported filter types:
+     * <ul>
+     *   <li>Equal</li>
+     *   <li>Equal by index</li>
+     *   <li>Contains</li>
+     *   <li>Contains by index</li>
+     *   <li>Range</li>
+     *   <li>Range by index</li>
+     *   <li>Geo contains</li>
+     *   <li>Geo contains by index</li>
+     * </ul>
+     *
+     * @param filter the DSL filter to convert, may be null
+     * @return the converted Aerospike Filter, or null if input is null
+     * @throws UnsupportedOperationException if the filter type is not supported
+     */
+    public static Filter getNewFilter(com.aerospike.dsl.client.query.Filter filter) {
+        return filter == null
+            ? null
+            : switch (filter.getFilterType()) {
+            case EQ -> getNewEqualsFilter(filter);
+            case EQ_BY_INDEX -> getNewEqualsByIdxFilter(filter);
+            case CONTAINS -> getNewContainsFilter(filter);
+            case CONTAINS_BY_INDEX -> getNewContainsByIdxFilter(filter);
+            case RANGE -> getNewRangeFilter(filter);
+            case RANGE_BY_INDEX -> getNewRangeByIdxFilter(filter);
+            case GEO_CONTAINS -> getGeoContainsFilter(filter);
+            case GEO_CONTAINS_BY_INDEX -> getGeoContainsByIdxFilter(filter);
+            // Not supported yet: GEO_WITHIN_REGION, GEO_WITHIN_REGION_BY_INDEX,
+            //                    GEO_WITHIN_RADIUS, GEO_WITHIN_RADIUS_BY_INDEX
+            default -> throw new UnsupportedOperationException("Unsupported Filter type: " + filter.getFilterType());
+        };
+    }
+
+    /**
+     * Creates an equality filter for the specified bin name and value.
+     * Supports BLOB, STRING, and INTEGER particle types.
+     *
+     * @param filter the DSL filter containing filter parameters
+     * @return an Aerospike equality Filter
+     * @throws IllegalStateException if the particle type is not supported
+     */
+    private static Filter getNewEqualsFilter(com.aerospike.dsl.client.query.Filter filter) {
+        String name = filter.getName();
+        CTX[] ctx = getCtxOrNull(filter);
+
+        return switch (filter.getValType()) {
+            case ParticleType.BLOB -> Filter.equal(
+                name,
+                (byte[]) filter.getBegin().getObject(),
+                ctx
+            );
+            case ParticleType.STRING -> Filter.equal(
+                name,
+                (String) filter.getBegin().getObject(),
+                ctx
+            );
+            case ParticleType.INTEGER -> Filter.equal(
+                name,
+                (Long) filter.getBegin().getObject(),
+                ctx
+            );
+            default -> throw new IllegalStateException("Unexpected value: " + filter.getValType());
+        };
+    }
+
+    /**
+     * Creates an equality filter using a secondary index.
+     * Supports BLOB, STRING, and INTEGER particle types.
+     *
+     * @param filter the DSL filter containing filter parameters
+     * @return an Aerospike equality Filter using the specified index
+     * @throws IllegalStateException if the particle type is not supported
+     */
+    private static Filter getNewEqualsByIdxFilter(com.aerospike.dsl.client.query.Filter filter) {
+        String indexName = filter.getIndexName();
+
+        return switch (filter.getValType()) {
+            case ParticleType.BLOB -> Filter.equalByIndex(
+                indexName,
+                (byte[]) filter.getBegin().getObject()
+            );
+            case ParticleType.STRING -> Filter.equalByIndex(
+                indexName,
+                (String) filter.getBegin().getObject()
+            );
+            case ParticleType.INTEGER -> Filter.equalByIndex(
+                indexName,
+                (Long) filter.getBegin().getObject()
+            );
+            default -> throw new IllegalStateException("Unexpected value: " + filter.getValType());
+        };
+    }
+
+    /**
+     * Creates a contains filter for collection data types (List/Map).
+     * Supports BLOB, STRING, and INTEGER particle types.
+     *
+     * @param filter the DSL filter containing filter parameters
+     * @return an Aerospike contains Filter
+     * @throws IllegalStateException if the particle type is not supported
+     */
+    private static Filter getNewContainsFilter(com.aerospike.dsl.client.query.Filter filter) {
+        String name = filter.getName();
+        IndexCollectionType collType = getCollectionTypeOrNull(filter);
+        CTX[] ctx = getCtxOrNull(filter);
+
+        return switch (filter.getValType()) {
+            case ParticleType.BLOB -> Filter.contains(
+                name,
+                collType,
+                (byte[]) filter.getBegin().getObject(),
+                ctx
+            );
+            case ParticleType.STRING -> Filter.contains(
+                name,
+                collType,
+                (String) filter.getBegin().getObject(),
+                ctx
+            );
+            case ParticleType.INTEGER -> Filter.contains(
+                name,
+                collType,
+                (Long) filter.getBegin().getObject(),
+                ctx
+            );
+            default -> throw new IllegalStateException("Unexpected value: " + filter.getValType());
+        };
+    }
+
+    /**
+     * Creates a contains filter using a secondary index for collection data types.
+     * Supports BLOB, STRING, and INTEGER particle types.
+     *
+     * @param filter the DSL filter containing filter parameters
+     * @return an Aerospike contains Filter using the specified index
+     * @throws IllegalStateException if the particle type is not supported
+     */
+    private static Filter getNewContainsByIdxFilter(com.aerospike.dsl.client.query.Filter filter) {
+        String indexName = filter.getIndexName();
+        IndexCollectionType collType = getCollectionTypeOrNull(filter);
+
+        return switch (filter.getValType()) {
+            case ParticleType.BLOB -> Filter.containsByIndex(
+                indexName,
+                collType,
+                (byte[]) filter.getBegin().getObject()
+            );
+            case ParticleType.STRING -> Filter.containsByIndex(
+                indexName,
+                collType,
+                (String) filter.getBegin().getObject()
+            );
+            case ParticleType.INTEGER -> Filter.containsByIndex(
+                indexName,
+                collType,
+                (Long) filter.getBegin().getObject()
+            );
+            default -> throw new IllegalStateException("Unexpected value: " + filter.getValType());
+        };
+    }
+
+    /**
+     * Creates a range filter for numeric values.
+     * Only supports INTEGER particle type.
+     *
+     * @param filter the DSL filter containing filter parameters with begin and end values
+     * @return an Aerospike range Filter
+     * @throws IllegalStateException if the particle type is not INTEGER
+     */
+    private static Filter getNewRangeFilter(com.aerospike.dsl.client.query.Filter filter) {
+        if (filter.getValType() == INTEGER) {
+            return Filter.range(
+                filter.getName(),
+                getCollectionTypeOrNull(filter),
+                (Long) filter.getBegin().getObject(),
+                (Long) filter.getEnd().getObject(),
+                getCtxOrNull(filter)
+            );
+        }
+        throw new IllegalStateException("Unexpected value: " + filter.getValType());
+    }
+
+    /**
+     * Creates a range filter using a secondary index for numeric values.
+     *
+     * @param filter the DSL filter containing filter parameters with begin and end values
+     * @return an Aerospike range Filter using the specified index
+     * @throws IllegalStateException if the particle type is not INTEGER
+     */
+    private static Filter getNewRangeByIdxFilter(com.aerospike.dsl.client.query.Filter filter) {
+        if (filter.getValType() == INTEGER) {
+            return Filter.rangeByIndex(
+                filter.getIndexName(),
+                getCollectionTypeOrNull(filter),
+                (Long) filter.getBegin().getObject(),
+                (Long) filter.getEnd().getObject()
+            );
+        }
+        throw new IllegalStateException("Unexpected value: " + filter.getValType());
+    }
+
+    /**
+     * Creates a geospatial contains filter.
+     * Only supports STRING particle type containing GeoJSON region data.
+     *
+     * @param filter the DSL filter containing GeoJSON region as a string
+     * @return an Aerospike geospatial contains Filter
+     * @throws IllegalStateException if the particle type is not STRING
+     */
+    private static Filter getGeoContainsFilter(com.aerospike.dsl.client.query.Filter filter) {
+        if (filter.getValType() == ParticleType.STRING) {
+            return Filter.geoContains(
+                filter.getName(),
+                getCollectionTypeOrNull(filter),
+                (String) filter.getBegin().getObject(),
+                getCtxOrNull(filter)
+            );
+        }
+        throw new IllegalStateException("Unexpected value: " + filter.getValType());
+    }
+
+    /**
+     * Creates a geospatial contains filter using a secondary index.
+     * Only supports STRING particle type containing GeoJSON region data.
+     *
+     * @param filter the DSL filter containing GeoJSON region as a string
+     * @return an Aerospike geospatial contains Filter using the specified index
+     * @throws IllegalStateException if the particle type is not STRING
+     */
+    private static Filter getGeoContainsByIdxFilter(com.aerospike.dsl.client.query.Filter filter) {
+        if (filter.getValType() == ParticleType.STRING) {
+            return Filter.geoContainsByIndex(
+                filter.getIndexName(),
+                getCollectionTypeOrNull(filter),
+                (String) filter.getBegin().getObject()
+            );
+        }
+        throw new IllegalStateException("Unexpected value: " + filter.getValType());
+    }
+
+    /**
+     * Extracts and converts the context (CTX array) from the filter, if present.
+     * The context is used for nested CDT operations.
+     *
+     * @param filter the DSL filter containing optional packed context bytes
+     * @return the converted CTX array, or null if no context is present
+     */
+    private static CTX[] getCtxOrNull(com.aerospike.dsl.client.query.Filter filter) {
+        byte[] packed = filter.getPackedCtx();
+        return packed == null ? null : CTX.fromBytes(packed);
+    }
+
+    /**
+     * Extracts and converts the collection type from the filter, if present.
+     * Converts the DSL collection type to Aerospike's IndexCollectionType enum.
+     *
+     * @param filter the DSL filter containing optional collection type
+     * @return the converted IndexCollectionType, or null if no collection type is present
+     */
+    private static IndexCollectionType getCollectionTypeOrNull(com.aerospike.dsl.client.query.Filter filter) {
+        var collectionType = filter.getCollectionType();
+        return collectionType == null ? null : IndexCollectionType.valueOf(collectionType.name());
     }
 }

@@ -18,6 +18,7 @@ public enum QualifierKey {
     FILTER_EXPRESSION,
     SINDEX_FILTER,
     DSL_EXPR_STRING,
+    DSL_EXPR_INDEX_TO_USE,
     DSL_EXPR_VALUES,
     KEY,
     NESTED_KEY,

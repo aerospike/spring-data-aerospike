@@ -40,7 +40,8 @@ public interface PersonQueryAnnotationRepository<P extends Person> extends Aeros
     @Query(expression = "$.firstName == ?0")
     List<P> findByFirstNameIgnoreCase(String name);
 
-    @Query(expression = "$.age > ?0")
+    // Secondary index name can be selected manually
+    @Query(expression = "$.age > ?0", indexToUse = "age_index")
     List<P> findByAgeGreaterThan(int age);
 
     @Query(expression = "$.isActive.get(type: BOOL) == ?0")

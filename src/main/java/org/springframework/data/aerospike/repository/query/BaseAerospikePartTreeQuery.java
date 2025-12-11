@@ -15,10 +15,11 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import com.aerospike.dsl.ParsedExpression;
 import com.aerospike.dsl.api.DSLParser;
+import com.aerospike.dsl.client.exp.Exp;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -46,6 +47,7 @@ import java.util.Map;
 
 import static org.springframework.data.aerospike.core.QualifierUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.parseDslExpression;
+import static org.springframework.data.aerospike.util.Utils.getNewFilter;
 
 /**
  * @author Peter Milne
@@ -256,15 +258,19 @@ public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
 
         // Parse the given expression
         ParsedExpression expr =
-            parseDslExpression(queryMethod.getQueryAnnotation(), namespace, indexCache, parameters, dslParser);
+            parseDslExpression(queryMethod.getQueryAnnotation(), namespace, queryMethod.getQueryAnnotationIndexToUse(),
+                indexCache, parameters, dslParser);
 
         // Create the query
-        Filter filter = expr.getResult().getFilter();
-        Exp exp = expr.getResult().getExp();
+        Filter filter = getNewFilter(expr.getResult().getFilter());
+        Exp dslExp = expr.getResult().getExp();
+        Expression expression = dslExp == null
+            ? null
+            : Expression.fromBase64(com.aerospike.dsl.client.exp.Exp.build(dslExp).getBase64());
         Query query = new Query(
             Qualifier.filterBuilder()
                 .setFilter(filter)
-                .setExpression(exp == null ? null : Exp.build(exp))
+                .setExpression(expression)
                 .build()
         );
         return findByQuery(query, targetClass);

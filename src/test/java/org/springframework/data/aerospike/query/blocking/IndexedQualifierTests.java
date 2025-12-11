@@ -395,6 +395,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         Query query = new Query(colorAndAge);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+        // An index for a non-existing bin
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "some_bin_index", "some_bin", IndexType.STRING);
 
         // Assert that the query has both a secondary index Filter and a filtering Expression
         assertQueryHasSecIndexFilter(query, KeyRecord.class);
@@ -422,6 +424,95 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         } finally {
             tryDropIndex(INDEXED_SET_NAME, "age_index");
             tryDropIndex(INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "some_bin_index");
+        }
+    }
+
+    @Test
+    void selectOnIndexedAndQualifier_withTwoIndexes_usingDslExpression_selectingIndexToUse() {
+        // Combining in one DSL expression
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .setDSLExpressionIndexToUse("color_index")
+            .build();
+
+        Query query = new Query(colorAndAge);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+        // An index for a non-existing bin
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "some_bin_index", "some_bin", IndexType.STRING);
+
+        // Assert that the query has both a secondary index Filter and a filtering Expression
+        assertQueryHasSecIndexFilter(query, KeyRecord.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.and(
+                Exp.ge(Exp.bin("age", Exp.Type.INT), Exp.val(28)),
+                Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(29))
+            )
+        ));
+
+        // The index for building a Filter is manually chosen in this case
+        assertThat(getQuerySecIndexFilter(query, KeyRecord.class))
+            .isEqualTo(Filter.equal("color", GREEN));
+
+        try {
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable().isNotEmpty()
+                .allSatisfy(rec -> {
+                    assertThat(rec.record.getInt("age")).isBetween(28, 29);
+                    assertThat(rec.record.getString("color")).isEqualTo(GREEN);
+                });
+        } finally {
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "some_bin_index");
+        }
+    }
+
+    @Test
+    void selectOnIndexedAndQualifier_withTwoIndexes_usingDslExpression_selectingNonExistingIndexToUse() {
+        // Combining in one DSL expression
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' and $.age >= 28 and $.age < 29")
+            .setDSLExpressionIndexToUse("color_index2") // There is no such index in cache
+            .build();
+
+        Query query = new Query(colorAndAge);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+        // An index for a non-existing bin
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "some_bin_index", "some_bin", IndexType.STRING);
+
+        // Assert that the query has both a secondary index Filter and a filtering Expression
+        assertQueryHasSecIndexFilter(query, KeyRecord.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.and(
+                Exp.eq(Exp.bin("color", Exp.Type.STRING), Exp.val(GREEN)),
+                Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(29))
+            )
+        ));
+
+        // When there are multiple indexes available for bins in a complex DSL expression query, the index
+        // for secondary index Filter is chosen by cardinality (preferring indexes with a higher `binValuesRatio`).
+        // If cardinality of indexes is the same, then one is chosen based on alphabetical order (like in this test)
+        assertThat(getQuerySecIndexFilter(query, KeyRecord.class))
+            .isEqualTo(Filter.range("age", 28, Long.MAX_VALUE));
+
+        try {
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable().isNotEmpty()
+                .allSatisfy(rec -> {
+                    assertThat(rec.record.getInt("age")).isBetween(28, 29);
+                    assertThat(rec.record.getString("color")).isEqualTo(GREEN);
+                });
+        } finally {
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "some_bin_index");
         }
     }
 
@@ -436,6 +527,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         Query query = new Query(colorAndAge);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+        // An index for a non-existing bin
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "some_bin_index", "some_bin", IndexType.STRING);
 
         // Assert that the query has only filtering Expression and no secondary index Filter due to being an OR query
         assertQueryHasNoSecIndexFilter(query, KeyRecord.class);
@@ -452,14 +545,57 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         try {
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
 
-            assertThat(it).toIterable().isNotEmpty()
-                .allSatisfy(rec -> {
-                    assertTrue(
-                        rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN));
-                });
+            assertThat(it).toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec ->
+                    assertTrue(rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN))
+                );
         } finally {
             tryDropIndex(INDEXED_SET_NAME, "age_index");
             tryDropIndex(INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "some_bin_index");
+        }
+    }
+
+    @Test
+    void selectOnIndexedOrQualifier_withTwoIndexes_usingDslExpression_selectingIndexToUse() {
+        // Combining in one DSL expression
+        Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
+            // Using a static DSL expression with fixed values
+            .setDSLExpressionString("$.color == '" + GREEN + "' or ($.age >= 28 and $.age < 29)")
+            .setDSLExpressionIndexToUse("color_index")
+            .build();
+
+        Query query = new Query(colorAndAge);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
+        // An index for a non-existing bin
+        tryCreateIndex(namespace, INDEXED_SET_NAME, "some_bin_index", "some_bin", IndexType.STRING);
+
+        // Assert that the query has only filtering Expression and no secondary index Filter due to being an OR query
+        assertQueryHasNoSecIndexFilter(query, KeyRecord.class);
+        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
+            Exp.or(
+                Exp.eq(Exp.bin("color", Exp.Type.STRING), Exp.val(GREEN)),
+                Exp.and(
+                    Exp.ge(Exp.bin("age", Exp.Type.INT), Exp.val(28)),
+                    Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(29))
+                )
+            )
+        ));
+
+        try {
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, query);
+
+            assertThat(it).toIterable()
+                .isNotEmpty()
+                .allSatisfy(rec ->
+                    assertTrue(rec.record.getInt("age") == 28 || rec.record.getString("color").equals(GREEN))
+                );
+        } finally {
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "some_bin_index");
         }
     }
 }

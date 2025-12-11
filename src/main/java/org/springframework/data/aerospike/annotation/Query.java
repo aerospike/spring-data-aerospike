@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.annotation;
 
+import com.aerospike.client.query.Filter;
 import com.aerospike.dsl.api.DSLParser;
 import org.springframework.data.annotation.QueryAnnotation;
 
@@ -22,9 +23,17 @@ import java.lang.annotation.Target;
 public @interface Query {
 
     /**
-     * Use expression DSL to define the query taking precedence over method name
+     * DSL expression to define the query. If used on repository query method name, it takes precedence over it.
+     * A mandatory parameter
+     */
+    String expression();
+
+    /**
+     * The name of secondary index to use for building {@link Filter}.
+     * If the index with the specified name is not found in cache, selecting is done the regular way
+     * (cardinality-based or alphabetically)
      *
      * @return empty {@link String} by default.
      */
-    String expression();
+    String indexToUse() default "";
 }

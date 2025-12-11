@@ -18,9 +18,9 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.QueryPolicy;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.dsl.ParsedExpression;
@@ -45,6 +45,7 @@ import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
 import static com.aerospike.client.ResultCode.INDEX_NOTREADABLE;
 import static com.aerospike.client.ResultCode.INDEX_OOM;
 import static org.springframework.data.aerospike.query.QualifierUtils.isQueryCriteriaNotNull;
+import static org.springframework.data.aerospike.util.Utils.getNewFilter;
 
 /**
  * This class provides a multi-filter query engine that augments the query capability in Aerospike.
@@ -157,11 +158,18 @@ public class QueryEngine {
         if (qualifier != null && qualifier.hasDslExprString()) {
             // Parse DSL expression
             ParsedExpression parsedExpr = AerospikeQueryCreatorUtils.parseDslExpression(qualifier.getDslExprString(),
-                namespace, indexesCacheHolder.getAllIndexes(), qualifier.getDslExprValues(), dslParser);
+                namespace, qualifier.getDslExprIndexToUse(), indexesCacheHolder.getAllIndexes(),
+                qualifier.getDslExprValues(), dslParser);
+
             // Update query context
-            queryContext.statement().setFilter(parsedExpr.getResult().getFilter());
-            Exp exp = parsedExpr.getResult().getExp();
-            qualifier.setFilterExpression(exp == null ? null : Exp.build(exp));
+            Filter filter = getNewFilter(parsedExpr.getResult().getFilter());
+            com.aerospike.dsl.client.exp.Exp dslExp = parsedExpr.getResult().getExp();
+            Expression expression = dslExp == null
+                ? null
+                : Expression.fromBase64(com.aerospike.dsl.client.exp.Exp.build(dslExp).getBase64());
+
+            queryContext.statement().setFilter(filter);
+            qualifier.setFilterExpression(expression);
         }
     }
 
