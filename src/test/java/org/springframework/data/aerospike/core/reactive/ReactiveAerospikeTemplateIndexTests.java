@@ -187,7 +187,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
             Expression filterExp = Exp.build(
                 Exp.cond(
                     Exp.and(
-                        Exp.ge(// Is the age 18 or older?
+                        Exp.ge( // Is the age 18 or older?
                             Exp.intBin("age"),
                             Exp.val(18)
                         ),
