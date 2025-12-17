@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -1248,6 +1249,18 @@ public interface ReactiveAerospikeOperations {
      */
     Mono<Void> createIndex(String setName, String indexName, String binName,
                            IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+
+    /**
+     * Reactively create an index with the specified name in Aerospike using an expression to build the index on.
+     *
+     * @param setName             Set name to use.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param expression          Expression to build the index on.
+     */
+    Mono<Void> createIndex(String setName, String indexName, IndexType indexType,
+                           IndexCollectionType indexCollectionType, Expression expression);
 
     /**
      * Reactively delete an index with the specified name in Aerospike.

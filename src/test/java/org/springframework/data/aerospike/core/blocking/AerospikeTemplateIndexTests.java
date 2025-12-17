@@ -1,6 +1,10 @@
 package org.springframework.data.aerospike.core.blocking;
 
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.cdt.ListReturnType;
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Value;
@@ -229,6 +233,43 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
                         ctxResponse[1].value.toLong());
                 }
             );
+        }
+    }
+
+    @Test
+    public void createIndexWithExpression_createsIndex() {
+        if (serverVersionSupport.isServerVersionGtOrEq8_1()) {
+            // Build an expression that indexes age only for adults with expected names that are 18 or older
+            Expression filterExp = Exp.build(
+                Exp.cond(
+                    Exp.and(
+                        Exp.ge(// Is the age 18 or older?
+                            Exp.intBin("age"),
+                            Exp.val(18)
+                        ),
+                        ListExp.getByValue( // Do they have the expected names?
+                            ListReturnType.EXISTS,
+                            Exp.stringBin("firstName"),
+                            Exp.val(List.of("Jane", "Tricia", "Peter"))
+                        )
+                    ),
+                    Exp.intBin("age"), // If true, return the age of the customer to be indexed
+                    Exp.unknown() // returns "unknown" to exclude the record from the index
+                )
+            );
+            String indexName = "idx_selected_names_above_18";
+            template.createIndex(SET_NAME, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExp);
+            assertThat(template.indexExists(indexName)).isTrue();
+
+            awaitTenSecondsUntil(() ->
+                assertThat(additionalAerospikeTestOperations.getIndexes(SET_NAME))
+                    .contains(Index.builder().name(indexName).namespace(namespace).set(SET_NAME)
+                        .bin("null")
+                        .indexType(IndexType.NUMERIC).build())
+            );
+
+            // Cleanup
+            template.deleteIndex(SET_NAME, indexName);
         }
     }
 

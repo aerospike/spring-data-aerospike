@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
@@ -1290,6 +1291,18 @@ public interface AerospikeOperations {
      */
     void createIndex(String setName, String indexName, String binName,
                      IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+
+    /**
+     * Create an index with the specified name in Aerospike using an expression to build the index on.
+     *
+     * @param setName             Set name to use.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param expression          Expression to build the index on.
+     */
+    void createIndex(String setName, String indexName, IndexType indexType, IndexCollectionType indexCollectionType,
+                     Expression expression);
 
     /**
      * Delete an index with the specified name in Aerospike.
