@@ -46,7 +46,9 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @AfterEach
     public void tearDown() {
-        aerospikeTestOperations.rollbackTime();
+        if (isAerospikeServerEmbedded()) {
+            aerospikeTestOperations.rollbackTime();
+        }
     }
 
     @Test
@@ -163,11 +165,13 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void save_expiresDocumentWithVersion() {
-        template.save(new DocumentWithExpirationOneDay(id));
-        aerospikeTestOperations.addDuration(Duration.ofHours(24).plus(Duration.ofMinutes(1)));
+        if (isAerospikeServerEmbedded()) {
+            template.save(new DocumentWithExpirationOneDay(id));
+            aerospikeTestOperations.addDuration(Duration.ofHours(24).plus(Duration.ofMinutes(1)));
 
-        DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
-        assertThat(document).isNull();
+            DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
+            assertThat(document).isNull();
+        }
     }
 
     @Test

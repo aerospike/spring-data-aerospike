@@ -86,7 +86,7 @@ public abstract class ReactiveIndexedPersonRepositoryQueryTests extends BaseReac
 
     @BeforeAll
     public void beforeAll() {
-        // reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
+        reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
         reactiveBlockingAerospikeTestOperations.saveAll(reactiveRepository, allIndexedPersons);
 
         try {
@@ -99,6 +99,7 @@ public abstract class ReactiveIndexedPersonRepositoryQueryTests extends BaseReac
     @AfterAll
     public void afterAll() {
         try {
+            reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
             additionalAerospikeTestOperations.dropIndexes(newIndexes());
         } catch (Exception e) {
             log.info("Dropping indexes failed due to: {}", e.getMessage());

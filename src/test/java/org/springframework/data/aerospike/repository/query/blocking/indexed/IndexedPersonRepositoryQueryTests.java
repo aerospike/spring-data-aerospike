@@ -76,7 +76,7 @@ public abstract class IndexedPersonRepositoryQueryTests extends BaseBlockingInte
 
     @BeforeAll
     public void beforeAll() {
-        //  additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
+        additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
         additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
 
         try {
@@ -94,6 +94,7 @@ public abstract class IndexedPersonRepositoryQueryTests extends BaseBlockingInte
     @AfterAll
     public void afterAll() {
         try {
+            additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
             additionalAerospikeTestOperations.dropIndexes(newIndexes());
         } catch (Exception e) {
             log.info("Dropping indexes failed due to: {}", e.getMessage());

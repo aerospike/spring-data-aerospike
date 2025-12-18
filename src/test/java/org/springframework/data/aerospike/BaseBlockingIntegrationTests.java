@@ -3,11 +3,11 @@ package org.springframework.data.aerospike;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
-import com.aerospike.client.query.Statement;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getBinNames;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getEntityClass;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasAssertBinsAreIndexedAnnotation;
@@ -53,6 +54,9 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 )
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {
+
+    @Value("${embedded.aerospike.enabled}")
+    private String isEmbeddedAerospike;
 
     @Autowired
     protected AerospikeTemplate template;
@@ -76,6 +80,11 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     @BeforeAll
     public void beforeTests() {
         template.refreshIndexesCache();
+    }
+
+    public boolean isAerospikeServerEmbedded() {
+        assertNotNull(isEmbeddedAerospike);
+        return Boolean.parseBoolean(isEmbeddedAerospike);
     }
 
     protected <T> void deleteOneByOne(Collection<T> collection) {

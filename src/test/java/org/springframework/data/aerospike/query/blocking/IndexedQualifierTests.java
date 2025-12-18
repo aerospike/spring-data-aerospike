@@ -22,6 +22,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -35,8 +36,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
@@ -55,12 +58,10 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @AfterEach
     public void assertNoScans() {
-        try {
-            additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
-        } catch (Exception e) {
-            AwaitilityUtils.wait(2000, MILLISECONDS);
-            additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
-        }
+        await()
+            .timeout(4, SECONDS)
+            .pollDelay(2, SECONDS)
+            .untilAsserted(() -> additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME));
     }
 
     @Test
