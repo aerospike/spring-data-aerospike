@@ -51,6 +51,7 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
+    @SuppressWarnings("rawtypes")
     private final IndexesCacheRefresher indexesRefresher;
     private final GenericContainer<?> aerospike;
 
@@ -73,11 +74,10 @@ public abstract class AdditionalAerospikeTestOperations {
             throw new UnsupportedOperationException("Minimal supported Aerospike Server version is 6.1");
         }
         // info command sent directly to the server
-        Node firstNode = client.getNodes()[0]; // pick first node
-        int port = client.getNodes()[0].getHost().port;
+        Node node = client.getCluster().getRandomNode(); // pick a random node
         String response = serverVersionSupport.isServerVersionGtOrEq8_1()
-            ? Info.request(firstNode, "query-show")
-            : Info.request(firstNode.getHost().name, port, "query-show");
+            ? Info.request(node, "query-show")
+            : Info.request(node.getHost().name, node.getHost().port, "query-show");
         return getScanJobs(response);
     }
 
@@ -177,7 +177,7 @@ public abstract class AdditionalAerospikeTestOperations {
         );
     }
 
-    public <T> void dropIndex(String setName, String indexName) {
+    public void dropIndex(String setName, String indexName) {
         IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), setName, indexName);
         indexesRefresher.refreshIndexesCache();
     }

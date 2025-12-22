@@ -297,7 +297,6 @@ public final class BatchUtils {
      */
     private static void deleteAndHandleErrors(TemplateContext templateContext, Key[] keys, boolean skipNonExisting) {
         IAerospikeClient client = templateContext.client;
-        AerospikeExceptionTranslator exceptionTranslator = templateContext.exceptionTranslator;
         BatchResults results;
         try {
             BatchPolicy batchPolicy =
@@ -306,7 +305,7 @@ public final class BatchUtils {
             batchDeletePolicy.durableDelete = templateContext.batchWritePolicyDefault.durableDelete;
             results = client.delete(batchPolicy, batchDeletePolicy, keys);
         } catch (AerospikeException e) {
-            throw ExceptionUtils.translateError(e, exceptionTranslator);
+            throw ExceptionUtils.translateError(e, templateContext.exceptionTranslator);
         }
 
         if (results.records == null) {
