@@ -29,6 +29,7 @@ import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
 import com.aerospike.dsl.api.DSLParser;
+import com.aerospike.dsl.client.exp.Exp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -69,6 +70,7 @@ import static org.springframework.data.aerospike.core.TemplateUtils.operations;
 import static org.springframework.data.aerospike.core.ValidationUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.MappingUtils.mapToEntity;
 import static org.springframework.data.aerospike.core.TemplateUtils.*;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.parseDslExpression;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -835,6 +837,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
+        if (queryHasServerVersionSupport(query)) {
+            query.getCriteriaObject().setServerVersionSupport(getServerVersionSupport());
+        }
         return findWithPostProcessing(setName, targetClass, query, templateContext);
     }
 
@@ -1086,6 +1091,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         } catch (AerospikeException e) {
             throw ExceptionUtils.translateError(e, templateContext.exceptionTranslator);
         }
+    }
+
+    @Override
+    public void createIndex(String setName, String indexName, IndexType indexType,
+                            IndexCollectionType indexCollectionType, String dslExpression) {
+        Assert.notNull(setName, "Set name type must not be null!");
+        Assert.notNull(indexName, "Index name must not be null!");
+        Assert.notNull(indexType, "Index type must not be null!");
+        Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+
+        Exp exp = parseDslExpression(dslExpression, getNamespace(), null, Map.of(),
+            new Object[]{}, getDSLParser()).getResult().getExp();
+        Expression expression = Expression.fromBase64(Exp.build(exp).getBase64());
+        createIndex(setName, indexName, indexType, indexCollectionType, expression);
     }
 
     @Override

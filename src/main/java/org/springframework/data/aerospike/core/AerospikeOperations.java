@@ -1305,6 +1305,19 @@ public interface AerospikeOperations {
                      Expression expression);
 
     /**
+     * Create an index with the specified name in Aerospike using an expression to build the index on.
+     *
+     * @param setName             Set name to use.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param dslExpression       DSL expression to build the index on, is converted into an {@link Expression} by
+     *                            {@link DSLParser}.
+     */
+    void createIndex(String setName, String indexName, IndexType indexType, IndexCollectionType indexCollectionType,
+                     String dslExpression);
+
+    /**
      * Delete an index with the specified name in Aerospike.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.

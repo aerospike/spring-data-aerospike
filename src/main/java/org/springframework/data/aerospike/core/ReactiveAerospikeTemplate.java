@@ -882,6 +882,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
+        if (queryHasServerVersionSupport(query)) {
+            query.getCriteriaObject().setServerVersionSupport(getServerVersionSupport());
+        }
         return findWithPostProcessingReactively(setName, targetClass, query, templateContext);
     }
 
