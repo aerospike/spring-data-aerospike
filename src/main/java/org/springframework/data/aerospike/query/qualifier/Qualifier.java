@@ -26,6 +26,7 @@ import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
@@ -100,6 +101,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return new DSLExpressionQualifierBuilder();
     }
 
+    @Beta
+    public static IndexedWithExpressionQualifierBuilder indexedWithExpressionBuilder() {
+        return new IndexedWithExpressionQualifierBuilder();
+    }
+
     public FilterOperation getOperation() {
         return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
@@ -130,6 +136,14 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public Boolean hasSecIndexFilter() {
         return internalMap.containsKey(HAS_SINDEX_FILTER) && (Boolean) internalMap.get(HAS_SINDEX_FILTER);
+    }
+
+    public Boolean hasServerVersionSupport() {
+        return internalMap.containsKey(SERVER_VERSION_SUPPORT);
+    }
+
+    public void setServerVersionSupport(ServerVersionSupport serverVersionSupport) {
+        internalMap.put(SERVER_VERSION_SUPPORT, serverVersionSupport);
     }
 
     public void setDataSettings(AerospikeDataSettings dataSettings) {
@@ -204,6 +218,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return internalMap.get(DSL_EXPR_STRING) != null;
     }
 
+    public boolean hasSecondaryIndexName() {
+        return internalMap.get(SINDEX_NAME) != null;
+    }
+
     public Expression getFilterExpression() {
         return (Expression) internalMap.get(FILTER_EXPRESSION);
     }
@@ -227,6 +245,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public Object[] getDslExprValues() {
         return (Object[]) internalMap.get(DSL_EXPR_VALUES);
+    }
+
+    public String getSecondaryIndexName() {
+        return (String) internalMap.get(SINDEX_NAME);
     }
 
     protected String luaFieldString(String field) {
@@ -314,8 +336,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         if (hasDslExprString()) {
             field = getDslExprString();
         }
+        if (hasSecondaryIndexName()) {
+            field += ", secondary index name=%s".formatted(getSecondaryIndexName());
+        }
         if (getDslExprIndexToUse() != null) {
-            field += ", indexToUse=%s".formatted(getDslExprIndexToUse());
+            field += ", DSL expr indexToUse=%s".formatted(getDslExprIndexToUse());
         }
         return String.format("%s:%s:%s:%s:%s", field, getOperation(), getKey(), getValue(), getSecondValue());
     }
@@ -495,8 +520,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
      */
     private static void checkForNonDslQualifiers(Qualifier[] qualifiers) {
         if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
-            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers in a custom logical query, " +
-                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL qualifiers");
+            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers in a custom logical " +
+                "query, " +
+                "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
+                "qualifiers");
         }
     }
 

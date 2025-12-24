@@ -99,7 +99,7 @@ public class QueryContextBuilder {
             // Multiple qualifiers concatenated using logical AND
             // No sense to use secondary index in case of OR which requires to enlarge selection to more than 1 field
             resultQualifier = setFilterAndProcessCombinedQualifier(stmt, parentQualifier);
-        } else if (isIndexedBin(stmt, parentQualifier)) {
+        } else if (parentQualifier.hasSecondaryIndexName() || isIndexedBin(stmt, parentQualifier)) {
             // Single qualifier
             resultQualifier = setFilterAndProcessSingleQualifier(stmt, parentQualifier);
         } else {

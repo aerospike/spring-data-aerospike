@@ -1283,4 +1283,9 @@ public class TemplateUtils {
             templateContext);
         return PostProcessingUtils.applyPostProcessingOnResults(results, query);
     }
+
+    static boolean queryHasServerVersionSupport(Query query) {
+        return query.getCriteria() != null && query.getCriteriaObject() != null
+            && !query.getCriteriaObject().hasServerVersionSupport();
+    }
 }

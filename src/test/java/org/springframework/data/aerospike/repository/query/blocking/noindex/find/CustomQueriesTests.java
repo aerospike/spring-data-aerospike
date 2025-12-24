@@ -1,8 +1,14 @@
 package org.springframework.data.aerospike.repository.query.blocking.noindex.find;
 
+import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.exp.ListExp;
+import com.aerospike.client.query.IndexCollectionType;
+import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
@@ -16,6 +22,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
@@ -497,7 +504,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findBySimpleProperty_withLogicalAnd_usingDslExpression() {
+    void findBySimpleProperty_withLogicalAND_usingDslExpression() {
         Qualifier firstNameAndAge = Qualifier.dslExpressionBuilder()
             // Using a comprehensive static DSL expression with fixed values
             .setDSLExpressionString("$.firstName == 'Leroi' and $.age >= 25 and $.age < 45")
@@ -532,5 +539,101 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> new Query(Qualifier.and(firstNameEq, ageBetween)))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessageContaining("Cannot combine DSL expression qualifiers in a custom logical query");
+    }
+
+    @Test
+    public void createIndexWithExpression_createsIndex() {
+        if (serverVersionSupport.isServerVersionGtOrEq8_1()) {
+            String indexName = "idx_selected_names_above_25";
+            // Build an expression that filters age only for adults with expected names that are 25 or older
+            Expression filterExpr = Exp.build(
+                Exp.cond(
+                    Exp.and(
+                        Exp.ge( // Is the age 25 or older?
+                            Exp.intBin("age"),
+                            Exp.val(25)
+                        ),
+                        ListExp.getByValue( // Do they have the expected names?
+                            ListReturnType.EXISTS,
+                            Exp.stringBin("firstName"),
+                            Exp.val(List.of("Leroi", "Stefan"))
+                        )
+                    ),
+                    Exp.intBin("age"), // If true, return the age of the customer to be indexed
+                    Exp.unknown() // Returns "unknown" to exclude the record from the index
+                )
+            );
+
+            // Create an index using the Expression
+            String setName = template.getSetName(Person.class);
+            template.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExpr);
+            assertThat(template.indexExists(indexName)).isTrue();
+
+            awaitTenSecondsUntil(() ->
+                assertThat(additionalAerospikeTestOperations.getIndexes(setName))
+                    .contains(Index.builder().name(indexName).namespace(namespace).set(setName)
+                        .bin("null")
+                        .indexType(IndexType.NUMERIC).build())
+            );
+
+            // Create the query
+            Qualifier usingIndexWithExpression = Qualifier.indexedWithExpressionBuilder()
+                .setIndexName(indexName)
+                .setFilterOperation(FilterOperation.GT)
+                .setValue(25)
+                .build();
+            Query query = new Query(usingIndexWithExpression);
+
+            // Assert that the query has secondary index
+            assertQueryHasSecIndexFilter(query, Person.class);
+            assertThat(query.getCriteriaObject().getFilterExpression()).isNull();
+
+            // Run the query
+            Iterable<Person> result = repository.findUsingQuery(query);
+            assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
+
+            // Cleanup
+            template.deleteIndex(setName, indexName);
+        }
+    }
+
+    @Test
+    public void createIndexWithDslExpression_createsIndex() {
+        if (serverVersionSupport.isServerVersionGtOrEq8_1()) {
+            String indexName = "idx_selected_names_above_25_dsl";
+            // Build a DSL expression that filters age only for adults with expected names that are 25 or older
+            String dslExpr = "when ($.age >= 25 and ($.firstName == 'Stefan' or $.firstName == 'Leroi') => $.age, default => 0)";
+
+            // Create an index using the Expression
+            String setName = template.getSetName(Person.class);
+            template.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, dslExpr);
+            assertThat(template.indexExists(indexName)).isTrue();
+
+            awaitTenSecondsUntil(() ->
+                assertThat(additionalAerospikeTestOperations.getIndexes(setName))
+                    .contains(Index.builder().name(indexName).namespace(namespace).set(setName)
+                        .bin("null")
+                        .indexType(IndexType.NUMERIC).build())
+            );
+
+            // Create the query
+            Qualifier usingIndexWithExpression = Qualifier.indexedWithExpressionBuilder()
+                .setIndexName(indexName)
+                .setFilterOperation(FilterOperation.GT)
+                .setValue(25)
+                .build();
+            Query query = new Query(usingIndexWithExpression);
+
+            // Assert that the query has secondary index
+            assertQueryHasSecIndexFilter(query, Person.class);
+            assertThat(query.getCriteriaObject().getFilterExpression()).isNull();
+
+            // Run the query
+            Iterable<Person> result = repository.findUsingQuery(query);
+            assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
+
+            // Cleanup
+            template.deleteIndex(setName, indexName);
+        }
     }
 }

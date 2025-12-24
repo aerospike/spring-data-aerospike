@@ -225,6 +225,9 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     }
 
     public Filter getQuerySecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
+        if (!query.getCriteriaObject().hasServerVersionSupport()) {
+            query.getCriteriaObject().setServerVersionSupport(template.getServerVersionSupport());
+        }
         QueryContext queryContext =
             queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
         queryEngine.processDslQualifier(queryContext, namespace);
