@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.*;
 import com.aerospike.client.Record;
+import com.aerospike.client.policy.BatchDeletePolicy;
 import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.Policy;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -243,8 +243,7 @@ public final class BatchUtils {
     /**
      * Performs batch deletion of documents by their IDs. This method converts the provided IDs into Aerospike
      * {@link Key} objects and then calls
-     * {@link #deleteAndHandleErrors(IAerospikeClient, Key[], boolean, AerospikeExceptionTranslator)} to execute the
-     * deletion and handle any errors.
+     * {@link #deleteAndHandleErrors(TemplateContext, Key[], boolean)} to execute the deletion and handle any errors.
      *
      * @param ids             A collection of document IDs to delete
      * @param setName         The name of the set to store the documents
@@ -265,7 +264,7 @@ public final class BatchUtils {
         Key[] keys = MappingUtils.getKeys(ids, setName, templateContext).toArray(Key[]::new);
 
         // requires server ver. >= 6.0.0
-        deleteAndHandleErrors(templateContext.client, keys, skipNonExisting, templateContext.exceptionTranslator);
+        deleteAndHandleErrors(templateContext, keys, skipNonExisting);
     }
 
     /**
@@ -279,8 +278,7 @@ public final class BatchUtils {
     static void deleteGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys, TemplateContext templateContext) {
         Assert.notNull(templateContext, "TemplateContext name must not be null!");
         EntitiesKeys entitiesKeys = EntitiesKeys.of(MappingUtils.toEntitiesKeyMap(groupedKeys, templateContext));
-        deleteAndHandleErrors(templateContext.client, entitiesKeys.getKeys(), true,
-            templateContext.exceptionTranslator);
+        deleteAndHandleErrors(templateContext, entitiesKeys.getKeys(), true);
     }
 
     /**
@@ -288,25 +286,26 @@ public final class BatchUtils {
      * applies a batch policy and performs the delete operation. If the operation fails or if any individual record in
      * the batch fails and {@code skipNonExisting} is false, an appropriate {@link AerospikeException} is thrown.
      *
-     * @param client              The Aerospike client instance
+     * @param templateContext     The instance of the TemplateContext
      * @param keys                An array of {@link Key} objects representing the records to be deleted
      * @param skipNonExisting     A boolean indicating whether to skip error check for non-existing resulting records
      *                            (allowing {@link ResultCode#OK} and {@link ResultCode#KEY_NOT_FOUND_ERROR}, regardless
      *                            of the record being null)
-     * @param exceptionTranslator The translator to convert Aerospike exceptions
      * @throws AerospikeException                                       if an error occurs during batch delete
      * @throws com.aerospike.client.AerospikeException.BatchRecordArray if one of resulting batch records has error
      *                                                                  result code or is null
      */
-    private static void deleteAndHandleErrors(IAerospikeClient client, Key[] keys, boolean skipNonExisting,
-                                              AerospikeExceptionTranslator exceptionTranslator) {
+    private static void deleteAndHandleErrors(TemplateContext templateContext, Key[] keys, boolean skipNonExisting) {
+        IAerospikeClient client = templateContext.client;
         BatchResults results;
         try {
             BatchPolicy batchPolicy =
                 (BatchPolicy) enrichPolicyWithTransaction(client, client.copyBatchPolicyDefault());
-            results = client.delete(batchPolicy, null, keys);
+            BatchDeletePolicy batchDeletePolicy = client.copyBatchDeletePolicyDefault();
+            batchDeletePolicy.durableDelete = templateContext.batchWritePolicyDefault.durableDelete;
+            results = client.delete(batchPolicy, batchDeletePolicy, keys);
         } catch (AerospikeException e) {
-            throw ExceptionUtils.translateError(e, exceptionTranslator);
+            throw ExceptionUtils.translateError(e, templateContext.exceptionTranslator);
         }
 
         if (results.records == null) {
@@ -718,8 +717,8 @@ public final class BatchUtils {
     /**
      * Performs reactive batch deletion of documents by their IDs. This method converts the provided IDs into Aerospike
      * {@link Key} objects and then calls
-     * {@link #batchDeleteReactivelyAndCheckForErrors(IAerospikeReactorClient, Key[], boolean,
-     * AerospikeExceptionTranslator)} to execute the deletion and handle any errors reactively.
+     * {@link #batchDeleteReactivelyAndCheckForErrors(TemplateContext, Key[], boolean)} to execute the deletion and
+     * handle any errors reactively.
      *
      * @param ids             A collection of document IDs to delete
      * @param setName         The name of the set from which to delete documents
@@ -742,8 +741,7 @@ public final class BatchUtils {
             .map(id -> TemplateUtils.getKey(id, setName, templateContext))
             .toArray(Key[]::new);
 
-        return batchDeleteReactivelyAndCheckForErrors(templateContext.reactorClient, keys, skipNonExisting,
-            templateContext.exceptionTranslator);
+        return batchDeleteReactivelyAndCheckForErrors(templateContext, keys, skipNonExisting);
     }
 
     /**
@@ -751,18 +749,16 @@ public final class BatchUtils {
      * individual record in the result fails or is null, an appropriate {@link AerospikeException} is emitted as an
      * error.
      *
-     * @param reactorClient       The instance of the Aerospike reactive client
+     * @param templateContext     The instance of the TemplateContext
      * @param keys                An array of {@link Key} objects representing the records to be deleted
      * @param skipNonExisting     A boolean indicating whether to skip error check for non-existing resulting records
      *                            (allowing {@link ResultCode#OK} and {@link ResultCode#KEY_NOT_FOUND_ERROR}, regardless
      *                            of the record being null)
-     * @param exceptionTranslator The translator to convert Aerospike exceptions
      * @return A {@link Mono<Void>} that completes successfully if no errors, or emits {@link AerospikeException} if any
      * resulting batch record failed
      */
-    private static Mono<Void> batchDeleteReactivelyAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys,
-                                                                     boolean skipNonExisting,
-                                                                     AerospikeExceptionTranslator exceptionTranslator) {
+    private static Mono<Void> batchDeleteReactivelyAndCheckForErrors(TemplateContext templateContext, Key[] keys,
+                                                                     boolean skipNonExisting) {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
             if (results.records == null) {
                 return Mono.error(new AerospikeException.BatchRecordArray(null,
@@ -777,9 +773,12 @@ public final class BatchUtils {
             return Mono.empty();
         };
 
+        IAerospikeReactorClient reactorClient = templateContext.reactorClient;
+        BatchDeletePolicy batchDeletePolicy = reactorClient.getAerospikeClient().copyBatchDeletePolicyDefault();
+        batchDeletePolicy.durableDelete = templateContext.batchWritePolicyDefault.durableDelete;
         return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
-            .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, keys))
-            .onErrorMap(e -> ExceptionUtils.translateError(e, exceptionTranslator))
+            .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, batchDeletePolicy, keys))
+            .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator))
             .flatMap(checkForErrors);
     }
 
@@ -803,8 +802,7 @@ public final class BatchUtils {
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, entitiesKeys.getKeys()))
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
 
-        return batchDeleteReactivelyAndCheckForErrors(reactorClient, entitiesKeys.getKeys(), true,
-            templateContext.exceptionTranslator);
+        return batchDeleteReactivelyAndCheckForErrors(templateContext, entitiesKeys.getKeys(), true);
     }
 
     /**
