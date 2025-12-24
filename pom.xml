@@ -39,7 +39,7 @@
         <jodatime>2.14.0</jodatime>
         <lombok>1.18.42</lombok>
         <awaitility>4.3.0</awaitility>
-        <logback.test>1.5.21</logback.test>
+        <logback.test>1.5.23</logback.test>
         <hibernate.validator>9.1.0.Final</hibernate.validator>
         <netty.version>4.2.7.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
