@@ -1,6 +1,10 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.cdt.ListReturnType;
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Value;
@@ -13,6 +17,7 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -172,6 +177,45 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
                         ctxResponse[1].value.toLong());
                 }
             );
+        }
+    }
+
+    @Test
+    public void createIndexWithExpression_createsIndex() {
+        if (serverVersionSupport.isServerVersionGtOrEq8_1()) {
+            // Build an expression that indexes age only for adults with expected names that are 18 or older
+            Expression filterExp = Exp.build(
+                Exp.cond(
+                    Exp.and(
+                        Exp.ge( // Is the age 18 or older?
+                            Exp.intBin("age"),
+                            Exp.val(18)
+                        ),
+                        ListExp.getByValue( // Do they have the expected names?
+                            ListReturnType.EXISTS,
+                            Exp.stringBin("firstName"),
+                            Exp.val(List.of("Jane", "Tricia", "Peter"))
+                        )
+                    ),
+                    Exp.intBin("age"), // If true, return the age of the customer to be indexed
+                    Exp.unknown() // returns "unknown" to exclude the record from the index
+                )
+            );
+            String setName = reactiveTemplate.getSetName(IndexedDocument.class);
+            String indexName = "idx_selected_names_above_18";
+            reactiveTemplate.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExp)
+                .block();
+            assertThat(reactiveTemplate.indexExists(indexName).block()).isTrue();
+
+            awaitTenSecondsUntil(() ->
+                assertThat(additionalAerospikeTestOperations.getIndexes(setName))
+                    .contains(Index.builder().name(indexName).namespace(namespace).set(setName)
+                        .bin("null")
+                        .indexType(IndexType.NUMERIC).build())
+            );
+
+            // Cleanup
+            reactiveTemplate.deleteIndex(setName, indexName);
         }
     }
 

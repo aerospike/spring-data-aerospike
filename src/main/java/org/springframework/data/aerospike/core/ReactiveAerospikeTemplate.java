@@ -23,6 +23,7 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -881,6 +882,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
+        if (queryHasServerVersionSupport(query)) {
+            query.getCriteriaObject().setServerVersionSupport(getServerVersionSupport());
+        }
         return findWithPostProcessingReactively(setName, targetClass, query, templateContext);
     }
 
@@ -1088,6 +1092,22 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .then(refreshIndexesCache())
             .then()
             .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
+    }
+
+    @Override
+    public Mono<Void> createIndex(String setName, String indexName, IndexType indexType,
+                                  IndexCollectionType indexCollectionType, Expression expression) {
+        Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(indexName, "Index name must not be null!");
+        Assert.notNull(indexType, "Index type must not be null!");
+        Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+
+        return reactorClient.createIndex(null, namespace, setName, indexName, indexType, indexCollectionType,
+                expression)
+            .then(refreshIndexesCache())
+            .then()
+            .onErrorMap(e -> ExceptionUtils.translateError(e, templateContext.exceptionTranslator));
+
     }
 
     @Override

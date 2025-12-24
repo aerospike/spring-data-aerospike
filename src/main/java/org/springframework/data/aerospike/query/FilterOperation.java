@@ -207,17 +207,31 @@ public enum FilterOperation {
             Value value = getValue(qualifierMap);
             return switch (value.getType()) {
                 // No CTX here because this FilterOperation is meant for the first level objects
-                case INTEGER -> Filter.equal(getBinName(qualifierMap), value.toLong());
+                case INTEGER -> {
+                    if (hasIndexName(qualifierMap)) {
+                        // Having secondary index name means that this index must be used
+                        yield Filter.equalByIndex(getSecondaryIndexName(qualifierMap), value.toLong());
+                    }
+                    yield Filter.equal(getBinName(qualifierMap), value.toLong());
+                }
                 case STRING -> {
                     // There is no case-insensitive string comparison filter.
                     if (ignoreCase(qualifierMap)) {
                         yield null;
+                    }
+                    if (hasIndexName(qualifierMap)) {
+                        // Having secondary index name means that this index must be used
+                        yield Filter.equalByIndex(getSecondaryIndexName(qualifierMap), value.toString());
                     }
                     yield Filter.equal(getBinName(qualifierMap), value.toString());
                 }
                 case BLOB -> {
                     if (!FilterOperation.getServerVersionSupport(qualifierMap).isServerVersionGtOrEq7()) {
                         yield null;
+                    }
+                    if (hasIndexName(qualifierMap)) {
+                        // Having secondary index name means that this index must be used
+                        yield Filter.equalByIndex(getSecondaryIndexName(qualifierMap), (byte[]) value.getObject());
                     }
                     yield Filter.equal(getBinName(qualifierMap), (byte[]) value.getObject());
                 }
@@ -291,6 +305,11 @@ public enum FilterOperation {
                 return null;
             }
 
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), getValue(qualifierMap).toLong() + 1,
+                    Long.MAX_VALUE);
+            }
             return Filter.range(getBinName(qualifierMap), getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
     },
@@ -320,6 +339,12 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), getValue(qualifierMap).toLong(),
+                    Long.MAX_VALUE);
             }
             return Filter.range(getBinName(qualifierMap), getValue(qualifierMap).toLong(), Long.MAX_VALUE);
         }
@@ -352,6 +377,12 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MIN_VALUE) {
                 return null;
             }
+
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), Long.MIN_VALUE,
+                    getValue(qualifierMap).toLong() - 1);
+            }
             return Filter.range(getBinName(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong() - 1);
         }
     },
@@ -381,6 +412,12 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), Long.MIN_VALUE,
+                    getValue(qualifierMap).toLong());
             }
             return Filter.range(getBinName(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong());
         }
@@ -424,6 +461,12 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), getValue(qualifierMap).toLong(),
+                    getSecondValue(qualifierMap).toLong());
             }
             return Filter.range(getBinName(qualifierMap), getValue(qualifierMap).toLong(),
                 getSecondValue(qualifierMap).toLong());
@@ -659,6 +702,11 @@ public enum FilterOperation {
                 return null;
             }
 
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.MAPVALUES,
+                    getKey(qualifierMap).toLong() + 1, Long.MAX_VALUE);
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                 getKey(qualifierMap).toLong() + 1,
                 Long.MAX_VALUE, getCtxArr(qualifierMap));
@@ -685,6 +733,11 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getKey(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.MAPVALUES,
+                    getKey(qualifierMap).toLong(), Long.MAX_VALUE);
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                 getKey(qualifierMap).toLong(), Long.MAX_VALUE, getCtxArr(qualifierMap));
@@ -713,6 +766,11 @@ public enum FilterOperation {
             if (getKey(qualifierMap).getType() != INTEGER || getKey(qualifierMap).toLong() == Long.MIN_VALUE) {
                 return null;
             }
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
+                    getKey(qualifierMap).toLong() - 1);
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
                 getKey(qualifierMap).toLong() - 1, getCtxArr(qualifierMap));
         }
@@ -738,6 +796,11 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
+                    getValue(qualifierMap).toLong());
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
                 getValue(qualifierMap).toLong(), getCtxArr(qualifierMap));
@@ -794,6 +857,11 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
                 return null;
+            }
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.MAPVALUES,
+                    getValue(qualifierMap).toLong(), getSecondValue(qualifierMap).toLong());
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                 getValue(qualifierMap).toLong(), getSecondValue(qualifierMap).toLong(),
@@ -1087,7 +1155,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return cdtContains(IndexCollectionType.MAPKEYS, qualifierMap);
+            return cdtContains(IndexCollectionType.MAPKEYS, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1123,7 +1191,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return cdtContains(IndexCollectionType.MAPVALUES, qualifierMap);
+            return cdtContains(IndexCollectionType.MAPVALUES, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1177,7 +1245,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return collectionRange(IndexCollectionType.MAPKEYS, qualifierMap);
+            return collectionRange(IndexCollectionType.MAPKEYS, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1216,7 +1284,7 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-            return collectionRange(IndexCollectionType.MAPVALUES, qualifierMap);
+            return collectionRange(IndexCollectionType.MAPVALUES, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1230,7 +1298,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return geoWithinRadius(IndexCollectionType.DEFAULT, qualifierMap);
+            return geoWithinRadius(IndexCollectionType.DEFAULT, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1260,7 +1328,7 @@ public enum FilterOperation {
                 return null;
             }
 
-            return cdtContains(IndexCollectionType.LIST, qualifierMap);
+            return cdtContains(IndexCollectionType.LIST, qualifierMap, hasIndexName(qualifierMap));
         }
     },
     /**
@@ -1337,7 +1405,11 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MAX_VALUE) {
                 return null;
             }
-
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.LIST,
+                    getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.LIST,
                 getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
@@ -1372,7 +1444,11 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.LIST,
+                    getValue(qualifierMap).toLong(), Long.MAX_VALUE);
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.LIST, getValue(qualifierMap).toLong(),
                 Long.MAX_VALUE);
         }
@@ -1415,7 +1491,11 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MIN_VALUE) {
                 return null;
             }
-
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
+                    getValue(qualifierMap).toLong() - 1);
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
                 getValue(qualifierMap).toLong() - 1);
         }
@@ -1464,7 +1544,11 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-
+            if (hasIndexName(qualifierMap)) {
+                // Having secondary index name means that this index must be used
+                return Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
+                    getValue(qualifierMap).toLong());
+            }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
                 getValue(qualifierMap).toLong());
         }
@@ -1503,8 +1587,7 @@ public enum FilterOperation {
             if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-
-            return collectionRange(IndexCollectionType.LIST, qualifierMap); // both limits are inclusive
+            return collectionRange(IndexCollectionType.LIST, qualifierMap, hasIndexName(qualifierMap)); // both limits are inclusive
         }
     },
     /**
@@ -1546,6 +1629,12 @@ public enum FilterOperation {
             return null;
         }
     };
+
+    private static boolean hasIndexName(Map<QualifierKey, Object> qualifierMap) {
+        return hasServerVersionSupport(qualifierMap)
+            && getServerVersionSupport(qualifierMap).isServerVersionGtOrEq8_1()
+            && hasSecondaryIndexName(qualifierMap);
+    }
 
     /**
      * FilterOperations that require both sIndexFilter and FilterExpression
@@ -1964,19 +2053,29 @@ public enum FilterOperation {
         return fieldType != null ? (int) fieldType : null;
     }
 
+    protected static String getSecondaryIndexName(Map<QualifierKey, Object> qualifierMap) {
+        return (String) qualifierMap.get(SINDEX_NAME);
+    }
+
     protected static boolean hasId(Map<QualifierKey, Object> qualifierMap) {
         return qualifierMap.containsKey(IS_ID_EXPR) && (Boolean) qualifierMap.get(IS_ID_EXPR);
     }
 
-    @SuppressWarnings("unchecked")
+    protected static boolean hasSecondaryIndexName(Map<QualifierKey, Object> qualifierMap) {
+        return qualifierMap.containsKey(SINDEX_NAME);
+    }
+
     protected static CTX[] getCtxArr(Map<QualifierKey, Object> qualifierMap) {
         return (CTX[]) qualifierMap.get(CTX_ARRAY);
     }
 
-    @SuppressWarnings("unchecked")
     protected static String getCtxArrAsString(Map<QualifierKey, Object> qualifierMap) {
         CTX[] ctxArr = (CTX[]) qualifierMap.get(CTX_ARRAY);
         return ctxArrToString(ctxArr);
+    }
+
+    protected static boolean hasServerVersionSupport(Map<QualifierKey, Object> qualifierMap) {
+        return qualifierMap.containsKey(SERVER_VERSION_SUPPORT);
     }
 
     protected static ServerVersionSupport getServerVersionSupport(Map<QualifierKey, Object> qualifierMap) {
@@ -1987,7 +2086,8 @@ public enum FilterOperation {
 
     public abstract Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap);
 
-    protected Filter cdtContains(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
+    protected Filter cdtContains(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap,
+                                 boolean hasIndexName) {
         Value val = getValue(qualifierMap);
         int valType = val.getType();
         String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
@@ -1996,11 +2096,15 @@ public enum FilterOperation {
             qualifierMap.put(CTX_ARRAY, resolveCtxList(ctxList));
         }
         return switch (valType) {
-            case INTEGER -> Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
-                getCtxArr(qualifierMap));
-            case STRING -> Filter.contains(getBinName(qualifierMap), collectionType, val.toString(),
-                getCtxArr(qualifierMap));
-            case BLOB -> Filter.contains(getBinName(qualifierMap), collectionType, (byte[]) val.getObject(),
+            case INTEGER -> hasIndexName
+                ? Filter.containsByIndex(getSecondaryIndexName(qualifierMap), collectionType, val.toLong())
+                : Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(), getCtxArr(qualifierMap));
+            case STRING -> hasIndexName
+                ? Filter.containsByIndex(getSecondaryIndexName(qualifierMap), collectionType, val.toString())
+                : Filter.contains(getBinName(qualifierMap), collectionType, val.toString(), getCtxArr(qualifierMap));
+            case BLOB -> hasIndexName
+                ? Filter.containsByIndex(getSecondaryIndexName(qualifierMap), collectionType, (byte[]) val.getObject())
+                : Filter.contains(getBinName(qualifierMap), collectionType, (byte[]) val.getObject(),
                 getCtxArr(qualifierMap));
             default -> null;
         };
@@ -2011,14 +2115,21 @@ public enum FilterOperation {
         return (List<String>) qualifierMap.get(DOT_PATH);
     }
 
-    protected Filter collectionRange(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
-        return Filter.range(getBinName(qualifierMap), collectionType, getValue(qualifierMap).toLong(),
+    protected Filter collectionRange(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap,
+                                     boolean hasIndexName) {
+        return hasIndexName
+        ? Filter.rangeByIndex(getSecondaryIndexName(qualifierMap), collectionType, getValue(qualifierMap).toLong(),
+            getSecondValue(qualifierMap).toLong())
+        : Filter.range(getBinName(qualifierMap), collectionType, getValue(qualifierMap).toLong(),
             getSecondValue(qualifierMap).toLong());
     }
 
     @SuppressWarnings("SameParameterValue")
-    protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
-        return Filter.geoContains(getBinName(qualifierMap), getValue(qualifierMap).toString());
+    protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap,
+                                     boolean hasIndexName) {
+        return hasIndexName
+        ? Filter.geoContainsByIndex(getSecondaryIndexName(qualifierMap), getValue(qualifierMap).toString())
+        : Filter.geoContains(getBinName(qualifierMap), getValue(qualifierMap).toString());
     }
 
     private static boolean hasMapKeyPlaceholder(Map<QualifierKey, Object> qualifierMap) {
