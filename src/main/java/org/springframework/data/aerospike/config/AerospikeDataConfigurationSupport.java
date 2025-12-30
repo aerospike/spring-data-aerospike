@@ -300,6 +300,7 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
         clientPolicy.writePolicyDefault.sendKey = sendKey;
         clientPolicy.batchPolicyDefault.sendKey = sendKey;
         clientPolicy.batchWritePolicyDefault.sendKey = sendKey;
+        clientPolicy.batchDeletePolicyDefault.sendKey = sendKey;
         clientPolicy.queryPolicyDefault.sendKey = sendKey;
         clientPolicy.scanPolicyDefault.sendKey = sendKey;
         clientPolicy.eventLoops = eventLoops();
