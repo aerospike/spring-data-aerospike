@@ -1,0 +1,147 @@
+name: Stage artifacts for release
+description: "Prepare artifacts for publish to various portals"
+
+inputs:
+  jfrog-platform-url:
+    description: "JFrog platform URL"
+    required: false
+    default: https://aerospike.jfrog.io
+  oidc-provider:
+    description: "OIDC provider name"
+    required: true
+  oidc-audience:
+    description: "ODIC audience"
+    required: true
+  staging-folder:
+    description: "Staging folders. Input should be a JSON array of staging folders"
+    required: false
+    default: '["staging","github","sonatype"]'
+  target-repository:
+    description: "Target repository in JFROG"
+    required: false
+    default: database-maven-dev-local
+  build-name-number:
+    description: "Build name and number"
+    required: true
+  artifact-version:
+    description: "Artifact version"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Debug stage artifact to github
+      shell: bash
+      run: |
+        echo "${{ inputs.jfrog-platform-url }}"
+        echo "${{ inputs.artifact-id }}"
+        echo "${{ inputs.staging-folder }}"
+        echo "first element  ${{ fromJson(inputs.staging-folder)[0] }}"
+        echo "second element ${{ fromJson(inputs.staging-folder)[1] }}"
+        echo "third element  ${{ fromJson(inputs.staging-folder)[2] }}"
+        echo "${{ inputs.target-repository }}"
+        echo "${{ inputs.build-name-number }}"
+        echo "${{ inputs.artifact-version }}"
+
+    - name: Setup jfrog shell
+      uses: jfrog/setup-jfrog-cli@v4
+      env:
+        JF_URL: ${{ inputs.jfrog-platform-url }}
+        JF_PROJECT: database
+      with:
+        oidc-provider-name: ${{ inputs.oidc-provider }}
+        oidc-audience: ${{ inputs.oidc-audience }}
+
+    - name: Get info
+      shell: bash
+      id: get-build-info
+      run: |
+        INPUT=${{ inputs.build-name-number }}
+
+        BUILD_NAME="${INPUT%/*}" # Getting the build name
+        BUILD_NUMBER="${INPUT#*/}" # Getting build number
+
+        BUILD_INFO=$(jf rt curl "/api/build/${BUILD_NAME}/${BUILD_NUMBER}?project=database" | jq -c ".")
+        echo build-info="${BUILD_INFO}" >> $GITHUB_OUTPUT
+
+    - name: Get build name
+      shell: bash
+      id: get-build-name
+      run: |
+        echo build-name=$(echo '${{ steps.get-build-info.outputs.build-info }}' | jq -r '.buildInfo.name') >> $GITHUB_OUTPUT
+
+    - name: Get artifact build info
+      shell: bash
+      id: get-artifact-build-info
+      run: |
+        BUILD_INFO='${{ steps.get-build-info.outputs.build-info }}'
+        
+        ARTIFACT_BUILD_ID=$(echo "${BUILD_INFO}" | jq -r '.buildInfo.modules[] | select(.id | contains("-artifacts")) | .id')
+        echo "Artifact Build ID: ${ARTIFACT_BUILD_ID}"
+        
+        ARTIFACT_BUILD_NUMBER=$(echo "${ARTIFACT_BUILD_ID}" | cut -d'/' -f2)
+        echo "Artifact Build Number: ${ARTIFACT_BUILD_NUMBER}"
+        
+        ARTIFACT_BUILD_INFO=$(jf rt curl "/api/build/spring-data-aerospike/${ARTIFACT_BUILD_NUMBER}?project=database" | jq -c ".")
+        echo artifact-build-info="${ARTIFACT_BUILD_INFO}" >> $GITHUB_OUTPUT
+        
+        # Extract artifact name from the path (com/aerospike/ARTIFACT_NAME/VERSION/...)
+        ARTIFACT_NAME=$(echo "${ARTIFACT_BUILD_INFO}" | jq -r '.buildInfo.modules[0].artifacts[0].path' | cut -d'/' -f3)
+        echo "Artifact Name: ${ARTIFACT_NAME}"
+        echo artifact-name="${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+    
+
+    - name: Create staging folders
+      shell: bash
+      run: |
+        echo '${{ inputs.staging-folder }}' | jq -r '.[]' | while read FOLDER; do
+          mkdir -p "$FOLDER"
+        done
+
+    # Download artifacts from JFrog
+    - name: Download artifacts from JFrog
+      shell: bash
+      working-directory: ${{ fromJson(inputs.staging-folder)[0] }}
+      run: |
+        BUILD_INFO='${{ steps.get-artifact-build-info.outputs.artifact-build-info }}'
+        module_names=$(echo "${BUILD_INFO}" | jq -r '.buildInfo.modules[].artifacts[].path' | cut -d'/' -f3 | sort -u)
+        for module_name in $module_names; do
+          echo "Downloading artifacts for module: $module_name"
+          jf rt dl "database-maven-dev-local/com/aerospike/${module_name}/${{ inputs.artifact-version }}/*" --project database .
+        done
+
+    - name: Debug list downloaded content
+      shell: bash
+      working-directory: ${{ fromJson(inputs.staging-folder)[0] }}
+      run: |
+        pwd
+        ls -laR
+
+    # The hashes are generated when the artifacts are published (not part of this build). When we promote or run releases we download the artifacts and take the hashes
+    # which are part of the build info. We don't have sha-512 at the moment.
+    - name: Get hashes from build_info and generate files
+      shell: bash
+      working-directory: ${{ fromJson(inputs.staging-folder)[0] }}
+      run: |
+        BUILD_INFO='${{ steps.get-artifact-build-info.outputs.artifact-build-info }}'
+        
+        # Process artifacts from build info
+        echo "Creating checksums from build info..."
+        echo "${BUILD_INFO}" | jq -c '.buildInfo.modules[].artifacts[]' | while read -r MODULE; do
+          NAME=$(echo "${MODULE}" | jq -r ".name")
+          SHA1=$(echo "${MODULE}" | jq -r ".sha1")
+          SHA256=$(echo "${MODULE}" | jq -r ".sha256")
+          MD5=$(echo "${MODULE}" | jq -r ".md5")
+        
+          FILE_PATH=$(find . -type f -name "${NAME}" | head -n 1)
+        
+          if [[ -z "${FILE_PATH}" ]]; then
+            echo "Warning: Could not find file ${NAME}"
+            continue
+          fi
+        
+          echo "Creating checksums for: ${FILE_PATH}"
+          echo "${SHA1}" > "${FILE_PATH}.sha1"
+          echo "${SHA256}" > "${FILE_PATH}.sha256"
+          echo "${MD5}" > "${FILE_PATH}.md5"
+        done

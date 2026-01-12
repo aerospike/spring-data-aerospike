@@ -1,0 +1,16 @@
+name: Java Build & Release
+
+on:
+  push:
+    branches:
+      - stage
+    tags:
+      - 'v*'
+  workflow_dispatch:
+  #   - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build-stage:
+    name: Build stage
+    uses: ./.github/workflows/build-release.yml
+    secrets: inherit
