@@ -1,3 +1,9 @@
+name: Promote
+
+permissions:
+  contents: write      # For creating Releases
+  id-token: write      # For JFrog OIDC authentication
+
 on:
   workflow_call:
     inputs:
