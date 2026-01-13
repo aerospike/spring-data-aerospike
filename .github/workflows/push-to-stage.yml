@@ -1,7 +1,8 @@
 name: Java Build & Release
-
 permissions:
-  contents: read
+  id-token: write
+  packages: write
+  attestations: write
 
 on:
   push:
