@@ -28,7 +28,7 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.util.TypeInformation;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;

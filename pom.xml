@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.5.5</version>
+        <version>4.0.1</version>
     </parent>
 
     <properties>
@@ -24,23 +24,24 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.5.7</springdata.commons>
-        <spring-boot-starter-test>3.5.7</spring-boot-starter-test>
-        <spring-cloud-starter-bootstrap>4.3.1</spring-cloud-starter-bootstrap>
-        <spring-tx>6.2.15</spring-tx>
-        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
-        <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <central.publishing.maven.plugin>0.10.0</central.publishing.maven.plugin>
-        <aerospike-client-jdk8>9.2.0</aerospike-client-jdk8>
-        <aerospike-reactor-client>9.2.0</aerospike-reactor-client>
+        <springdata-commons.version>4.0.1</springdata-commons.version>
+        <spring-boot-starter-test.version>4.0.1</spring-boot-starter-test.version>
+        <cloud-starter-bootstrap.version>5.0.0</cloud-starter-bootstrap.version>
+        <spring-tx.version>7.0.2</spring-tx.version>
+        <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-publishing-plugin.version>0.10.0</maven-publishing-plugin.version>
+        <aerospike-client-jdk8.version>9.2.0</aerospike-client-jdk8.version>
+        <aerospike-reactor-client.version>9.2.0</aerospike-reactor-client.version>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
-        <reactor-test>3.8.1</reactor-test>
-        <embedded-aerospike>3.1.18</embedded-aerospike>
-        <jodatime>2.14.0</jodatime>
-        <lombok>1.18.42</lombok>
-        <awaitility>4.3.0</awaitility>
-        <logback.test>1.5.24</logback.test>
-        <hibernate.validator>9.1.0.Final</hibernate.validator>
+        <reactor-test.version>3.8.1</reactor-test.version>
+        <jspecify.version>1.0.0</jspecify.version>
+        <embedded-aerospike.version>3.1.18</embedded-aerospike.version>
+        <jodatime.version>2.14.0</jodatime.version>
+        <lombok.version>1.18.42</lombok.version>
+        <awaitility.version>4.3.0</awaitility.version>
+        <logback-test.version>1.5.24</logback-test.version>
+        <hibernate-validator.version>9.1.0.Final</hibernate-validator.version>
         <netty.version>4.2.9.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
         <apacheCommonsCodec.version>1.20.0</apacheCommonsCodec.version>
@@ -156,6 +157,17 @@
             </roles>
             <timezone>+3</timezone>
         </developer>
+        <developer>
+            <id>Andrey Grosland</id>
+            <name>Andrey Grosland</name>
+            <email>agrosland@aerospike.com</email>
+            <url>https://www.aerospike.com</url>
+            <organization>Aerospike</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+2</timezone>
+        </developer>
     </developers>
 
     <profiles>
@@ -200,22 +212,22 @@
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
-                <version>${springdata.commons}</version>
+                <version>${springdata-commons.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
-                <version>${spring-tx}</version>
+                <version>${spring-tx.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>
                 <artifactId>aerospike-client-jdk8</artifactId>
-                <version>${aerospike-client-jdk8}</version>
+                <version>${aerospike-client-jdk8.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>
                 <artifactId>aerospike-reactor-client</artifactId>
-                <version>${aerospike-reactor-client}</version>
+                <version>${aerospike-reactor-client.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>
@@ -225,12 +237,12 @@
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
-                <version>${jodatime}</version>
+                <version>${jodatime.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${lombok}</version>
+                <version>${lombok.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
@@ -316,48 +328,54 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <version>${reactor-test}</version>
+            <version>${reactor-test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>${jspecify.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.playtika.testcontainers</groupId>
             <artifactId>embedded-aerospike</artifactId>
-            <version>${embedded-aerospike}</version>
+            <version>${embedded-aerospike.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>${spring-cloud-starter-bootstrap}</version>
+            <version>${cloud-starter-bootstrap.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring-boot-starter-test}</version>
+            <version>${spring-boot-starter-test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>${awaitility}</version>
+            <version>${awaitility.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.test}</version>
+            <version>${logback-test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback.test}</version>
+            <version>${logback-test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate.validator}</version>
+            <version>${hibernate-validator.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -390,7 +408,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.plugin}</version>
+                <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <doclint>none</doclint>
                     <reportOutputDirectory>${basedir}</reportOutputDirectory>
@@ -413,7 +431,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>${maven.gpg.plugin}</version>
+                <version>${maven-gpg-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -459,7 +477,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>${central.publishing.maven.plugin}</version>
+                <version>${maven-publishing-plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>

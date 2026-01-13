@@ -28,7 +28,6 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
-@Nested
 @Extensive
 class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
