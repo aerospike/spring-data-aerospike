@@ -1,0 +1,162 @@
+name: Publish artifacts to Sonatype
+description: "Publishes artifacts to Sonatype"
+
+inputs:
+  staging-folder:
+    description: "Folder to which the artifacts are copied"
+    required: false
+    default: staging
+  target-folder:
+    description: "Subfolder in the staging folder where the artifacts are copied"
+    required: false
+    default: sonatype
+  publish-user:
+    description: "Username for publishing to Sonatype"
+    required: true
+  publish-password:
+    description: "Password for publishing to Sonatype"
+    required: true
+  validation-max-number-checks:
+    description: "Number of checks we will conduct to check if the package is validated"
+    required: true
+  sonatype-domain-name:
+    description: "Sonatype domain name"
+    required: true
+  build-name-number:
+    required: true
+    description: "Build name and number"
+  artifact-version:
+    description: "Artifact version"
+    required: true
+
+outputs:
+  maven-central-release-id:
+    description: Maven central id extracted from staging step to maven central
+    value: ${{ steps.get-maven-central-release-id.outputs.maven-central-release-id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Debug publish to github
+      shell: bash
+      run: |
+        echo "${{ inputs.staging-folder }}"
+        echo "${{ inputs.target-folder }}"
+        echo "${{ inputs.sonatype-domain-name }}"
+        echo "${{ inputs.build-name-number }}"
+        echo "${{ inputs.artifact-version }}"
+
+    # For Maven Central we need to filter out the jar-with-dependencies
+    # as it is not allowed to be uploaded to Maven Central
+    - name: Copy artifacts with filter to sonatype stage folder
+      shell: bash
+      working-directory: ${{ inputs.staging-folder }}
+      run: |
+        src="./"
+        dest=../"${{ inputs.target-folder }}"
+
+        find "$src" -type f \
+          \! \( -name "*jar-with-dependencies*" \) \
+          -exec cp --parents {} "$dest" \;
+
+    - name: Debug target folder contents
+      shell: bash
+      working-directory: ${{ inputs.target-folder }}
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Contents:"
+        ls -laR
+
+    # Creates uploadable archive
+    - name: Create upload archive for sonatype
+      id: create-artifact
+      shell: bash
+      working-directory: ${{ inputs.target-folder }}
+      run: |
+        # Use the actual artifact version, not parsed from build-name-number
+        RELEASE="${{ inputs.artifact-version }}"
+        # Extract just the build number from build-name-number
+        RELEASE_BUILD_NUMBER=$(echo "${{ inputs.build-name-number }}" | sed -E 's/.*\/([^/]+)$/\1/')
+        ARTIFACT_NAME="${RELEASE}_${RELEASE_BUILD_NUMBER}"
+
+        echo "artifact-name=${ARTIFACT_NAME}.zip" >> $GITHUB_OUTPUT
+        zip -r "${ARTIFACT_NAME}.zip" .
+
+    - name: Debug show content of the upload archive
+      shell: bash
+      working-directory: ${{ inputs.target-folder }}
+      run: |
+        ARTIFACT_NAME='${{ steps.create-artifact.outputs.artifact-name }}'
+        unzip -l "${ARTIFACT_NAME}" | tail -n +4 | sort -k4,4
+
+    # Call to Maven Central to stage the release/artifact
+    - name: Stage artifacts
+      id: stage-release
+      working-directory: ${{ inputs.target-folder }}
+      shell: bash
+      run: |
+        TOKEN=$(printf "${{ inputs.publish-user }}:${{ inputs.publish-password }}" | base64)
+
+        echo "curl --request POST --silent --header 'Authorization: Bearer ${TOKEN}' --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED"
+        DEPLOYMENT_ID=$(curl --request POST --silent --header "Authorization: Bearer ${TOKEN}" --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED)
+    
+        echo "Deployment ID: ${DEPLOYMENT_ID}"
+        echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+
+    # Validation check loop
+    - name: Check validation
+      working-directory: ${{ inputs.target-folder }}
+      shell: bash
+      run: |
+
+        TOKEN=$(printf "%s:%s" "${{ inputs.publish-user }}" "${{ inputs.publish-password }}" | base64)
+        DEPLOYMENT_ID="${{ steps.stage-release.outputs.deployment-id }}"
+
+        NUMBER_OF_CHECKS=${{ inputs.validation-max-number-checks }}
+
+        echo "Starting Sonatype validation checks (max: ${NUMBER_OF_CHECKS})"
+
+        for ((i = 1; i <= NUMBER_OF_CHECKS; i++)); do
+          RESPONSE=$(curl --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${TOKEN}" \
+            "${{ inputs.sonatype-domain-name }}/api/v1/publisher/status?id=${DEPLOYMENT_ID}")
+
+          # Validate JSON and extract deploymentState
+          SONATYPE_RESPONSE=$(echo "${RESPONSE}" | jq -r '.deploymentState // "NULL"')
+
+          if [[ "${SONATYPE_RESPONSE}" == "FAILED" ]]; then
+            ERRORS=$(echo "${RESPONSE}" | jq '.errors // "Unknown error"')
+            echo "Package validation failed."
+            echo "Errors: ${ERRORS}"
+            exit 1
+
+          elif [[ "${SONATYPE_RESPONSE}" == "VALIDATING" || "${SONATYPE_RESPONSE}" == "PENDING" ]]; then
+            echo "Package validation is not done. Status: ${SONATYPE_RESPONSE}"
+
+            # Exponential backoff
+            sleep_time=$((2 ** (i - 1)))
+            echo "Next retry in ${sleep_time} seconds..."
+            sleep "${sleep_time}"
+
+          elif [[ "${SONATYPE_RESPONSE}" == "VALIDATED" ]]; then
+            echo "Package successfully validated."
+            exit 0
+
+          else
+            echo "Unknown response from Sonatype: ${SONATYPE_RESPONSE}"
+            echo "Full payload:"
+            echo "${RESPONSE}"
+          fi
+        done
+
+        echo "Validation timed out after ${NUMBER_OF_CHECKS} attempts."
+        exit 1
+
+    # Peculating up the maven central release id
+    - name: Maven Central release id
+      working-directory: ${{ inputs.target-folder }}
+      id: get-maven-central-release-id
+      shell: bash
+      run: |
+        echo "maven-central-release-id=${{ steps.stage-release.outputs.deployment-id }}" >> $GITHUB_OUTPUT

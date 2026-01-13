@@ -1,0 +1,147 @@
+name: Build and release
+
+permissions:
+  id-token: write
+  packages: write
+  contents: read
+  attestations: write
+
+on:
+  workflow_call:
+    secrets:
+      GPG_SECRET_KEY:
+        required: true
+      GPG_PUBLIC_KEY:
+        required: true
+      GPG_PASS:
+        required: true
+
+jobs:
+  extract-version:
+    runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - name: Extract Version
+        id: extract
+        uses: ./.github/actions/get-version
+    outputs:
+      version: ${{ steps.extract.outputs.release-version }}
+      is-snapshot: ${{ steps.extract.outputs.is-snapshot }}
+
+  build-packages:
+    needs: extract-version
+    uses: aerospike/shared-workflows/.github/workflows/reusable_execute-build.yaml@1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+    with:
+      runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+      jf-project: ${{ vars.JFROG_PROJECT }}
+      jf-build-name: spring-data-aerospike
+      jf-build-id: ${{ github.run_number }}-buildinfo-${{ needs.extract-version.outputs.version }}
+      gh-checkout-path: shared-workflows
+      gh-source-path: spring-data-aerospike
+      working-directory: spring-data-aerospike
+      gh-workflows-ref: 1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+      setup-java: true
+      java-version: 8
+      java-distribution: "temurin"
+      build-script: |
+        # Start Aerospike via the GitHub Action
+        echo "Starting Aerospike DB..."
+        docker run -d --name aerospike -p 3000:3000 aerospike/aerospike-server
+        sleep 5
+
+        # Maven build
+        if [ "${{ needs.extract-version.outputs.is-snapshot }}" == "true" ]; then
+          pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          mvn versions:set -DnewVersion="${pom_version}-SNAPSHOT" -DgenerateBackupPoms=false -DprocessAllModules
+        fi
+        
+        mvn clean install -B -U -Dgpg.skip=true
+
+        cd spring-data-aerospike
+
+        LOCAL_REPO=$(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+        GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        ARTIFACT_ID=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+        GROUP_PATH=$(echo "$GROUP_ID" | tr '.' '/')
+        ARTIFACT_PATH="$LOCAL_REPO/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
+
+        cd -
+
+        echo "ARTIFACT_PATH: $ARTIFACT_PATH"
+        echo "Copying artifacts to ./build/"
+        
+        for file in "$ARTIFACT_PATH"/*; do
+          if [[ "$file" == *"-jar-with-dependencies.jar" ]] || [[ "$file" == *"_remote.repositories" ]]; then
+            continue
+          fi
+          cp "$file" build/
+        done
+        
+        PARENT_ARTIFACT_ID=spring-data-aerospike
+        PARENT_PATH="$LOCAL_REPO/$GROUP_PATH/$PARENT_ARTIFACT_ID/$VERSION"
+
+        echo "Parent artifact path: $PARENT_PATH"
+
+        if [ -d "$PARENT_PATH" ]; then
+          echo "Copying parent POM..."
+          cp "$PARENT_PATH"/*.pom build/
+          cp "$PARENT_PATH"/*.asc build/ 2>/dev/null || true
+        else
+          echo "WARNING: Parent POM not found in $PARENT_PATH"
+        fi
+        
+        ls -lar build/
+      gh-artifact-directory: build
+      gh-artifact-name: build-artifacts-${{ needs.extract-version.outputs.version }}
+      gh-retention-days: 1
+      jf-url: https://artifact.aerospike.io
+      publish-build-info: true
+      oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+      oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+
+  sign-artifacts:
+    needs: [build-packages, extract-version]
+    uses: aerospike/shared-workflows/.github/workflows/reusable_sign-artifacts.yaml@main
+    with:
+      gh-retention-days: 1
+      gh-artifact-name: signed_build-artifacts-${{ needs.extract-version.outputs.version }}
+      gh-unsigned-artifacts: build-artifacts-${{ needs.extract-version.outputs.version }}
+      gh-workflows-ref: 1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+    secrets:
+      gpg-private-key: ${{ secrets.GPG_SECRET_KEY }}
+      gpg-public-key: ${{ secrets.GPG_PUBLIC_KEY }}
+      gpg-key-pass: ${{ secrets.GPG_PASS }}
+
+  deploy-artifacts:
+    needs: [sign-artifacts, extract-version]
+    uses: aerospike/shared-workflows/.github/workflows/reusable_deploy-artifacts.yaml@1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+    with:
+      gh-workflows-ref: 1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+      jf-project: ${{ vars.JFROG_PROJECT }}
+      jf-build-name: spring-data-aerospike
+      jf-metadata-build-id: ${{ github.run_number }}-buildinfo
+      jf-build-id: ${{ github.run_number }}
+      gh-artifact-name: ${{ needs.sign-artifacts.outputs.gh-artifact-name }}
+      jar-group-id: com.aerospike
+      version: ${{ needs.extract-version.outputs.version }}
+      gh-retention-days: 1
+      oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+      oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+      dry-run: true
+
+  create-release-bundle:
+    needs: [extract-version, deploy-artifacts]
+    uses: aerospike/shared-workflows/.github/workflows/reusable_create-release-bundle.yaml@main
+    with:
+      jf-project: ${{ vars.JFROG_PROJECT }}
+      jf-build-names: spring-data-aerospike:${{ github.run_number }}
+      jf-bundle-name: spring-data-aerospike
+      gh-workflows-ref: 1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
+      version: ${{ needs.extract-version.outputs.version }}
+      oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+      oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+      dry-run: true

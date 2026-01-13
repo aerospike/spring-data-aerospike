@@ -1,0 +1,65 @@
+name: Approve or Delete Sonatype Deployment
+run-name: "Sonatype Deployment: ${{ inputs.action }} ${{ inputs.stage-release-id }}"
+# https://central.sonatype.org/publish/publish-portal-api/#verify-status-of-the-deployment
+
+permissions: {}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage-release-id:
+        description: "The Sonatype stage-release-id (UUID)"
+        required: true
+        type: string
+      action:
+        description: "Action to perform on the deployment: POST = approve, DELETE = discard"
+        required: true
+        type: choice
+        options:
+          - POST
+          - DELETE
+
+jobs:
+  sonatype-deployment-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Debug Inputs
+        run: |
+          echo "Action: ${{ inputs.action }}"
+          echo "Stage Release ID: ${{ inputs.stage-release-id }}"
+
+      - name: Build Authorization Header
+        id: auth
+        run: |
+          TOKEN=$(printf "%s:%s" "${{ secrets.AEROSPIKE_SA_CICD_USERNAME }}" "${{ secrets.AEROSPIKE_SA_CICD_PASSWORD }}" | base64)
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Approve/Delete deployment
+        shell: bash
+        run: |
+          ACTION="${{ inputs.action }}"
+          ID="${{ inputs.stage-release-id }}"
+          TOKEN="${{ steps.auth.outputs.token }}"
+          DOMAIN="${{ vars.SONATYPE_DOMAIN_NAME }}"
+
+          echo "Running Sonatype Deployment API call..."
+          echo "Endpoint: ${DOMAIN}/api/v1/publisher/deployment/${ID}"
+          
+          ACTION=$(echo "${{ inputs.action }}" | tr '[:lower:]' '[:upper:]')
+
+          if [[ "$ACTION" != "POST" && "$ACTION" != "DELETE" ]]; then
+            echo "ERROR: Invalid action '$ACTION' (expected POST or DELETE)"
+            exit 1
+          fi
+          
+          echo "→ Executing $ACTION for deployment ID ${ID}"
+          
+          RESPONSE=$(curl --fail --show-error --silent \
+            --request "$ACTION" \
+            --header "Authorization: Bearer ${TOKEN}" \
+            "${DOMAIN}/api/v1/publisher/deployment/${ID}"
+          )
+          
+          echo "Response from Sonatype:"
+          echo "$RESPONSE"
