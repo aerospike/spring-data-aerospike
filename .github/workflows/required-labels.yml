@@ -9,7 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Verify Pull Request has labels
     steps:
-      - uses: mheap/github-action-required-labels@v5
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - uses: mheap/github-action-required-labels@8afbe8ae6ab7647d0c9f0cfa7c2f939650d22509 # v5.5.1
         with:
           mode: minimum
           count: 1

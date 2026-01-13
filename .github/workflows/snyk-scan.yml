@@ -15,8 +15,13 @@ jobs:
   snyk-security:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@cdb760004ba9ea4d525f2e043745dfe85bb9077e
@@ -37,6 +42,6 @@ jobs:
 
       - name: Upload result to GitHub Code Scanning
         if: steps.out-file.outputs.exists == 'true'
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
         with:
           sarif_file: snyk.sarif
