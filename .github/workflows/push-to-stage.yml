@@ -10,7 +10,6 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-  #   - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build-stage:
