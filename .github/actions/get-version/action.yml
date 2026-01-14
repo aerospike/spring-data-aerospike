@@ -12,20 +12,25 @@ runs:
         # Check if tagged with release or release candidate
         TAG=$(git describe --exact-match --tags HEAD 2>/dev/null || echo "")
         
-        if [[ "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Define regex patterns
+        RE_PROD='^v?[0-9]+\.[0-9]+\.[0-9]+$'
+        RE_RC='^v?[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$'
+        
+        if [[ "$TAG" =~ $RE_PROD ]]; then
           echo "Production release tag detected: $TAG"
           echo "is-snapshot=false" >> $GITHUB_OUTPUT
           exit 0
-        elif [[ "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+        elif [[ "$TAG" =~ $RE_RC ]]; then
           echo "Release candidate tag detected: $TAG"
           echo "is-snapshot=false" >> $GITHUB_OUTPUT
           exit 0
+        else
+          echo "No matching tag found"
+          echo "is-snapshot=true" >> $GITHUB_OUTPUT
         fi
         
-        # Getting previous commit
-        COMMIT_REF="HEAD~1"
-
         # Checking if previous commit contains pom.xml. This should always return true
+        COMMIT_REF="HEAD~1"
         if ! git show "${COMMIT_REF}:pom.xml" &>/dev/null; then
           echo "Error: pom.xml not found in commit ${COMMIT_REF}"
           echo "is-snapshot='true'" >> $GITHUB_OUTPUT
