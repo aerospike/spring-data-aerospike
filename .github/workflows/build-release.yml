@@ -59,7 +59,7 @@ jobs:
         
         mvn clean install -B -U -Dgpg.skip=true
 
-        cd spring-data-aerospike
+        pwd
 
         LOCAL_REPO=$(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
         GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
