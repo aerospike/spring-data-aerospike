@@ -1,7 +1,7 @@
 name: Promote
 
 permissions:
-  contents: write      # For creating Releases
+  contents: write      # For creating releases
   id-token: write      # For JFrog OIDC authentication
 
 on:
