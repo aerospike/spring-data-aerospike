@@ -66,7 +66,7 @@ jobs:
 
       # Needed since we are using actions which are part of the repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           # Fetch the whole history to prevent unrelated history errors
           fetch-depth: "0"
@@ -241,7 +241,7 @@ jobs:
     steps:
       # Needed since we are using actions which are part of the repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.CLIENT_BOT_PAT }}
@@ -280,7 +280,7 @@ jobs:
     needs: [promote, publish-release-sonatype]
     steps: 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ inputs.target-branch }}
           token: ${{ secrets.CLIENT_BOT_PAT }}
