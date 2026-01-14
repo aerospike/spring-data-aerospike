@@ -69,8 +69,6 @@ jobs:
         GROUP_PATH=$(echo "$GROUP_ID" | tr '.' '/')
         ARTIFACT_PATH="$LOCAL_REPO/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
 
-        cd -
-
         echo "ARTIFACT_PATH: $ARTIFACT_PATH"
         echo "Copying artifacts to ./build/"
         
