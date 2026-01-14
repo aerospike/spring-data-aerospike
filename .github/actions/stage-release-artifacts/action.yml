@@ -44,7 +44,7 @@ runs:
         echo "${{ inputs.artifact-version }}"
 
     - name: Setup jfrog shell
-      uses: jfrog/setup-jfrog-cli@v4
+      uses: step-security/setup-jfrog-cli@a6b41f8338bea0983ddff6bd4ede7d2dcd81e1fa # v4.8.1
       env:
         JF_URL: ${{ inputs.jfrog-platform-url }}
         JF_PROJECT: database
