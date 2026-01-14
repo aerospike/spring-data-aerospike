@@ -14,7 +14,7 @@ on:
 jobs:
   promote-from-stage-to-prod:
     name: Promote from stage to prod
-    uses: ./.github/workflows/promote.yaml
+    uses: ./.github/workflows/promote.yml
     with:
       build-number: ${{ inputs.build-number }}
       target-repository: database-maven-dev-local

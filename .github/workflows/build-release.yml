@@ -20,7 +20,7 @@ jobs:
   extract-version:
     runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 2
       - name: Extract Version
@@ -129,7 +129,7 @@ jobs:
       gh-retention-days: 1
       oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
       oidc-audience: ${{ vars.OIDC_AUDIENCE }}
-      dry-run: true
+      dry-run: false
 
   create-release-bundle:
     needs: [extract-version, deploy-artifacts]
@@ -142,4 +142,4 @@ jobs:
       version: ${{ needs.extract-version.outputs.version }}
       oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
       oidc-audience: ${{ vars.OIDC_AUDIENCE }}
-      dry-run: true
+      dry-run: false
