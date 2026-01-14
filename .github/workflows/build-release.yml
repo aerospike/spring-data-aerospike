@@ -43,7 +43,7 @@ jobs:
       working-directory: spring-data-aerospike
       gh-workflows-ref: 1af48ee617c69f3ee53d4d63fc933eb4b14e7a12
       setup-java: true
-      java-version: 8
+      java-version: 17
       java-distribution: "temurin"
       build-script: |
         # Start Aerospike via the GitHub Action
