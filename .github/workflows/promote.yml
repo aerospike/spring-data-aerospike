@@ -233,8 +233,6 @@ jobs:
           echo "${GIT_NOTES}"
 
   publish-release-sonatype:
-    permissions:
-      contents: read
     runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
     needs: promote
     steps:
