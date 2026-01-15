@@ -11,6 +11,7 @@ runs:
       run: |
         # Check if tagged with release or release candidate
         TAG=$(git describe --exact-match --tags HEAD 2>/dev/null || echo "")
+        echo "Detected Git tag: '$TAG'"
         
         # Define regex patterns
         RE_PROD='^v?[0-9]+\.[0-9]+\.[0-9]+$'

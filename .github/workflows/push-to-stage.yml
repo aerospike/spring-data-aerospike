@@ -10,7 +10,9 @@ on:
     branches:
       - stage
     tags:
-      - 'v*'
+      - 'v*'                       # Matches v5.4.0
+      - '[0-9]+.[0-9]+.[0-9]+'     # Matches 5.4.0
+      - '[0-9]+.[0-9]+.[0-9]+-rc*' # Matches 5.4.0-rc1
   workflow_dispatch:
 
 jobs:
