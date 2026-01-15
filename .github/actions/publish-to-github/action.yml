@@ -79,7 +79,7 @@ runs:
         echo "files: ${{ steps.get-github-release-artifact-names.outputs.release-artifacts }}"
 
     - name: Publish release to github
-      uses: softprops/action-gh-release@v2
+      uses: step-security/action-gh-release@5f6a6ab53a5a2c000ff3a16fad038291e5b97ce7 # v2.4.2
       with:
         token: ${{ inputs.github-token }}
         tag_name: ${{ steps.get-artifact-version.outputs.artifact-version }}
