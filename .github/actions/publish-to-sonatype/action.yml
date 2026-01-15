@@ -97,8 +97,13 @@ runs:
       run: |
         TOKEN=$(printf "${{ inputs.publish-user }}:${{ inputs.publish-password }}" | base64)
 
-        echo "curl --request POST --silent --header 'Authorization: Bearer ${TOKEN}' --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED"
-        DEPLOYMENT_ID=$(curl --request POST --silent --header "Authorization: Bearer ${TOKEN}" --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED)
+        echo "curl --request POST --silent --header 'Authorization: Bearer ${TOKEN}' 
+        --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} 
+        ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED"
+        
+        DEPLOYMENT_ID=$(curl --request POST --silent --header "Authorization: Bearer ${TOKEN}" 
+        --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} 
+        ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED)
     
         echo "Deployment ID: ${DEPLOYMENT_ID}"
         echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
