@@ -1,7 +1,7 @@
 [[aerospike.index]]
 
 :doctype: book
-:revnumber: 5.4.1
+``:revnumber: 5.4.2
 :revdate: {localdate}
 :toc:
 :toc-placement!:
