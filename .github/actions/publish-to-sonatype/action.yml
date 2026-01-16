@@ -96,15 +96,19 @@ runs:
       shell: bash
       run: |
         TOKEN=$(printf "${{ inputs.publish-user }}:${{ inputs.publish-password }}" | base64)
-
-        echo "curl --request POST --silent --header 'Authorization: Bearer ${TOKEN}' 
-        --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} 
-        ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED"
+        ARTIFACT_NAME="${{ steps.create-artifact.outputs.artifact-name }}"
+        UPLOAD_URL="${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED"
         
-        DEPLOYMENT_ID=$(curl --request POST --silent --header "Authorization: Bearer ${TOKEN}" 
-        --form bundle=@${{ steps.create-artifact.outputs.artifact-name }} 
-        ${{ inputs.sonatype-domain-name }}/api/v1/publisher/upload?publishingType=USER_MANAGED)
-    
+        run_curl() {
+          curl --request POST --silent \
+          --header "Authorization: Bearer ${TOKEN}" \
+          --form "bundle=@${ARTIFACT_NAME}" \
+          "${UPLOAD_URL}"
+        }
+        
+        echo "Uploading artifact '${ARTIFACT_NAME}' to Sonatype using URL '${UPLOAD_URL}'"
+        DEPLOYMENT_ID=$(run_curl)
+
         echo "Deployment ID: ${DEPLOYMENT_ID}"
         echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
 
