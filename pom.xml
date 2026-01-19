@@ -35,7 +35,7 @@
         <aerospike-reactor-client>9.2.0</aerospike-reactor-client>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
         <reactor-test>3.8.1</reactor-test>
-        <embedded-aerospike>3.1.18</embedded-aerospike>
+        <embedded-aerospike>3.1.19</embedded-aerospike>
         <jodatime>2.14.0</jodatime>
         <lombok>1.18.42</lombok>
         <awaitility>4.3.0</awaitility>
