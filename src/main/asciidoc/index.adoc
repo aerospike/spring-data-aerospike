@@ -1,27 +1,123 @@
 [[aerospike.index]]
 
 :doctype: book
-``:revnumber: 5.4.2
+:revnumber: 5.4.2
 :revdate: {localdate}
-:toc:
-:toc-placement!:
-:toclevels: 1
 
 :leveloffset: -1
+
+toc::[]
+
+++++
+<style>
+/* Style the page title with the same red as section headers */
+#header h1,
+h1#spring-data-aerospike-documentation {
+  color: #ba3925;
+}
+
+/* Make room for the sidebar by adding margin to the main content */
+#content {
+  margin-right: 260px;
+}
+#header, #footer {
+  margin-right: 260px;
+}
+
+.quick-nav {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 220px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: "Open Sans", "DejaVu Sans", sans-serif;
+  font-size: 0.85em;
+  font-weight: 300;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+.quick-nav h3 {
+  margin: 0 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ba3925;
+  color: #ba3925;
+  font-size: 1.1em;
+}
+.quick-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.quick-nav li {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+.quick-nav a {
+  color: #2156a5;
+  text-decoration: none;
+}
+.quick-nav a:hover {
+  color: #ba3925;
+  text-decoration: underline;
+}
+
+/* On smaller screens, remove sidebar and restore full width */
+@media (max-width: 1200px) {
+  .quick-nav { display: none; }
+  #content, #header, #footer { margin-right: 0; }
+}
+</style>
+
+<div class="quick-nav">
+  <h3>Table of contents</h3>
+  <ul>
+    <li><a href="#preface">Preface</a></li>
+    <li><a href="#aerospike.functionality">Functionality</a></li>
+    <li><a href="#aerospike.installation_and_usage">Installation & Usage</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#tls">TLS Configuration</a></li>
+    <li><a href="#aerospike.repositories">Aerospike Repositories</a></li>
+    <li><a href="#aerospike.reactive.repositories">Reactive Repositories</a></li>
+    <li><a href="#aerospike.projections">Projections</a></li>
+    <li><a href="#aerospike.query-methods-preface">Query Methods</a></li>
+    <li><a href="#aerospike.query_methods.simple_property">Simple Property Queries</a></li>
+    <li><a href="#aerospike.query_methods.collection">Collection Queries</a></li>
+    <li><a href="#aerospike.query_methods.map">Map Queries</a></li>
+    <li><a href="#aerospike.query_methods.pojo">POJO Queries</a></li>
+    <li><a href="#aerospike.query_methods.id">Id Queries</a></li>
+    <li><a href="#aerospike.query-methods-combined">Combined Query Methods</a></li>
+    <li><a href="#query-methods-modification">Query Modification</a></li>
+    <li><a href="#custom-queries">Custom Queries</a></li>
+    <li><a href="#dsl.expressions">DSL Expressions</a></li>
+    <li><a href="#aerospike.object-mapping">Object Mapping</a></li>
+    <li><a href="#aerospike.custom-converters">Custom Converters</a></li>
+    <li><a href="#pagination_and_sorting">Pagination & Sorting</a></li>
+    <li><a href="#aerospike.template">Aerospike Template</a></li>
+    <li><a href="#secondary-indexes">Secondary Indexes</a></li>
+    <li><a href="#indexed-annotation">Indexed Annotation</a></li>
+    <li><a href="#aerospike.scan-operation">Scan Operation</a></li>
+    <li><a href="#caching">Caching</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+  </ul>
+</div>
+++++
+
+:leveloffset: +1
 
 == Spring Data Aerospike - Documentation
 
 :leveloffset: +1
 
-(C) 2018-2025 The original authors.
+(C) 2018-{docyear} The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not
 charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed
 in print or electronically.
-
-toc::[]
-
-:leveloffset: +1
 
 include::preface.adoc[]
 
