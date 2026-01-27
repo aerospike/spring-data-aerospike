@@ -1,5 +1,5 @@
 [[aerospike.repositories]]
-= Aerospike repositories
+= Aerospike Repositories
 
 [[aerospike.repositories.intro]]
 == Introduction
