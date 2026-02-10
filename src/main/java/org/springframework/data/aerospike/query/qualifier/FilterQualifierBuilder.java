@@ -39,4 +39,13 @@ public class FilterQualifierBuilder extends BaseQualifierBuilder<FilterQualifier
     public Filter getFilter() {
         return (Filter) map.get(SINDEX_FILTER);
     }
+
+    @Override
+    protected void validate() {
+        if (this.getFilter() == null && this.getExpression() == null) {
+            throw new IllegalStateException(
+                "Expecting either secondary index Filter or filtering Expression to be provided"
+            );
+        }
+    }
 }

@@ -583,14 +583,14 @@ class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonReposit
         // Create an expression that filters last name satisfying a regex
         Expression lastNameExpr = Exp.build(
             Exp.regexCompare(
-                ".*ford.*",
+                ".*tian.*",
                 RegexFlag.ICASE,
                 Exp.bin("lastName", Exp.Type.STRING)
             )
         );
 
         // Create a simple secondary index filter for age >= 30
-        Filter ageFilter = Filter.range("age", Long.MIN_VALUE, 30);
+        Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
 
         // Create a qualifier
         Qualifier filterQualifier = Qualifier.filterBuilder()
@@ -611,7 +611,7 @@ class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonReposit
                 List<IndexedPerson> filteredPersons = allIndexedPersons.stream()
                     .filter(person -> person.getAge() >= 30 &&
                         person.getLastName() != null &&
-                        person.getLastName().toLowerCase().contains("ford"))
+                        person.getLastName().toLowerCase().contains("tian"))
                     .toList();
 
                 return persons.containsAll(filteredPersons) &&

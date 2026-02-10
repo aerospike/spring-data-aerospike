@@ -170,7 +170,7 @@ Below are examples for the mentioned custom queries types.
             );
 
             // Create secondary index filter for age >= 30
-            Filter ageFilter = Filter.range("age", Long.MIN_VALUE, 30);
+            Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
 
             // Create a qualifier
             Qualifier filterQualifier = Qualifier.filterBuilder()
