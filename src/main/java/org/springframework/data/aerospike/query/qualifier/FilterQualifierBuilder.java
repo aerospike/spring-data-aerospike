@@ -8,7 +8,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FI
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SINDEX_FILTER;
 
 /**
- * Builder for filter qualifier (transferring secondary index {@link Filter} and filtering {@link Expression})
+ * Builder for filter qualifier (transferring secondary index {@link Filter} and/or filtering {@link Expression})
  **/
 @Beta
 public class FilterQualifierBuilder extends BaseQualifierBuilder<FilterQualifierBuilder> {
@@ -17,7 +17,7 @@ public class FilterQualifierBuilder extends BaseQualifierBuilder<FilterQualifier
     }
 
     /**
-     * Set filter expression. Mandatory parameter.
+     * Set filtering expression.
      */
     public FilterQualifierBuilder setExpression(Expression filterExpression) {
         this.map.put(FILTER_EXPRESSION, filterExpression);
@@ -29,7 +29,7 @@ public class FilterQualifierBuilder extends BaseQualifierBuilder<FilterQualifier
     }
 
     /**
-     * Set secondary index filter. Mandatory parameter.
+     * Set secondary index filter.
      */
     public FilterQualifierBuilder setFilter(Filter filter) {
         this.map.put(SINDEX_FILTER, filter);

@@ -3,9 +3,12 @@
 [[custom-queries-intro]]
 == Introduction
 
-Regular repository queries are obviously helpful for most of the querying tasks. Each of the repositories adds more functionality by providing its query methods.
+Regular repository queries are obviously helpful for most of the querying tasks. Each of the repositories
+adds more functionality by providing its query methods.
 
-There are some cases, however, when data finding tasks require building query methods which are more complex, more flexible or unsupported in a standard repository. Custom queries is such a special mechanism in Spring Data Aerospike. Currently only finding (reading) queries are supported.
+There are some cases, however, when data finding tasks require building query methods which are more complex,
+more flexible or unsupported in a standard repository. Custom queries is such a special mechanism
+in Spring Data Aerospike. Currently only finding (reading) queries are supported.
 
 [[find-using-query]]
 == Find Using Query
@@ -13,7 +16,9 @@ There are some cases, however, when data finding tasks require building query me
 User can perform a custom `Query` using a special custom `Qualifier` which represents an expression.
 It may contain other qualifiers and combine them using either `AND` or `OR`, with some limitations due to Qualifier type.
 
-Custom `Qualifier` can be created for queries of the following types: regular (Aerospike bins), metadata, DSL expression, indexed with expression and ids (primary keys).
+Custom `Qualifier` can be created for queries of the following types: regular (Aerospike bins), metadata,
+DSL expression, indexed with expression, ids (primary keys) and filtering (accepting `Expression`
+and/or secondary index `Filter` for additional flexibility, manual handling or when working with legacy code).
 Below are examples for the mentioned custom queries types.
 
 [[custom-query-regular]]
@@ -147,6 +152,44 @@ Below are examples for the mentioned custom queries types.
             // Run the query
             Iterable<Person> result = repository.findUsingQuery(query);
             assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
+----
 
+
+[[custom-query-filtering]]
+== Filtering Custom Query Example
+
+[source,java]
+----
+            // Create an expression that filters last name satisfying a regex
+            Expression lastNameExpr = Exp.build(
+                Exp.regexCompare(
+                    ".*ford.*",
+                    RegexFlag.ICASE,
+                    Exp.bin("lastName", Exp.Type.STRING)
+                )
+            );
+
+            // Create secondary index filter for age >= 30
+            Filter ageFilter = Filter.range("age", Long.MIN_VALUE, 30);
+
+            // Create a qualifier
+            Qualifier filterQualifier = Qualifier.filterBuilder()
+                .setExpression(lastNameExpr)
+                .setFilter(ageFilter)
+                .build();
+            Query query = new Query(filterQualifier);
+
+            // Run query
+            Iterable<Person> result = repository.findUsingQuery(query);
+
+            // Filter test persons according to the chosen criteria
+            List<Person> filteredPersons = allPersons.stream()
+                .filter(person -> person.getAge() >= 30 &&
+                    person.getLastName() != null &&
+                    person.getLastName().toLowerCase().contains("ford"))
+                .toList();
+
+            // Verify results
+            assertThat(result).containsExactlyInAnyOrderElementsOf(filteredPersons);
 ----
 

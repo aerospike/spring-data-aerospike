@@ -17,7 +17,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VA
 
 
 /**
- * Qualifier builder for a query indexed using an Expression
+ * Qualifier builder for a query which is indexed using an Expression
  * (see {@link AerospikeTemplate#createIndex(String, String, IndexType, IndexCollectionType, Expression)})
  */
 @Beta

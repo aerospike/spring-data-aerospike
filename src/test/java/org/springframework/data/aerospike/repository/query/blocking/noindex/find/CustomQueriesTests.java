@@ -6,6 +6,7 @@ import com.aerospike.client.exp.Expression;
 import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.RegexFlag;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.model.Index;
@@ -635,5 +636,64 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             // Cleanup
             template.deleteIndex(setName, indexName);
         }
+    }
+
+    @Test
+    void findPersonsUsingFilterQualifierWithExpression() {
+        // Create a simple expression that filters for age >= 25
+        Expression ageExpr = Exp.build(
+            Exp.ge(
+                Exp.bin("age", Exp.Type.INT),
+                Exp.val(25)
+            )
+        );
+
+        // Create a qualifier with only an Expression
+        Qualifier expressionQualifier = Qualifier.filterBuilder()
+            .setExpression(ageExpr)
+            .build();
+
+        // Run query
+        Iterable<Person> result = repository.findUsingQuery(new Query(expressionQualifier));
+
+        // All people in the test set with age >= 25
+        List<Person> personsWithAgeGte25 = allPersons.stream()
+            .filter(person -> person.getAge() >= 25)
+            .toList();
+
+        // Verify results
+        assertThat(result).containsExactlyInAnyOrderElementsOf(personsWithAgeGte25);
+
+        // Test with complex expression: (age >= 25 AND lastName contains "ford")
+        Expression complexExpr = Exp.build(
+            Exp.and(
+                Exp.ge(
+                    Exp.bin("age", Exp.Type.INT),
+                    Exp.val(25)
+                ),
+                Exp.regexCompare(
+                    ".*ford.*",
+                    RegexFlag.ICASE,
+                    Exp.bin("lastName", Exp.Type.STRING)
+                )
+            )
+        );
+
+        Qualifier complexExpQualifier = Qualifier.filterBuilder()
+            .setExpression(complexExpr)
+            .build();
+
+        // Execute query with a more complex expression
+        Iterable<Person> complexResult = repository.findUsingQuery(new Query(complexExpQualifier));
+
+        // Filter test persons according to the chosen criteria
+        List<Person> filteredPersons = allPersons.stream()
+            .filter(person -> person.getAge() >= 25 &&
+                person.getLastName() != null &&
+                person.getLastName().toLowerCase().contains("ford"))
+            .toList();
+
+        // Verify results
+        assertThat(complexResult).containsExactlyInAnyOrderElementsOf(filteredPersons);
     }
 }

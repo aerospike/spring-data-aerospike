@@ -4,14 +4,18 @@
 [[dsl.expressions.intro]]
 == Introduction
 
-Aerospike DSL (Domain Specific Language) expressions represent a functional language for applying predicates to bin data and record metadata. They provide a powerful and flexible way to query Aerospike data using a dot-separated infix notation. DSL expressions can act as the WHERE clause in your queries, allowing to filter records based on bin values, metadata, navigating through complex nested structures.
+Aerospike DSL (Domain Specific Language) expressions represent a functional language for applying predicates
+to bin data and record metadata. They provide a powerful and flexible way to query Aerospike data using
+a dot-separated infix notation. DSL expressions can act as the WHERE clause in your queries,
+allowing to filter records based on bin values, metadata, navigating through complex nested structures.
 
 DSL expressions offer several advantages:
 
 * **Human-readable syntax**: Use recognizable text-based notation (`$.binName > 0`)
 * **Aerospike data structures support**: Support for strings, numbers, booleans, and complex data types
 * **Flexible querying**: Work with maps, lists, and nested structures
-* **Two usage patterns in Spring Data Aerospike**: Available both as annotations on repository methods and programmatically in custom queries.
+* **Two usage patterns in Spring Data Aerospike**: Available both as annotations on repository methods
+and programmatically in custom queries.
 
 The DSL Parser API converts dot-separated string paths into Aerospike filters for applying predicates.
 
@@ -154,7 +158,8 @@ public interface PersonQueryAnnotationRepository<P extends Person>
 [[dsl.expressions.custom.queries]]
 == Usage with Custom Queries
 
-For more complex scenarios or programmatic query construction, you can use DSL expressions with the custom query API through `Qualifier.dslExpressionBuilder()`.
+For more complex scenarios or programmatic query construction, you can use DSL expressions with
+the custom query API through `Qualifier.dslExpressionBuilder()`.
 
 [[dsl.expressions.custom.queries.static]]
 === Static DSL Expressions in Custom Queries
@@ -225,7 +230,8 @@ When there is one index for a query, it is used to create secondary index Filter
 
 When multiple indexes are available for bins of a complex query, DSLParser automatically does the following:
 
-1. Selects one index to build the secondary index `Filter` (always one per query) based on index cardinality (preferring higher `binValuesRatio`)
+1. Selects one index to build the secondary index `Filter` (always one per query) based on index cardinality
+(preferring higher `binValuesRatio`)
 2. Falls back to alphabetical order if cardinality of indexes is equal
 3. Uses filtering `Expression` for remaining parts of the query
 
@@ -252,7 +258,9 @@ Iterable<Person> result = repository.findUsingQuery(query);
 
 [WARNING]
 ====
-**Combining custom Qualifiers**: For custom queries, it is currently NOT allowed to combine DSL expression qualifiers with non-DSL qualifiers using `Qualifier.and()` or `Qualifier.or()`. This limitation is irrelevant to regular repository queries.
+**Combining custom Qualifiers**: For custom queries, it is currently NOT allowed to combine
+DSL expression qualifiers with non-DSL qualifiers using `Qualifier.and()` or `Qualifier.or()`.
+This limitation is irrelevant to regular repository queries.
 ====
 
 .Invalid qualifier combination
