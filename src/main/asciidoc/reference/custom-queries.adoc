@@ -117,42 +117,42 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-            String indexName = "idx_selected_names_above_25";
-            // Build an expression that filters age only for adults with expected names that are 25 or older
-            Expression filterExpr = Exp.build(
-                Exp.cond(
-                    Exp.and(
-                        Exp.ge( // Is the age 25 or older?
-                            Exp.intBin("age"),
-                            Exp.val(25)
-                        ),
-                        ListExp.getByValue( // Do they have the expected names?
-                            ListReturnType.EXISTS,
-                            Exp.stringBin("firstName"),
-                            Exp.val(List.of("Leroi", "Stefan"))
-                        )
+        String indexName = "idx_selected_names_above_25";
+        // Build an expression that filters age only for adults with expected names that are 25 or older
+        Expression filterExpr = Exp.build(
+            Exp.cond(
+                Exp.and(
+                    Exp.ge( // Is the age 25 or older?
+                        Exp.intBin("age"),
+                        Exp.val(25)
                     ),
-                    Exp.intBin("age"), // If true, return the age of the customer to be indexed
-                    Exp.unknown() // Returns "unknown" to exclude the record from the index
-                )
-            );
+                    ListExp.getByValue( // Do they have the expected names?
+                        ListReturnType.EXISTS,
+                        Exp.stringBin("firstName"),
+                        Exp.val(List.of("Leroi", "Stefan"))
+                    )
+                ),
+                Exp.intBin("age"), // If true, return the age of the customer to be indexed
+                Exp.unknown() // Returns "unknown" to exclude the record from the index
+            )
+        );
 
-            // Create an index using the Expression
-            String setName = template.getSetName(Person.class);
-            template.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExpr);
-            assertThat(template.indexExists(indexName)).isTrue();
+        // Create an index using the Expression
+        String setName = template.getSetName(Person.class);
+        template.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExpr);
+        assertThat(template.indexExists(indexName)).isTrue();
 
-            // Create the query
-            Qualifier usingIndexWithExpression = Qualifier.indexedWithExpressionBuilder()
-                .setIndexName(indexName)
-                .setFilterOperation(FilterOperation.GT)
-                .setValue(25)
-                .build();
-            Query query = new Query(usingIndexWithExpression);
+        // Create the query
+        Qualifier usingIndexWithExpression = Qualifier.indexedWithExpressionBuilder()
+            .setIndexName(indexName)
+            .setFilterOperation(FilterOperation.GT)
+            .setValue(25)
+            .build();
+        Query query = new Query(usingIndexWithExpression);
 
-            // Run the query
-            Iterable<Person> result = repository.findUsingQuery(query);
-            assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
+        // Run the query
+        Iterable<Person> result = repository.findUsingQuery(query);
+        assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
 ----
 
 
@@ -161,36 +161,36 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-            // Create an expression that filters last name satisfying a regex
-            Expression lastNameExpr = Exp.build(
-                Exp.regexCompare(
-                    ".*ford.*",
-                    RegexFlag.ICASE,
-                    Exp.bin("lastName", Exp.Type.STRING)
-                )
-            );
+        // Create an expression that filters last name satisfying a regex
+        Expression lastNameExpr = Exp.build(
+            Exp.regexCompare(
+                ".*ford.*",
+                RegexFlag.ICASE,
+                Exp.bin("lastName", Exp.Type.STRING)
+            )
+        );
 
-            // Create secondary index filter for age >= 30
-            Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
+        // Create secondary index filter for age >= 30
+        Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
 
-            // Create a qualifier
-            Qualifier filterQualifier = Qualifier.filterBuilder()
-                .setExpression(lastNameExpr)
-                .setFilter(ageFilter)
-                .build();
-            Query query = new Query(filterQualifier);
+        // Create a qualifier
+        Qualifier filterQualifier = Qualifier.filterBuilder()
+            .setExpression(lastNameExpr)
+            .setFilter(ageFilter)
+            .build();
+        Query query = new Query(filterQualifier);
 
-            // Run query
-            Iterable<Person> result = repository.findUsingQuery(query);
+        // Run query
+        Iterable<Person> result = repository.findUsingQuery(query);
 
-            // Filter test persons according to the chosen criteria
-            List<Person> filteredPersons = allPersons.stream()
-                .filter(person -> person.getAge() >= 30 &&
-                    person.getLastName() != null &&
-                    person.getLastName().toLowerCase().contains("ford"))
-                .toList();
+        // Filter test persons according to the chosen criteria
+        List<Person> filteredPersons = allPersons.stream()
+            .filter(person -> person.getAge() >= 30 &&
+                person.getLastName() != null &&
+                person.getLastName().toLowerCase().contains("ford"))
+            .toList();
 
-            // Verify results
-            assertThat(result).containsExactlyInAnyOrderElementsOf(filteredPersons);
+        // Verify results
+        assertThat(result).containsExactlyInAnyOrderElementsOf(filteredPersons);
 ----
 
