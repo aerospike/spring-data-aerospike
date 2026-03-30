@@ -25,8 +25,8 @@ import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.SimpleTypeInformationMapper;
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.model.EntityInstantiators;
-import org.springframework.data.util.TypeInformation;
 
 import java.util.List;
 import java.util.Map;
