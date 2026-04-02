@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.async.EventLoopType;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
@@ -188,18 +189,22 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
         EventLoopGroup eventLoopGroup;
+        EventLoopType eventLoopType;
         if (os.contains("nux") && Epoll.isAvailable()) {
             eventLoopGroup = new EpollEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_EPOLL;
         } else if (os.contains("mac") && KQueue.isAvailable()) {
             eventLoopGroup = new KQueueEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_KQUEUE;
         } else {
             eventLoopGroup = new NioEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_NIO;
         }
 
         EventPolicy eventPolicy = new EventPolicy();
         eventPolicy.maxCommandsInProcess = 40;
         eventPolicy.maxCommandsInQueue = 1024;
-        return new NettyEventLoops(eventPolicy, eventLoopGroup);
+        return new NettyEventLoops(eventPolicy, eventLoopGroup, eventLoopType);
     }
 
     @Bean(name = "aerospikeIndexResolver")

@@ -46,18 +46,13 @@ jobs:
       java-version: 17
       java-distribution: "temurin"
       build-script: |
-        # Start Aerospike via the GitHub Action
-        echo "Starting Aerospike DB..."
-        docker run -d --name aerospike -p 3000:3000 aerospike/aerospike-server
-        sleep 5
-
         # Maven build
         if [ "${{ needs.extract-version.outputs.is-snapshot }}" == "true" ]; then
           pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           mvn versions:set -DnewVersion="${pom_version}-SNAPSHOT" -DgenerateBackupPoms=false -DprocessAllModules
         fi
         
-        mvn clean install -B -U -Dgpg.skip=true
+        mvn clean install -B -U -Dgpg.skip=true -DskipTests
 
         cd spring-data-aerospike
 

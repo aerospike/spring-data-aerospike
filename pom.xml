@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>5.4.0</version>
+    <version>5.5.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.4</version>
     </parent>
 
     <properties>
@@ -24,27 +24,27 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata-commons.version>4.0.1</springdata-commons.version>
-        <spring-boot-starter-test.version>4.0.1</spring-boot-starter-test.version>
-        <cloud-starter-bootstrap.version>5.0.0</cloud-starter-bootstrap.version>
-        <spring-tx.version>7.0.2</spring-tx.version>
+        <springdata-commons.version>4.0.4</springdata-commons.version>
+        <spring-boot-starter-test.version>4.0.5</spring-boot-starter-test.version>
+        <cloud-starter-bootstrap.version>5.0.1</cloud-starter-bootstrap.version>
+        <spring-tx.version>7.0.6</spring-tx.version>
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-publishing-plugin.version>0.10.0</maven-publishing-plugin.version>
-        <aerospike-client-jdk8.version>9.2.0</aerospike-client-jdk8.version>
-        <aerospike-reactor-client.version>9.2.0</aerospike-reactor-client.version>
+        <aerospike-client-jdk8.version>10.0.0</aerospike-client-jdk8.version>
+        <aerospike-reactor-client.version>10.0.0</aerospike-reactor-client.version>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
-        <reactor-test.version>3.8.1</reactor-test.version>
+        <reactor-test.version>3.8.4</reactor-test.version>
         <jspecify.version>1.0.0</jspecify.version>
-        <embedded-aerospike.version>3.1.18</embedded-aerospike.version>
+        <embedded-aerospike.version>3.1.20</embedded-aerospike.version>
         <jodatime.version>2.14.0</jodatime.version>
-        <lombok.version>1.18.42</lombok.version>
+        <lombok.version>1.18.44</lombok.version>
         <awaitility.version>4.3.0</awaitility.version>
         <logback-test.version>1.5.24</logback-test.version>
         <hibernate-validator.version>9.1.0.Final</hibernate-validator.version>
-        <netty.version>4.2.9.Final</netty.version>
+        <netty.version>4.2.10.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
-        <apacheCommonsCodec.version>1.20.0</apacheCommonsCodec.version>
+        <apacheCommonsCodec.version>1.21.0</apacheCommonsCodec.version>
     </properties>
 
     <licenses>
