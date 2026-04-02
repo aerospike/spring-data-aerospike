@@ -2,7 +2,7 @@ name: Promote to Prod
 
 permissions:
   contents: write # For creating releases
-  id-token: write # For OIDC authentication
+  id-token: write # This is required for requesting the OIDC token
 
 on:
   workflow_dispatch:

@@ -172,7 +172,7 @@ Create qualifiers with fixed values embedded in the expression:
 ----
 // Setting a static DSL expression with a fixed value
 Qualifier positiveActivityQualifier = Qualifier.dslExpressionBuilder()
-    .setDslExprString("$.isActive == true")
+    .setDSLExpressionString("$.isActive == true")
     .build();
 
 List<Person> activePersons = repository.findUsingQuery(new Query(positiveActivityQualifier));
@@ -192,7 +192,7 @@ Create qualifiers with placeholders and provide values separately:
 String firstName = "Oliver";
 Query firstNameQuery = new Query(
     Qualifier.dslExpressionBuilder()
-        .setDslExprString("$.firstName == ?0")
+        .setDSLExpressionString("$.firstName == ?0")
         .setDSLExpressionValues(new Object[]{firstName})
         .build()
 );
@@ -214,7 +214,7 @@ You can create comprehensive DSL expressions that combine multiple conditions:
 ----
 // Using a comprehensive static DSL expression with fixed values
 Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
-    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .setDSLExpressionString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
     .build();
 
 Query query = new Query(colorAndAge);
@@ -240,7 +240,7 @@ When multiple indexes are available for bins of a complex query, DSLParser autom
 [source,java]
 ----
 Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
-    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .setDSLExpressionString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
     .build();
 
 Query query = new Query(colorAndAge);
@@ -269,7 +269,7 @@ This limitation is irrelevant to regular repository queries.
 ----
 // DSL expression qualifier
 Qualifier colorEqGreen = Qualifier.dslExpressionBuilder()
-    .setDslExprString("$.favColor == 'green'")
+    .setDSLExpressionString("$.favColor == 'green'")
     .build();
 
 // Regular qualifier
@@ -293,7 +293,7 @@ Query invalidQuery = new Query(Qualifier.and(colorEqGreen, ageBetween28And29));
 ----
 // Option 1: Combine everything in one DSL expression
 Qualifier combined = Qualifier.dslExpressionBuilder()
-    .setDslExprString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
+    .setDSLExpressionString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
     .build();
 
 Query validQuery = new Query(combined);

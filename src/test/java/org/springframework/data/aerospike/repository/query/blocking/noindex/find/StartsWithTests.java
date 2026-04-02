@@ -21,7 +21,6 @@ public class StartsWithTests extends PersonRepositoryQueryTests {
     @Test
     void findBySimplePropertyStartingWith_String() {
         List<Person> result = repository.findByFirstNameStartsWith("D");
-
         assertThat(result).containsOnly(dave, donny, douglas);
     }
 

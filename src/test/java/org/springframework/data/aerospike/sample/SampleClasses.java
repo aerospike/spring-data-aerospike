@@ -17,10 +17,9 @@ package org.springframework.data.aerospike.sample;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import com.aerospike.dsl.api.DSLParser;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
@@ -28,8 +27,6 @@ import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
-import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.TypeAlias;
@@ -777,8 +774,9 @@ public class SampleClasses {
     public static class StringToSomeIdConverter implements Converter<String, SomeId> {
 
         @Override
-        public SomeId convert(@NotNull String id) {
+        public SomeId convert(@NonNull String id) {
             String[] parts = StringUtils.split(id, "-");
+            //noinspection ConstantValue
             assert parts != null;
             return new SomeId(parts[0], parts[1]);
         }

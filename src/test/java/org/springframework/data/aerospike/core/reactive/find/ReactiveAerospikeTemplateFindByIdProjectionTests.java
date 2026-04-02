@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReactiveIntegrationTests {
 
@@ -38,7 +39,7 @@ public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReacti
         PersonSomeFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class, PersonSomeFields.class)
             .subscribeOn(Schedulers.parallel()).block();
 
-        assert result != null;
+        assertNotNull(result);
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getEmailAddress()).isEqualTo("gmail.com");
@@ -66,7 +67,7 @@ public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReacti
         PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class,
             PersonMissingAndRedundantFields.class).subscribeOn(Schedulers.parallel()).block();
 
-        assert result != null;
+        assertNotNull(result);
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
@@ -95,7 +96,7 @@ public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReacti
         PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class,
             PersonMissingAndRedundantFields.class, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
 
-        assert result != null;
+        assertNotNull(result);
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
@@ -124,7 +125,7 @@ public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReacti
         PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), PersonTouchOnRead.class,
             PersonMissingAndRedundantFields.class).subscribeOn(Schedulers.parallel()).block();
 
-        assert result != null;
+        assertNotNull(result);
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();

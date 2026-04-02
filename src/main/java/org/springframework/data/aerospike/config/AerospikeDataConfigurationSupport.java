@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.async.EventLoopType;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
@@ -34,7 +35,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
@@ -123,12 +124,10 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
     }
 
     @Bean
-    public AerospikeCustomConversions customConversions(@Autowired(required = false)
-                                                        AerospikeCustomConverters converters) {
+    public AerospikeCustomConversions customConversions(ObjectProvider<AerospikeCustomConverters> convertersProvider) {
         List<Object> aggregatedCustomConverters = new ArrayList<>(customConverters());
-        if (converters != null) {
-            aggregatedCustomConverters.addAll(converters.getCustomConverters());
-        }
+        convertersProvider.orderedStream()
+            .forEach(c -> aggregatedCustomConverters.addAll(c.getCustomConverters()));
         return new AerospikeCustomConversions(aggregatedCustomConverters);
     }
 
@@ -188,18 +187,22 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
         EventLoopGroup eventLoopGroup;
+        EventLoopType eventLoopType;
         if (os.contains("nux") && Epoll.isAvailable()) {
             eventLoopGroup = new EpollEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_EPOLL;
         } else if (os.contains("mac") && KQueue.isAvailable()) {
             eventLoopGroup = new KQueueEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_KQUEUE;
         } else {
             eventLoopGroup = new NioEventLoopGroup(nThreads);
+            eventLoopType = EventLoopType.NETTY_NIO;
         }
 
         EventPolicy eventPolicy = new EventPolicy();
         eventPolicy.maxCommandsInProcess = 40;
         eventPolicy.maxCommandsInQueue = 1024;
-        return new NettyEventLoops(eventPolicy, eventLoopGroup);
+        return new NettyEventLoops(eventPolicy, eventLoopGroup, eventLoopType);
     }
 
     @Bean(name = "aerospikeIndexResolver")

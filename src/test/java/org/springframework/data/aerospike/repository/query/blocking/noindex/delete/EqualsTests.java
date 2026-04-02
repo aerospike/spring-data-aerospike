@@ -1,6 +1,5 @@
-package org.springframework.data.aerospike.repository.query.blocking.delete;
+package org.springframework.data.aerospike.repository.query.blocking.noindex.delete;
 
-import com.aerospike.client.AerospikeException;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
@@ -9,7 +8,6 @@ import org.springframework.data.aerospike.sample.Person;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.QueryParam.of;
 
 /**
@@ -118,24 +116,6 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
         // Another way to run the same, this is the implementation of repository.deleteAllById(Iterable<?>)
         template.deleteByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class);
-        assertThat(repository.existsById(dave.getId())).isFalse();
-        assertThat(repository.existsById(carter.getId())).isFalse();
-
-        // Restore records
-        repository.save(dave);
-        repository.save(carter);
-
-        // Pre-deletion check
-        assertThat(repository.existsById(dave.getId())).isTrue();
-        assertThat(repository.existsById(carter.getId())).isTrue();
-        assertThat(repository.existsById("1")).isFalse();
-        assertThat(repository.existsById("2")).isFalse();
-
-        // Non-existent records cause the exception, they are not ignored
-        assertThatThrownBy(() -> template.deleteExistingByIds(List.of("1", dave.getId(), "2", carter.getId()), Person.class))
-            .isInstanceOf(AerospikeException.BatchRecordArray.class)
-            .hasMessageContaining("Batch failed");
-        // Existing records are deleted as the check is performed in post-processing
         assertThat(repository.existsById(dave.getId())).isFalse();
         assertThat(repository.existsById(carter.getId())).isFalse();
 

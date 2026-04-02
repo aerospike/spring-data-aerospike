@@ -70,17 +70,16 @@ will scan the package of the annotated configuration class.
 ----
 @Configuration
 @EnableAerospikeRepositories(basePackages = "org.springframework.data.aerospike.example")
-public class TestRepositoryConfig {
-	public @Bean(destroyMethod = "close") AerospikeClient aerospikeClient() {
+public class TestRepositoryConfig extends AbstractAerospikeDataConfiguration {
 
-		ClientPolicy policy = new ClientPolicy();
-		policy.failIfNotConnected = true;
-
-		return new AerospikeClient(policy, "localhost", 3000);
+	@Override
+	protected Collection<Host> getHosts() {
+		return Collections.singleton(new Host("localhost", 3000));
 	}
 
-	public @Bean AerospikeTemplate aerospikeTemplate() {
-		return new AerospikeTemplate(aerospikeClient(), "test");
+	@Override
+	protected String nameSpace() {
+		return "test";
 	}
 }
 ----
@@ -95,8 +94,7 @@ like this:
 ====
 [source,java]
 ----
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringBootTest
 public class PersonRepositoryTests {
 
     @Autowired PersonRepository repository;
@@ -104,8 +102,8 @@ public class PersonRepositoryTests {
     @Test
     public void readsFirstPageCorrectly() {
 
-      Page<Person> persons = repository.findAll(new PageRequest(0, 10));
-      assertThat(persons.isFirstPage(), is(true));
+      Page<Person> persons = repository.findAll(PageRequest.of(0, 10));
+      assertThat(persons.isFirst()).isTrue();
     }
 }
 ----
@@ -175,7 +173,7 @@ public class RepositoryExample {
 		Person alicia = new Person("Alicia-01", "Keys", 30);
 		repository.createIndex(Person.class, "person_name_index", "name",
 				IndexType.STRING);
-		List<Person> all = (List<Person>) repository.save(Arrays.asList(oliver,
+		List<Person> all = (List<Person>) repository.saveAll(Arrays.asList(oliver,
 				dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
 	}
 

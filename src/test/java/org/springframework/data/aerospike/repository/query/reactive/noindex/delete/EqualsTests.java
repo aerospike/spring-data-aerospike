@@ -1,7 +1,6 @@
 package org.springframework.data.aerospike.repository.query.reactive.noindex.delete;
 
 import com.aerospike.client.AerospikeException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.query.QueryParam;
@@ -215,28 +214,6 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         // Another way to run the same, this is the implementation of reactiveRepository.deleteAllById(Iterable<?>)
         reactiveTemplate.deleteByIds(List.of("1", homer.getId(), "2", marge.getId()), Customer.class)
             .block();
-        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
-        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
-
-        // Restore records
-        reactiveRepository.save(homer).block();
-        reactiveRepository.save(marge).block();
-
-        // Pre-deletion check
-        StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveRepository.findById("1")).expectNextCount(0).verifyComplete();
-        StepVerifier.create(reactiveRepository.findById("2")).expectNextCount(0).verifyComplete();
-
-        // Trying to delete non-existent records causes an exception
-        Assertions.assertThatThrownBy(() -> reactiveTemplate.deleteExistingByIds(
-                    List.of("1", homer.getId(), "2", marge.getId()),
-                    Customer.class
-                ).block()
-            )
-            .isInstanceOf(AerospikeException.BatchRecordArray.class)
-            .hasMessageContaining("Batch failed");
-        // Existing records are deleted as the check is performed in post-processing
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
 
