@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>5.5.0</version>
+    <version>6.0.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -40,7 +40,7 @@
         <jodatime.version>2.14.0</jodatime.version>
         <lombok.version>1.18.44</lombok.version>
         <awaitility.version>4.3.0</awaitility.version>
-        <logback-test.version>1.5.24</logback-test.version>
+        <logback-test.version>1.5.32</logback-test.version>
         <hibernate-validator.version>9.1.0.Final</hibernate-validator.version>
         <netty.version>4.2.10.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
