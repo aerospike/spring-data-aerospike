@@ -470,17 +470,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    @Deprecated
-    public <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        if (ValidationUtils.isEmpty(ids)) {
-            logEmptyItems(log, "Ids for deleting");
-            return Mono.empty();
-        }
-        return deleteExistingByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         if (ValidationUtils.isEmpty(ids)) {
@@ -488,17 +477,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Mono.empty();
         }
         return deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
-    @Deprecated
-    public Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName) {
-        Assert.notNull(setName, "Set name must not be null!");
-        if (ValidationUtils.isEmpty(ids)) {
-            logEmptyItems(log, "Ids for deleting");
-            return Mono.empty();
-        }
-        return BatchUtils.deleteByIdsReactively(ids, setName, false, templateContext);
     }
 
     @Override

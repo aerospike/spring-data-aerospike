@@ -103,7 +103,7 @@ public class Person<T extends Address> {
   private T address;
 
   @Version
-  private int id; // must be integer
+  private int version; // must be integer
 
   public Person(Integer ssn) {
     this.ssn = ssn;

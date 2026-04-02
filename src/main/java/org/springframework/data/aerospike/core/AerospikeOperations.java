@@ -501,29 +501,6 @@ public interface AerospikeOperations {
     boolean deleteById(Object id, String setName);
 
     /**
-     * Delete existing records by ids using a single batch delete operation or throw an exception,
-     * set name will be determined by the given entityClass.
-     * The policies are analogous to {@link #deleteById(Object, Class)}.
-     * <p>
-     * If a non-existent id is given within {@code ids}, {@link AerospikeException.BatchRecordArray} exception
-     * is thrown after performing delete.
-     * <p>
-     * This operation requires Server version 6.0+.
-     * <p>
-     * @deprecated This method is deprecated and will be removed in a future version. Use a combination of
-     * {@link #existsByIdsUsingQuery(Collection, Class, Query)} and {@link #deleteByIds(Iterable, Class)}} to ensure
-     * existence of records prior to deletion if needed.
-     *
-     * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors or empty records.
-     * @throws DataAccessException                 If batch operation failed (see
-     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
-     */
-    @Deprecated(forRemoval = true)
-    <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
-
-    /**
      * Delete records by ids using a single batch delete operation, set name will be determined by the given
      * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
@@ -538,28 +515,6 @@ public interface AerospikeOperations {
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
-
-    /**
-     * Delete existing records by ids within the given set using a single batch delete operation or throw an exception.
-     * The policies are analogous to {@link #deleteById(Object, String)}.
-     * <p>
-     * If a non-existent id is given within {@code ids}, {@link AerospikeException.BatchRecordArray} exception
-     * is thrown after performing delete.
-     * <p>
-     * This operation requires Server version 6.0+.
-     * <p>
-     * @deprecated This method is deprecated and will be removed in a future version. Use a combination of
-     * {@link #existsByIdsUsingQuery(Collection, String, Query)} and {@link #deleteByIds(Iterable, String)}} to ensure
-     * existence of records prior to deletion if needed.
-     *
-     * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
-     * @param setName Set name to use.
-     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors or empty records.
-     * @throws DataAccessException                 If batch operation failed (see
-     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
-     */
-    @Deprecated(forRemoval = true)
-    void deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
      * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to

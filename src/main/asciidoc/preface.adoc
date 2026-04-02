@@ -12,10 +12,10 @@ with Aerospike as well as Spring concepts.
 [[get-started:first-steps:spring]]
 == Knowing Spring
 Spring Data uses Spring framework's
-https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as
-the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container,
-https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system],
-https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]
+https://docs.spring.io/spring-framework/reference/core.html[core] functionality, such as
+the https://docs.spring.io/spring-framework/reference/core/beans.html[IoC] container,
+https://docs.spring.io/spring-framework/reference/core/validation/convert.html[type conversion system],
+https://docs.spring.io/spring-framework/reference/data-access/dao.html#dao-exceptions[DAO exception hierarchy]
 etc. While it is not important to know the Spring APIs, understanding the concepts behind them is.
 At a minimum, the idea behind IoC should be familiar regardless of IoC container you choose to use.
 

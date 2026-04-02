@@ -92,11 +92,6 @@ public class TestRepositoryConfig extends AbstractReactiveAerospikeDataConfigura
     protected String nameSpace() {
         return "test";
     }
-
-    @Override
-    protected EventLoops eventLoops() {
-        return new NioEventLoops();
-    }
 }
 ----
 ====
@@ -108,8 +103,7 @@ Working with the repository instance is a matter of dependency injecting it into
 ====
 [source,java]
 ----
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringBootTest
 public class PersonRepositoryTests {
     @Autowired
     ReactivePersonRepository repository;
@@ -218,11 +212,3 @@ public class ReactiveRepositoryExample {
 }
 ----
 
-== Restrictions
-`ReactiveAerospikeRepository` currently does not support the next operations:
-
-* all operations with indexes (create, delete, exists)
-* count()
-* deleteAll()
-
-This limitation is due to the lack of corresponding asynchronous methods in the Aerospike client.
