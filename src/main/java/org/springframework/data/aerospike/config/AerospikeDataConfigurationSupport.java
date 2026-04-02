@@ -35,7 +35,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
@@ -124,12 +124,10 @@ public abstract class AerospikeDataConfigurationSupport implements EnvironmentAw
     }
 
     @Bean
-    public AerospikeCustomConversions customConversions(@Autowired(required = false)
-                                                        AerospikeCustomConverters converters) {
+    public AerospikeCustomConversions customConversions(ObjectProvider<AerospikeCustomConverters> convertersProvider) {
         List<Object> aggregatedCustomConverters = new ArrayList<>(customConverters());
-        if (converters != null) {
-            aggregatedCustomConverters.addAll(converters.getCustomConverters());
-        }
+        convertersProvider.orderedStream()
+            .forEach(c -> aggregatedCustomConverters.addAll(c.getCustomConverters()));
         return new AerospikeCustomConversions(aggregatedCustomConverters);
     }
 
