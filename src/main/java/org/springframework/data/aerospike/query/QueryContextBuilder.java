@@ -67,16 +67,23 @@ public class QueryContextBuilder {
 
         Qualifier processedParentQualifier = null;
         if (isQueryCriteriaNotNull(query)) {
-            // logging query
+            // Logging query
             logQualifierDetails(query.getCriteriaObject(), log);
 
             if (!query.getCriteriaObject().hasFilterExpression()) {
-                // Process qualifier and apply filters
-                // Statement's filter is set based either on cardinality (the lowest bin values ratio)
-                // or on order (the first processed filter)
-                processedParentQualifier = setFilterAndProcessQualifier(stmt, query.getCriteriaObject());
+                // Check if a secondary index Filter was explicitly provided
+                if (query.getCriteriaObject().getFilter() != null) {
+                    // Use the provided secondary index Filter directly
+                    stmt.setFilter(query.getCriteriaObject().getFilter());
+                    processedParentQualifier = query.getCriteriaObject();
+                } else {
+                    // Process qualifier and apply filters
+                    // Statement's filter is chosen based either on cardinality (the lowest bin values ratio)
+                    // or on order (the first processed filter)
+                    processedParentQualifier = setFilterAndProcessQualifier(stmt, query.getCriteriaObject());
+                }
             } else {
-                // statement's filter is set based on parsed DSL expression
+                // Use the explicitly provided Filter
                 stmt.setFilter(query.getCriteriaObject().getFilter());
                 processedParentQualifier = query.getCriteriaObject();
             }

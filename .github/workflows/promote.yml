@@ -44,6 +44,11 @@ jobs:
       artifact-version: ${{ steps.get-artifact-version.outputs.artifact-version }}
       release-notes: ${{ steps.get-release-notes.outputs.release-notes }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
       - name: Debug step
         run: |
           echo "build-number: ${{ inputs.build-number }}"
@@ -54,7 +59,7 @@ jobs:
 
       # Setting up jfrog cli
       - name: Setup jfrog shell
-        uses: jfrog/setup-jfrog-cli@v4
+        uses: step-security/setup-jfrog-cli@a6b41f8338bea0983ddff6bd4ede7d2dcd81e1fa # v4.8.1
         env:
           JF_URL: ${{ vars.JFROG_PLATFORM_URL }}
           JF_PROJECT: database
@@ -64,14 +69,14 @@ jobs:
 
       # Needed since we are using actions which are part of the repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           # Fetch the whole history to prevent unrelated history errors
           fetch-depth: "0"
           ref: ${{ inputs.target-branch }}
           token: ${{ secrets.CLIENT_BOT_PAT }}
 
-      # Getting build info which will allows us to get information about the build we are promoting
+      # Getting build info which will allow us to get information about the build we are promoting
       - name: Get info
         id: get-build-info
         run: |
@@ -87,7 +92,7 @@ jobs:
           
           echo build-info=$(jf rt curl "${API_PATH}" ) >> $GITHUB_OUTPUT
 
-      # Snapshot builds are not promoted to production.
+      # Snapshot builds are not promoted to production
       - name: Check if snapshot build
         id: check-snapshot
         run: |
@@ -110,7 +115,7 @@ jobs:
             # exit 1
           fi
 
-      # Fetching commit hash from the build info. The commit has is used for SNAPSHOT builds
+      # Fetching commit hash from the build info. The commit hash is used for SNAPSHOT builds
       - name: Get commit hash from repo
         id: get-commit-hash
         run: |
@@ -125,7 +130,8 @@ jobs:
           fi
           echo "commit-hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
 
-      # Fetching build name for build promotion process. The build name will contain build numbers. This command parses json and pulls out the build name
+      # Fetching build name for build promotion process. The build name will contain build numbers.
+      # This command parses json and pulls out the build name
       - name: Get build name
         id: get-build-name
         run: |
@@ -235,9 +241,14 @@ jobs:
     runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
     needs: promote
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
       # Needed since we are using actions which are part of the repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.CLIENT_BOT_PAT }}

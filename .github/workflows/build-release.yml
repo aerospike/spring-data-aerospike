@@ -19,8 +19,15 @@ on:
 jobs:
   extract-version:
     runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+
     steps:
-      - uses: actions/checkout@v5
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 2
       - name: Extract Version
@@ -54,7 +61,7 @@ jobs:
         
         mvn clean install -B -U -Dgpg.skip=true -DskipTests
 
-        cd spring-data-aerospike
+        pwd
 
         LOCAL_REPO=$(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
         GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
@@ -63,8 +70,6 @@ jobs:
 
         GROUP_PATH=$(echo "$GROUP_ID" | tr '.' '/')
         ARTIFACT_PATH="$LOCAL_REPO/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-
-        cd -
 
         echo "ARTIFACT_PATH: $ARTIFACT_PATH"
         echo "Copying artifacts to ./build/"
@@ -126,7 +131,7 @@ jobs:
       gh-retention-days: 1
       oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
       oidc-audience: ${{ vars.OIDC_AUDIENCE }}
-      dry-run: true
+      dry-run: false
 
   create-release-bundle:
     needs: [extract-version, deploy-artifacts]
@@ -139,4 +144,4 @@ jobs:
       version: ${{ needs.extract-version.outputs.version }}
       oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
       oidc-audience: ${{ vars.OIDC_AUDIENCE }}
-      dry-run: true
+      dry-run: false

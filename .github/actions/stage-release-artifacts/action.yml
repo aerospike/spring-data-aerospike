@@ -44,7 +44,7 @@ runs:
         echo "${{ inputs.artifact-version }}"
 
     - name: Setup jfrog shell
-      uses: jfrog/setup-jfrog-cli@v4
+      uses: step-security/setup-jfrog-cli@a6b41f8338bea0983ddff6bd4ede7d2dcd81e1fa # v4.8.1
       env:
         JF_URL: ${{ inputs.jfrog-platform-url }}
         JF_PROJECT: database
@@ -117,7 +117,8 @@ runs:
         pwd
         ls -laR
 
-    # The hashes are generated when the artifacts are published (not part of this build). When we promote or run releases we download the artifacts and take the hashes
+    # The hashes are generated when the artifacts are published (not part of this build).
+    # When we promote or run releases we download the artifacts and take the hashes
     # which are part of the build info. We don't have sha-512 at the moment.
     - name: Get hashes from build_info and generate files
       shell: bash

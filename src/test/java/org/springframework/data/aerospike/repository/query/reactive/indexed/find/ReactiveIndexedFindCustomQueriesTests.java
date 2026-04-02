@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.repository.query.reactive.indexed.fin
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.RegexFlag;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.annotation.Extensive;
@@ -574,5 +575,47 @@ class ReactiveIndexedFindCustomQueriesTests extends ReactiveIndexedPersonReposit
                 .as(StepVerifier::create)
                 .assertNext(result -> assertThat(result).containsExactlyInAnyOrder(emilien, daniel, lilly, petra))
                 .verifyComplete();
+    }
+
+    @Test
+    void findPersonsUsingFilterQualifierWithIndexAndExpression() {
+        // Create an expression that filters last name satisfying a regex
+        Expression lastNameExpr = Exp.build(
+            Exp.regexCompare(
+                ".*tian.*",
+                RegexFlag.ICASE,
+                Exp.bin("lastName", Exp.Type.STRING)
+            )
+        );
+
+        // Create a simple secondary index filter for age >= 30
+        Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
+
+        // Create a qualifier
+        Qualifier filterQualifier = Qualifier.filterBuilder()
+            .setExpression(lastNameExpr)
+            .setFilter(ageFilter)
+            .build();
+
+        // Create query
+        Query query = new Query(filterQualifier);
+
+        // Run query
+        reactiveRepository.findUsingQuery(query)
+            .as(StepVerifier::create)
+            .recordWith(ArrayList::new)
+            .thenConsumeWhile(p -> true)
+            .expectRecordedMatches(persons -> {
+                // Filter collection with same criteria
+                List<IndexedPerson> filteredPersons = allIndexedPersons.stream()
+                    .filter(person -> person.getAge() >= 30 &&
+                        person.getLastName() != null &&
+                        person.getLastName().toLowerCase().contains("tian"))
+                    .toList();
+
+                return persons.containsAll(filteredPersons) &&
+                    persons.size() == filteredPersons.size();
+            })
+            .verifyComplete();
     }
 }
