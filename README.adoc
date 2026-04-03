@@ -27,17 +27,17 @@ about https://projects.spring.io/[Spring Projects]
 == Examples
 
 Demo repository with detailed guides is located
-https://github.com/aerospike-community/spring-data-aerospike-demo[here]
+https://github.com/aerospike/spring-data-aerospike-demo[here]
 
 == Getting Started
 
-. https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/getting-started.adoc[How to set up Spring Data Aerospike in a Spring Boot application for basic CRUD operations]
-. https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/creating-secondary-index.adoc[How
+. https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/getting-started.adoc[How to set up Spring Data Aerospike in a Spring Boot application for basic CRUD operations]
+. https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/creating-secondary-index.adoc[How
 to create secondary index in Spring Data Aerospike]
-. https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/basic-error-handling.adoc[Basic
+. https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/basic-error-handling.adoc[Basic
 error handling in Spring Data Aerospike]
-. https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Creating custom converters]
-. https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/optimistic-locking.adoc[Handling concurrent updates using optimistic locking]
+. https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Creating custom converters]
+. https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/optimistic-locking.adoc[Handling concurrent updates using optimistic locking]
 . https://medium.com/aerospike-developer-blog/caching-with-spring-boot-and-aerospike-17b91267d6c?source=friends_link&sk=e166b4592c9c00e3d996663f4c47e2b5[Caching
 with Spring Boot and Aerospike]
 . https://medium.com/aerospike-developer-blog/spring-data-aerospike-reactive-repositories-fb6478acea41?source=friends_link&sk=66541b82192ded459a537261e9a38bd5[Spring
