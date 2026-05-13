@@ -1,0 +1,111 @@
+name: Build artifact and create release bundle
+
+permissions:
+  id-token: write
+  packages: write
+  contents: read
+  attestations: write
+
+on:
+  workflow_call:
+    secrets:
+      GPG_SECRET_KEY:
+        required: true
+      GPG_PUBLIC_KEY:
+        required: true
+      GPG_PASS:
+        required: true
+
+jobs:
+  extract-version:
+    runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 2
+      - name: Extract Version
+        id: extract
+        uses: ./.github/actions/get-version
+    outputs:
+      version: ${{ steps.extract.outputs.release-version }}
+
+  build-sign-deploy:
+    needs: extract-version
+    uses: aerospike/shared-workflows/.github/workflows/reusable_artifacts-cicd.yaml@1004088a1b5122b9b71a39b40f619f6b50e78d16
+    with:
+      gh-artifact-directory: build
+      gh-workflows-ref: 1004088a1b5122b9b71a39b40f619f6b50e78d16
+      jf-build-name: spring-data-aerospike
+      jf-project: ${{ vars.JFROG_PROJECT }}
+      oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+      oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+      version: ${{ needs.extract-version.outputs.version }}
+      jar-group-id: com.aerospike
+      setup-java: true
+      java-version: "17"
+      java-distribution: temurin
+      gh-source-path: spring-data-aerospike
+      gh-retention-days: 1
+      runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+      build-script: |
+        # Maven build
+        mvn clean install -B -U -Dgpg.skip=true -DskipTests
+
+        pwd
+
+        LOCAL_REPO=$(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+        GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        ARTIFACT_ID=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+        GROUP_PATH=$(echo "$GROUP_ID" | tr '.' '/')
+        ARTIFACT_PATH="$LOCAL_REPO/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
+
+        echo "ARTIFACT_PATH: $ARTIFACT_PATH"
+        echo "Copying artifacts to ./build/"
+
+        for file in "$ARTIFACT_PATH"/*; do
+          if [[ "$file" == *"-jar-with-dependencies.jar" ]] || [[ "$file" == *"_remote.repositories" ]]; then
+            continue
+          fi
+          cp "$file" build/
+        done
+
+        PARENT_ARTIFACT_ID=spring-data-aerospike
+        PARENT_PATH="$LOCAL_REPO/$GROUP_PATH/$PARENT_ARTIFACT_ID/$VERSION"
+
+        echo "Parent artifact path: $PARENT_PATH"
+
+        if [ -d "$PARENT_PATH" ]; then
+          echo "Copying parent POM..."
+          cp "$PARENT_PATH"/*.pom build/
+          cp "$PARENT_PATH"/*.asc build/ 2>/dev/null || true
+        else
+          echo "WARNING: Parent POM not found in $PARENT_PATH"
+        fi
+
+        ls -lar build/
+    secrets:
+      gpg-private-key: ${{ secrets.GPG_SECRET_KEY }}
+      gpg-public-key: ${{ secrets.GPG_PUBLIC_KEY }}
+      gpg-key-pass: ${{ secrets.GPG_PASS }}
+
+  create-release-bundle:
+    needs: [extract-version, build-sign-deploy]
+    uses: aerospike/shared-workflows/.github/workflows/reusable_create-release-bundle.yaml@1004088a1b5122b9b71a39b40f619f6b50e78d16
+    with:
+      jf-project: ${{ vars.JFROG_PROJECT }}
+      jf-build-names: ${{ needs.build-sign-deploy.outputs.jf-build-name }}:${{ needs.build-sign-deploy.outputs.jf-build-id }}
+      jf-bundle-name: spring-data-aerospike
+      gh-workflows-ref: 1004088a1b5122b9b71a39b40f619f6b50e78d16
+      version: ${{ needs.extract-version.outputs.version }}
+      oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+      oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+      dry-run: false
