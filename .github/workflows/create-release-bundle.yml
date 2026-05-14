@@ -109,3 +109,30 @@ jobs:
       oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
       oidc-audience: ${{ vars.OIDC_AUDIENCE }}
       dry-run: false
+
+  promote-to-dev:
+    needs: [extract-version, create-release-bundle]
+    name: Promote to DEV
+    runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Setup JFrog CLI
+        uses: step-security/setup-jfrog-cli@a6b41f8338bea0983ddff6bd4ede7d2dcd81e1fa # v4.8.1
+        env:
+          JF_URL: ${{ vars.JFROG_PLATFORM_URL }}
+          JF_PROJECT: ${{ vars.JFROG_PROJECT }}
+        with:
+          oidc-provider-name: ${{ vars.OIDC_PROVIDER_NAME }}
+          oidc-audience: ${{ vars.OIDC_AUDIENCE }}
+
+      - name: Promoting release bundle to DEV
+        uses: aerospike/shared-workflows/.github/actions/promote-release-bundle@8ec712eafbec26c8db8d1183688a5fd806560a95 # v3.5.0
+        with:
+          bundle-name: spring-data-aerospike
+          version: ${{ needs.extract-version.outputs.version }}
+          environment: DEV
+          jf-project: ${{ vars.JFROG_PROJECT }}
