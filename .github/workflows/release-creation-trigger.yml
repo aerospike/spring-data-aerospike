@@ -1,4 +1,4 @@
-name: Java Build & Release
+name: Trigger Creating Release Bundle
 permissions:
   id-token: write
   packages: write
