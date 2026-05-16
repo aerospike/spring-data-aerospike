@@ -31,7 +31,7 @@
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-publishing-plugin.version>0.10.0</maven-publishing-plugin.version>
-        <aerospike-client-jdk8.version>10.0.0</aerospike-client-jdk8.version>
+        <aerospike-client-jdk8.version>10.1.0</aerospike-client-jdk8.version>
         <aerospike-reactor-client.version>10.0.0</aerospike-reactor-client.version>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
         <reactor-test.version>3.8.4</reactor-test.version>
@@ -415,7 +415,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
