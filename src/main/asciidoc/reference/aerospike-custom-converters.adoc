@@ -55,4 +55,4 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-For more examples see the link:https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.
+For more examples see the link:https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.
