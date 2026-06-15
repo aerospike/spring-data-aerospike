@@ -29,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata-commons.version>4.0.5</springdata-commons.version>
         <spring-boot-starter-test.version>4.0.5</spring-boot-starter-test.version>
-        <cloud-starter-bootstrap.version>5.0.1</cloud-starter-bootstrap.version>
+        <cloud-starter-bootstrap.version>5.0.2</cloud-starter-bootstrap.version>
         <spring-tx.version>7.0.7</spring-tx.version>
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
