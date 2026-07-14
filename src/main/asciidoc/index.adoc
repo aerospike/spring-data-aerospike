@@ -1,7 +1,7 @@
 [[aerospike.index]]
 
 :doctype: book
-:revnumber: 6.1.0
+:revnumber: 6.2.0
 :revdate: {localdate}
 
 :leveloffset: -1
