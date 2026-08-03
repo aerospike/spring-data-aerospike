@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>6.2.0</version>
+    <version>6.2.1</version>
     <name>Spring Data Aerospike</name>
     <description>Spring Data Aerospike integrates the Aerospike Database with the familiar Spring programming model,
         allowing Java developers to easily map POJOs to database records and interact with the data store
@@ -43,11 +43,11 @@
         <jodatime.version>2.14.0</jodatime.version>
         <lombok.version>1.18.46</lombok.version>
         <awaitility.version>4.3.0</awaitility.version>
-        <logback-test.version>1.5.34</logback-test.version>
-        <hibernate-validator.version>9.1.0.Final</hibernate-validator.version>
+        <logback-test.version>1.6.1</logback-test.version>
+        <hibernate-validator.version>9.1.3.Final</hibernate-validator.version>
         <netty.version>4.2.16.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
-        <apacheCommonsCodec.version>1.22.0</apacheCommonsCodec.version>
+        <apacheCommonsCodec.version>1.22.1</apacheCommonsCodec.version>
         <jackson-2-bom.version>2.22.1</jackson-2-bom.version>
     </properties>
 
