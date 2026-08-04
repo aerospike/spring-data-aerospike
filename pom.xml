@@ -33,7 +33,7 @@
         <spring-tx.version>7.0.8</spring-tx.version>
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-publishing-plugin.version>0.10.0</maven-publishing-plugin.version>
+        <maven-publishing-plugin.version>0.11.0</maven-publishing-plugin.version>
         <aerospike-client-jdk8.version>10.4.0</aerospike-client-jdk8.version>
         <aerospike-reactor-client.version>10.4.0</aerospike-reactor-client.version>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
