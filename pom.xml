@@ -40,7 +40,7 @@
         <reactor-test.version>3.8.6</reactor-test.version>
         <jspecify.version>1.0.0</jspecify.version>
         <embedded-aerospike.version>4.0.3</embedded-aerospike.version>
-        <jodatime.version>2.14.0</jodatime.version>
+        <jodatime.version>2.14.2</jodatime.version>
         <lombok.version>1.18.46</lombok.version>
         <awaitility.version>4.3.0</awaitility.version>
         <logback-test.version>1.6.1</logback-test.version>
@@ -426,7 +426,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
