@@ -30,7 +30,7 @@
         <springdata-commons.version>4.1.0</springdata-commons.version>
         <spring-boot-starter-test.version>4.1.0</spring-boot-starter-test.version>
         <cloud-starter-bootstrap.version>5.0.2</cloud-starter-bootstrap.version>
-        <spring-tx.version>7.0.8</spring-tx.version>
+        <spring-tx.version>7.0.9</spring-tx.version>
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-publishing-plugin.version>0.10.0</maven-publishing-plugin.version>
