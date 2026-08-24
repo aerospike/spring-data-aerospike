@@ -37,7 +37,7 @@
         <aerospike-client-jdk8.version>10.4.0</aerospike-client-jdk8.version>
         <aerospike-reactor-client.version>10.4.0</aerospike-reactor-client.version>
         <aerospike-expression-dsl.version>0.3.0</aerospike-expression-dsl.version>
-        <reactor-test.version>3.8.6</reactor-test.version>
+        <reactor-test.version>3.8.7</reactor-test.version>
         <jspecify.version>1.0.0</jspecify.version>
         <embedded-aerospike.version>4.0.3</embedded-aerospike.version>
         <jodatime.version>2.14.0</jodatime.version>
