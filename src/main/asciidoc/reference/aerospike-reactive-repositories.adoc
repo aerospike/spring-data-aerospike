@@ -69,6 +69,10 @@ public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Pe
 
 Right now this interface simply serves typing purposes but we will add additional methods to it later.
 
+For a runnable source-backed example of reactive repository CRUD operations, see
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[`ReactiveRepositoryCrudExample`].
+It can be run from the repository with `./examples/run_examples reactive-crud --hosts localhost:3000 --namespace test`.
+
 For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base
 packages attribute. These base packages are to be scanned for interfaces extending `ReactiveAerospikeRepository`
 and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package

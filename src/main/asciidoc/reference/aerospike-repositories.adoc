@@ -61,6 +61,13 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 Right now this interface simply serves typing purposes, but we will add additional methods to it later.
 
+Runnable framework-owned source examples are available for
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[blocking repository CRUD],
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/query/SecondaryIndexQueryExample.java[indexed derived queries],
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/indexed/IndexedAnnotationExample.java[`@Indexed` startup index creation], and
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/customquery/CustomQueryDslExample.java[custom DSL queries].
+They can be run from the repository with `./examples/run_examples all --hosts localhost:3000 --namespace test`.
+
 We are going to use the `@EnableAerospikeRepositories` annotation. If no base package is configured the infrastructure
 will scan the package of the annotated configuration class.
 

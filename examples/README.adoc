@@ -1,0 +1,87 @@
+= Spring Data Aerospike Runnable Examples
+
+This folder contains small framework-owned examples that compile against the current repository sources. They are
+intended as copyable reference code for Spring Data Aerospike features, not as full Spring Boot applications.
+
+For complete application walkthroughs, use the
+https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
+
+== Examples
+
+Run `./examples/run_examples list` to list the currently registered examples.
+
+The initial set covers:
+
+* `blocking-crud` - blocking `AerospikeRepository` save, find, exists, and delete operations.
+* `reactive-crud` - reactive `ReactiveAerospikeRepository` save, find, exists, and delete operations.
+* `indexed-query` - a blocking derived query backed by an explicitly created secondary index.
+* `projection` - DTO and dynamic target-class projection from repository methods.
+* `indexed-annotation` - startup index creation from the `@Indexed` annotation.
+* `custom-query-dsl` - a custom repository query backed by a Spring Data Aerospike DSL expression.
+
+== Running
+
+List examples without connecting to Aerospike:
+
+[source,bash]
+----
+./examples/run_examples list
+----
+
+Run every live example against a local Aerospike namespace:
+
+[source,bash]
+----
+./examples/run_examples all --hosts localhost:3000 --namespace test
+----
+
+Run one example:
+
+[source,bash]
+----
+./examples/run_examples blocking-crud --hosts localhost:3000 --namespace test
+----
+
+The runner accepts `--fail-fast` to stop at the first failure.
+
+== Namespace Safety
+
+The examples own records and secondary indexes whose names start with `sda_examples_`. They clean up those records and
+indexes before or after scenario execution.
+
+By default the runner only performs live cleanup in namespace `test`. To run against another namespace, pass
+`--allow-non-test-namespace` explicitly:
+
+[source,bash]
+----
+./examples/run_examples all --hosts localhost:3000 --namespace dev --allow-non-test-namespace
+----
+
+== Local Verification
+
+The default root build remains unchanged. The root command does not compile or run this folder unless the `examples`
+profile is selected.
+
+Compile the framework tests and examples without running live examples:
+
+[source,bash]
+----
+mvn -Pexamples -DskipTests test-compile
+----
+
+Run the non-live support tests only:
+
+[source,bash]
+----
+mvn -Pexamples -Dtest='org.springframework.data.aerospike.examples.support.*Tests' test
+----
+
+Run the live smoke set:
+
+[source,bash]
+----
+./examples/run_examples all --hosts localhost:3000 --namespace test
+----
+
+CI/CD wiring, report publishing, generated snippets, and automatic documentation rendering are intentionally left for a
+later iteration.
