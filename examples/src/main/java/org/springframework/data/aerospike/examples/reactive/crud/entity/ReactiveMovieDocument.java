@@ -1,10 +1,10 @@
-package org.springframework.data.aerospike.examples.blocking.crud;
+package org.springframework.data.aerospike.examples.reactive.crud.entity;
 
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-@Document(collection = "sda_examples_blocking_movies")
-public class MovieDocument {
+@Document(collection = "sda_examples_reactive_movies")
+public class ReactiveMovieDocument {
 
     @Id
     private String id;
@@ -12,10 +12,10 @@ public class MovieDocument {
     private int releaseYear;
     private double rating;
 
-    public MovieDocument() {
+    public ReactiveMovieDocument() {
     }
 
-    public MovieDocument(String id, String title, int releaseYear, double rating) {
+    public ReactiveMovieDocument(String id, String title, int releaseYear, double rating) {
         this.id = id;
         this.title = title;
         this.releaseYear = releaseYear;

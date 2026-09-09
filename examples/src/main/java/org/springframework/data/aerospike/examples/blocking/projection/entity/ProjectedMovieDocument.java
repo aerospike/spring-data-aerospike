@@ -1,27 +1,27 @@
-package org.springframework.data.aerospike.examples.blocking.query;
+package org.springframework.data.aerospike.examples.blocking.projection.entity;
 
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-@Document(collection = "sda_examples_query_movies")
-public class IndexedMovieDocument {
-
-    public static final String GENRE_INDEX = "sda_examples_query_genre_idx";
+@Document(collection = "sda_examples_projection_movies")
+public class ProjectedMovieDocument {
 
     @Id
     private String id;
     private String title;
-    private String genre;
+    private String director;
     private int releaseYear;
+    private double rating;
 
-    public IndexedMovieDocument() {
+    public ProjectedMovieDocument() {
     }
 
-    public IndexedMovieDocument(String id, String title, String genre, int releaseYear) {
+    public ProjectedMovieDocument(String id, String title, String director, int releaseYear, double rating) {
         this.id = id;
         this.title = title;
-        this.genre = genre;
+        this.director = director;
         this.releaseYear = releaseYear;
+        this.rating = rating;
     }
 
     public String getId() {
@@ -40,12 +40,12 @@ public class IndexedMovieDocument {
         this.title = title;
     }
 
-    public String getGenre() {
-        return genre;
+    public String getDirector() {
+        return director;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setDirector(String director) {
+        this.director = director;
     }
 
     public int getReleaseYear() {
@@ -54,5 +54,13 @@ public class IndexedMovieDocument {
 
     public void setReleaseYear(int releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
     }
 }

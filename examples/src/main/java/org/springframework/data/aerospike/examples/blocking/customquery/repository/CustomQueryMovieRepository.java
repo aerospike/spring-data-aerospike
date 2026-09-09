@@ -1,6 +1,7 @@
-package org.springframework.data.aerospike.examples.blocking.customquery;
+package org.springframework.data.aerospike.examples.blocking.customquery.repository;
 
 import org.springframework.data.aerospike.annotation.Query;
+import org.springframework.data.aerospike.examples.blocking.customquery.entity.CustomQueryMovieDocument;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 import java.util.List;

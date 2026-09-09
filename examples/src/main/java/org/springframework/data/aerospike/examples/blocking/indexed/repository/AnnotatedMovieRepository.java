@@ -1,5 +1,6 @@
-package org.springframework.data.aerospike.examples.blocking.indexed;
+package org.springframework.data.aerospike.examples.blocking.indexed.repository;
 
+import org.springframework.data.aerospike.examples.blocking.indexed.entity.AnnotatedMovieDocument;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 import java.util.List;

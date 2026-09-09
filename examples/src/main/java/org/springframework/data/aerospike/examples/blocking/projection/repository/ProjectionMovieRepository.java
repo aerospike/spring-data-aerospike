@@ -1,5 +1,7 @@
-package org.springframework.data.aerospike.examples.blocking.projection;
+package org.springframework.data.aerospike.examples.blocking.projection.repository;
 
+import org.springframework.data.aerospike.examples.blocking.projection.dto.MovieSummary;
+import org.springframework.data.aerospike.examples.blocking.projection.entity.ProjectedMovieDocument;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 import java.util.List;

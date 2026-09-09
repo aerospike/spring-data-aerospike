@@ -1,27 +1,25 @@
-package org.springframework.data.aerospike.examples.blocking.customquery;
+package org.springframework.data.aerospike.examples.blocking.crud.entity;
 
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-@Document(collection = "sda_examples_custom_query_movies")
-public class CustomQueryMovieDocument {
-
-    public static final String RELEASE_YEAR_INDEX = "sda_examples_custom_year_idx";
+@Document(collection = "sda_examples_blocking_movies")
+public class MovieDocument {
 
     @Id
     private String id;
     private String title;
-    private String genre;
     private int releaseYear;
+    private double rating;
 
-    public CustomQueryMovieDocument() {
+    public MovieDocument() {
     }
 
-    public CustomQueryMovieDocument(String id, String title, String genre, int releaseYear) {
+    public MovieDocument(String id, String title, int releaseYear, double rating) {
         this.id = id;
         this.title = title;
-        this.genre = genre;
         this.releaseYear = releaseYear;
+        this.rating = rating;
     }
 
     public String getId() {
@@ -40,19 +38,19 @@ public class CustomQueryMovieDocument {
         this.title = title;
     }
 
-    public String getGenre() {
-        return genre;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-
     public int getReleaseYear() {
         return releaseYear;
     }
 
     public void setReleaseYear(int releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
     }
 }

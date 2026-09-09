@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.examples.blocking.projection;
+package org.springframework.data.aerospike.examples.blocking.projection.dto;
 
 public class MovieSummary {
 

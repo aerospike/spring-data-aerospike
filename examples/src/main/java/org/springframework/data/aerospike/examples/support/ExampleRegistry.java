@@ -1,24 +1,24 @@
 package org.springframework.data.aerospike.examples.support;
 
 import com.aerospike.client.query.IndexType;
-import org.springframework.data.aerospike.examples.blocking.crud.AerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.crud.BlockingRepositoryCrudExample;
-import org.springframework.data.aerospike.examples.blocking.crud.MovieDocument;
-import org.springframework.data.aerospike.examples.blocking.customquery.CustomQueryConfiguration;
+import org.springframework.data.aerospike.examples.blocking.crud.config.AerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.crud.entity.MovieDocument;
 import org.springframework.data.aerospike.examples.blocking.customquery.CustomQueryDslExample;
-import org.springframework.data.aerospike.examples.blocking.customquery.CustomQueryMovieDocument;
-import org.springframework.data.aerospike.examples.blocking.indexed.AnnotatedMovieDocument;
-import org.springframework.data.aerospike.examples.blocking.indexed.IndexedAnnotationConfiguration;
+import org.springframework.data.aerospike.examples.blocking.customquery.config.CustomQueryConfiguration;
+import org.springframework.data.aerospike.examples.blocking.customquery.entity.CustomQueryMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.indexed.IndexedAnnotationExample;
-import org.springframework.data.aerospike.examples.blocking.projection.ProjectedMovieDocument;
-import org.springframework.data.aerospike.examples.blocking.projection.ProjectionAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.indexed.config.IndexedAnnotationConfiguration;
+import org.springframework.data.aerospike.examples.blocking.indexed.entity.AnnotatedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.projection.ProjectionExample;
-import org.springframework.data.aerospike.examples.blocking.query.IndexedMovieDocument;
-import org.springframework.data.aerospike.examples.blocking.query.QueryAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.projection.config.ProjectionAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.projection.entity.ProjectedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.query.SecondaryIndexQueryExample;
-import org.springframework.data.aerospike.examples.reactive.crud.ReactiveAerospikeConfiguration;
-import org.springframework.data.aerospike.examples.reactive.crud.ReactiveMovieDocument;
+import org.springframework.data.aerospike.examples.blocking.query.config.QueryAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.query.entity.IndexedMovieDocument;
 import org.springframework.data.aerospike.examples.reactive.crud.ReactiveRepositoryCrudExample;
+import org.springframework.data.aerospike.examples.reactive.crud.config.ReactiveAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.reactive.crud.entity.ReactiveMovieDocument;
 
 import java.util.List;
 

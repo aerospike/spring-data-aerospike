@@ -1,28 +1,27 @@
-package org.springframework.data.aerospike.examples.blocking.indexed;
+package org.springframework.data.aerospike.examples.blocking.customquery.entity;
 
-import com.aerospike.client.query.IndexType;
-import org.springframework.data.aerospike.annotation.Indexed;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-@Document(collection = "sda_examples_indexed_movies")
-public class AnnotatedMovieDocument {
+@Document(collection = "sda_examples_custom_query_movies")
+public class CustomQueryMovieDocument {
 
-    public static final String GENRE_INDEX = "sda_examples_indexed_genre_idx";
+    public static final String RELEASE_YEAR_INDEX = "sda_examples_custom_year_idx";
 
     @Id
     private String id;
     private String title;
-    @Indexed(type = IndexType.STRING, name = GENRE_INDEX)
     private String genre;
+    private int releaseYear;
 
-    public AnnotatedMovieDocument() {
+    public CustomQueryMovieDocument() {
     }
 
-    public AnnotatedMovieDocument(String id, String title, String genre) {
+    public CustomQueryMovieDocument(String id, String title, String genre, int releaseYear) {
         this.id = id;
         this.title = title;
         this.genre = genre;
+        this.releaseYear = releaseYear;
     }
 
     public String getId() {
@@ -47,5 +46,13 @@ public class AnnotatedMovieDocument {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public int getReleaseYear() {
+        return releaseYear;
+    }
+
+    public void setReleaseYear(int releaseYear) {
+        this.releaseYear = releaseYear;
     }
 }

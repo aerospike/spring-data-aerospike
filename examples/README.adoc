@@ -3,6 +3,10 @@
 This folder contains small framework-owned examples that compile against the current repository sources. They are
 intended as copyable reference code for Spring Data Aerospike features, not as full Spring Boot applications.
 
+The root Maven build imports `examples/src/main/java` as test-scoped source so IDEs can treat these examples as regular
+Java code. This lets readers navigate repository methods and Spring Data Aerospike APIs without packaging examples into
+the published library artifact.
+
 For complete application walkthroughs, use the
 https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
 
@@ -59,8 +63,9 @@ By default the runner only performs live cleanup in namespace `test`. To run aga
 
 == Local Verification
 
-The default root build remains unchanged. The root command does not compile or run this folder unless the `examples`
-profile is selected.
+The root Maven build compiles this folder as test-scoped source so IDE import and repository method navigation work out
+of the box. Running live examples remains opt-in through `./examples/run_examples`, which selects the `examples` profile
+for the `exec:java` runner.
 
 Compile the framework tests and examples without running live examples:
 

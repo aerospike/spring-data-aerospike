@@ -202,19 +202,6 @@
                         <version>3.6.1</version>
                         <executions>
                             <execution>
-                                <id>add-examples-sources</id>
-                                <phase>generate-test-sources</phase>
-                                <goals>
-                                    <goal>add-test-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>examples/src/main/java</source>
-                                        <source>examples/src/test/java</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                            <execution>
                                 <id>add-examples-resources</id>
                                 <phase>generate-test-resources</phase>
                                 <goals>
@@ -450,6 +437,26 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>add-examples-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>examples/src/main/java</source>
+                                <source>examples/src/test/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

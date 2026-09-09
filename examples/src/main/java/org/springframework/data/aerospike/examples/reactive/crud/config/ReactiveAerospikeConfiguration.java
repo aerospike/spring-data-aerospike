@@ -1,10 +1,13 @@
-package org.springframework.data.aerospike.examples.reactive.crud;
+package org.springframework.data.aerospike.examples.reactive.crud.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractReactiveAerospikeDataConfiguration;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.examples.reactive.crud.ReactiveRepositoryCrudExample;
+import org.springframework.data.aerospike.examples.reactive.crud.entity.ReactiveMovieDocument;
+import org.springframework.data.aerospike.examples.reactive.crud.repository.ReactiveMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
 @Configuration
