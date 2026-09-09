@@ -1,13 +1,25 @@
 package org.springframework.data.aerospike.examples.support;
 
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Host;
+import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.query.IndexType;
+import com.aerospike.client.task.IndexTask;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.mapping.Document;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
+
 public interface ExampleFixture {
+
+    default void beforeContextRefresh(Args args) {
+    }
 
     default void setup(ConfigurableApplicationContext context) {
     }
@@ -28,11 +40,17 @@ public interface ExampleFixture {
     }
 
     static ExampleFixture cleanSetAndIndexes(Class<?> entityClass, String... indexNames) {
-        return new CleanupFixture(entityClass, Arrays.asList(indexNames), true);
+        return new CleanupFixture(entityClass, Arrays.asList(indexNames), true, false);
     }
 
-    static ExampleFixture cleanSetThenDropIndexesOnCleanup(Class<?> entityClass, String... indexNames) {
-        return new CleanupFixture(entityClass, Arrays.asList(indexNames), false);
+    static ExampleFixture cleanSetAndDropIndexesBeforeContextRefresh(Class<?> entityClass, String... indexNames) {
+        return new CleanupFixture(entityClass, Arrays.asList(indexNames), false, true, List.of());
+    }
+
+    static ExampleFixture cleanSetAndCreateIndexBeforeContextRefresh(Class<?> entityClass, String indexName,
+                                                                    String binName, IndexType indexType) {
+        DirectIndexDefinition indexDefinition = new DirectIndexDefinition(indexName, binName, indexType);
+        return new CleanupFixture(entityClass, List.of(indexName), false, true, List.of(indexDefinition));
     }
 
     class CleanupFixture implements ExampleFixture {
@@ -40,11 +58,34 @@ public interface ExampleFixture {
         private final Class<?> entityClass;
         private final List<String> indexNames;
         private final boolean dropIndexesInSetup;
+        private final boolean dropIndexesBeforeContextRefresh;
+        private final List<DirectIndexDefinition> indexesToCreateBeforeContextRefresh;
+
+        CleanupFixture(Class<?> entityClass, List<String> indexNames, boolean dropIndexesInSetup,
+                       boolean dropIndexesBeforeContextRefresh) {
+            this(entityClass, indexNames, dropIndexesInSetup, dropIndexesBeforeContextRefresh, List.of());
+        }
+
+        CleanupFixture(Class<?> entityClass, List<String> indexNames, boolean dropIndexesInSetup,
+                       boolean dropIndexesBeforeContextRefresh,
+                       List<DirectIndexDefinition> indexesToCreateBeforeContextRefresh) {
+            this.entityClass = entityClass;
+            this.indexNames = List.copyOf(indexNames);
+            this.dropIndexesInSetup = dropIndexesInSetup;
+            this.dropIndexesBeforeContextRefresh = dropIndexesBeforeContextRefresh;
+            this.indexesToCreateBeforeContextRefresh = List.copyOf(indexesToCreateBeforeContextRefresh);
+        }
 
         CleanupFixture(Class<?> entityClass, List<String> indexNames, boolean dropIndexesInSetup) {
-            this.entityClass = entityClass;
-            this.indexNames = indexNames;
-            this.dropIndexesInSetup = dropIndexesInSetup;
+            this(entityClass, indexNames, dropIndexesInSetup, false);
+        }
+
+        @Override
+        public void beforeContextRefresh(Args args) {
+            if ((dropIndexesBeforeContextRefresh && !indexNames.isEmpty())
+                || !indexesToCreateBeforeContextRefresh.isEmpty()) {
+                cleanupIndexes(args);
+            }
         }
 
         @Override
@@ -73,6 +114,49 @@ public interface ExampleFixture {
             if (reactiveTemplate != null) {
                 reactiveTemplate.deleteAll(entityClass).block();
             }
+        }
+
+        private void cleanupIndexes(Args args) {
+            ClientPolicy clientPolicy = new ClientPolicy();
+            clientPolicy.failIfNotConnected = true;
+
+            AerospikeClient client = new AerospikeClient(clientPolicy, Host.parseHosts(args.hosts(), 3000));
+            try {
+                indexNames.forEach(indexName -> dropDirectIndex(client, args.namespace(), indexName));
+                indexesToCreateBeforeContextRefresh
+                    .forEach(indexDefinition -> createDirectIndex(client, args.namespace(), indexDefinition));
+            } finally {
+                client.close();
+            }
+        }
+
+        private void dropDirectIndex(AerospikeClient client, String namespace, String indexName) {
+            try {
+                IndexTask task = client.dropIndex(null, namespace, setName(), indexName);
+                if (task != null) {
+                    task.waitTillComplete();
+                }
+            } catch (AerospikeException ex) {
+                if (ex.getResultCode() != INDEX_NOTFOUND) {
+                    throw ex;
+                }
+            }
+        }
+
+        private void createDirectIndex(AerospikeClient client, String namespace, DirectIndexDefinition index) {
+            IndexTask task = client.createIndex(null, namespace, setName(), index.indexName(), index.binName(),
+                index.indexType());
+            if (task != null) {
+                task.waitTillComplete();
+            }
+        }
+
+        private String setName() {
+            Document document = entityClass.getAnnotation(Document.class);
+            if (document != null && !document.collection().isBlank()) {
+                return document.collection();
+            }
+            return entityClass.getSimpleName();
         }
 
         private void cleanupIndexes(ConfigurableApplicationContext context) {
@@ -104,5 +188,8 @@ public interface ExampleFixture {
                 // Cleanup should not fail a scenario because a previous run already removed the index
             }
         }
+    }
+
+    record DirectIndexDefinition(String indexName, String binName, IndexType indexType) {
     }
 }

@@ -67,9 +67,11 @@ public class ExampleRunner {
         }
 
         Instant started = Instant.now();
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        AnnotationConfigApplicationContext context = null;
 
         try {
+            definition.fixture().beforeContextRefresh(args);
+            context = new AnnotationConfigApplicationContext();
             context.getEnvironment().getPropertySources()
                 .addFirst(new MapPropertySource("exampleCliArguments", args.springProperties()));
             context.register(definition.configurationClass());
@@ -84,13 +86,15 @@ public class ExampleRunner {
             return ExampleResult.failed(definition.name(), Duration.between(started, Instant.now()), unwrap(failure));
         } finally {
             try {
-                if (context.isActive()) {
+                if (context != null && context.isActive()) {
                     definition.fixture().cleanup(context);
                 }
             } catch (RuntimeException cleanupFailure) {
                 System.err.println("Cleanup failed for " + definition.name() + ": " + cleanupFailure.getMessage());
             } finally {
-                context.close();
+                if (context != null) {
+                    context.close();
+                }
             }
         }
     }

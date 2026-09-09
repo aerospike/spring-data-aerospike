@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.examples.support;
 
+import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.examples.blocking.crud.AerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.crud.BlockingRepositoryCrudExample;
 import org.springframework.data.aerospike.examples.blocking.crud.MovieDocument;
@@ -65,7 +66,7 @@ public final class ExampleRegistry {
                 "blocking",
                 IndexedAnnotationConfiguration.class,
                 IndexedAnnotationExample.class,
-                ExampleFixture.cleanSetThenDropIndexesOnCleanup(AnnotatedMovieDocument.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(AnnotatedMovieDocument.class,
                     AnnotatedMovieDocument.GENRE_INDEX),
                 "indexed", "repository", "startup-index"
             ),
@@ -74,8 +75,8 @@ public final class ExampleRegistry {
                 "blocking",
                 CustomQueryConfiguration.class,
                 CustomQueryDslExample.class,
-                ExampleFixture.cleanSetAndIndexes(CustomQueryMovieDocument.class,
-                    CustomQueryMovieDocument.RELEASE_YEAR_INDEX),
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(CustomQueryMovieDocument.class,
+                    CustomQueryMovieDocument.RELEASE_YEAR_INDEX, "releaseYear", IndexType.NUMERIC),
                 "repository", "query", "dsl"
             )
         );

@@ -18,7 +18,6 @@ public class SecondaryIndexQueryExample {
     }
 
     public void run() {
-        resetExampleData();
         template.createIndex(IndexedMovieDocument.class, IndexedMovieDocument.GENRE_INDEX, "genre", IndexType.STRING);
 
         repository.saveAll(List.of(
@@ -33,15 +32,6 @@ public class SecondaryIndexQueryExample {
             "Every result should match the indexed genre");
 
         System.out.println("Created a genre index and queried movies with a derived repository method");
-    }
-
-    private void resetExampleData() {
-        template.deleteAll(IndexedMovieDocument.class);
-        try {
-            template.deleteIndex(IndexedMovieDocument.class, IndexedMovieDocument.GENRE_INDEX);
-        } catch (RuntimeException ignored) {
-            // Ignore missing indexes from a first run or a previous successful cleanup.
-        }
     }
 
     private void require(boolean condition, String message) {

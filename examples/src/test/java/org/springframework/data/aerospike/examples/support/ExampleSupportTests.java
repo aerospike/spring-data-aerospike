@@ -1,13 +1,19 @@
 package org.springframework.data.aerospike.examples.support;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ExampleSupportTests {
+
+    private static final List<String> hookOrderEvents = new ArrayList<>();
 
     @Test
     void argsParseSelectionAndConnectionOptions() {
@@ -75,5 +81,62 @@ class ExampleSupportTests {
             assertThat(result.status()).isEqualTo(ExampleStatus.SKIPPED);
             assertThat(result.message()).contains("--allow-non-test-namespace");
         });
+    }
+
+    @Test
+    void runnerInvokesPreContextHookBeforeRefreshingContext() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void beforeContextRefresh(Args args) {
+                hookOrderEvents.add("beforeContextRefresh");
+            }
+
+            @Override
+            public void setup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("setup");
+            }
+
+            @Override
+            public void verify(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("verify");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "hook-order",
+            "test",
+            HookOrderConfiguration.class,
+            HookOrderExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"hook-order"}));
+
+        assertThat(results).singleElement()
+            .satisfies(result -> assertThat(result.status()).isEqualTo(ExampleStatus.PASSED));
+        assertThat(hookOrderEvents)
+            .containsExactly("beforeContextRefresh", "setup", "run", "verify", "cleanup");
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class HookOrderConfiguration {
+
+        @Bean
+        HookOrderExample hookOrderExample() {
+            return new HookOrderExample();
+        }
+    }
+
+    static class HookOrderExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+        }
     }
 }
