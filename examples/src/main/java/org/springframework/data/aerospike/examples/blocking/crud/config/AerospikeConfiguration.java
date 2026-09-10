@@ -24,5 +24,6 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
     @Override
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setCreateIndexesOnStartup(false);
+        aerospikeDataSettings.setScansEnabled(true);
     }
 }

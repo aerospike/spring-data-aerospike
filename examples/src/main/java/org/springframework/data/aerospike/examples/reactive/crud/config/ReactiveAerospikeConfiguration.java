@@ -24,5 +24,6 @@ public class ReactiveAerospikeConfiguration extends AbstractReactiveAerospikeDat
     @Override
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setCreateIndexesOnStartup(false);
+        aerospikeDataSettings.setScansEnabled(true);
     }
 }

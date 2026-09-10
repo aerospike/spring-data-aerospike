@@ -82,6 +82,9 @@ public class ExampleRunner {
             definition.fixture().verify(context);
 
             return ExampleResult.passed(definition.name(), Duration.between(started, Instant.now()), "completed");
+        } catch (ExampleSkippedException skipped) {
+            return ExampleResult.skipped(definition.name(), Duration.between(started, Instant.now()),
+                skipped.getMessage());
         } catch (Throwable failure) {
             return ExampleResult.failed(definition.name(), Duration.between(started, Instant.now()), unwrap(failure));
         } finally {

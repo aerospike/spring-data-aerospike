@@ -14,14 +14,26 @@ https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-ae
 
 Run `./examples/run_examples list` to list the currently registered examples.
 
-The initial set covers:
+The current set covers:
 
-* `blocking-crud` - blocking `AerospikeRepository` save, find, exists, and delete operations.
-* `reactive-crud` - reactive `ReactiveAerospikeRepository` save, find, exists, and delete operations.
+* `blocking-crud` - blocking `AerospikeRepository` save, batch save, read by id, read many ids, read all, count, exists, and delete operations.
+* `reactive-crud` - reactive `ReactiveAerospikeRepository` save, batch save, publisher id overloads, read all, count, exists, and delete operations.
 * `indexed-query` - a blocking derived query backed by an explicitly created secondary index.
 * `projection` - DTO and dynamic target-class projection from repository methods.
 * `indexed-annotation` - startup index creation from the `@Indexed` annotation.
 * `custom-query-dsl` - a custom repository query backed by a Spring Data Aerospike DSL expression.
+* `blocking-query-methods` - blocking method-name queries for read, exists, count, and delete operations backed by fixture-managed secondary indexes.
+* `reactive-query-methods` - reactive method-name queries for read, exists, count, and delete operations backed by fixture-managed secondary indexes.
+* `blocking-custom-query-programmatic` - blocking `findUsingQuery(Query)` with programmatic `Qualifier` objects and target-class projection.
+* `reactive-custom-query-programmatic` - reactive `findUsingQuery(Query)` with programmatic `Qualifier` objects and target-class projection.
+* `blocking-template` - blocking `AerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, partial update, and custom `WritePolicy` persist operations.
+* `reactive-template` - reactive `ReactiveAerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, and partial update operations.
+* `blocking-custom-converters` - blocking template operations with custom read/write converters for a composite id.
+* `reactive-custom-converters` - reactive template operations with custom read/write converters for a composite id.
+* `blocking-transactions` - blocking repository/template writes using `AerospikeTransactionManager` and a proxied `@Transactional` service.
+* `reactive-transactions` - reactive repository/template writes using `AerospikeReactiveTransactionManager` and `TransactionalOperator`.
+
+Transaction examples report `SKIPPED` on Aerospike Server versions older than 8.0.0.
 
 == Running
 
@@ -51,7 +63,8 @@ The runner accepts `--fail-fast` to stop at the first failure.
 == Namespace Safety
 
 The examples own records and secondary indexes whose names start with `sda_examples_`. They clean up those records and
-indexes before or after scenario execution.
+indexes before or after scenario execution. Query examples that need secondary indexes declare them in the registry
+fixture so the runnable code stays focused on application repository/template usage.
 
 By default the runner only performs live cleanup in namespace `test`. To run against another namespace, pass
 `--allow-non-test-namespace` explicitly:
@@ -71,21 +84,21 @@ Compile the framework tests and examples without running live examples:
 
 [source,bash]
 ----
-mvn -Pexamples -DskipTests test-compile
+mvn -Pexamples -DskipTests test-compile > examples-test-compile.log 2>&1
 ----
 
 Run the non-live support tests only:
 
 [source,bash]
 ----
-mvn -Pexamples -Dtest='org.springframework.data.aerospike.examples.support.*Tests' test
+mvn -Pexamples -Dtest='org.springframework.data.aerospike.examples.support.*Tests' test > examples-support-tests.log 2>&1
 ----
 
 Run the live smoke set:
 
 [source,bash]
 ----
-./examples/run_examples all --hosts localhost:3000 --namespace test
+./examples/run_examples all --hosts localhost:3000 --namespace test > examples-live-run.log 2>&1
 ----
 
 CI/CD wiring, report publishing, generated snippets, and automatic documentation rendering are intentionally left for a

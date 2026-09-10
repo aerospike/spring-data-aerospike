@@ -14,7 +14,7 @@ public class ProjectionExample {
 
     private final ProjectionMovieRepository repository;
 
-    // Spring injects a repository proxy whose query methods can return projection types.
+    // Spring injects a repository proxy whose query methods can return projection types
     public ProjectionExample(ProjectionMovieRepository repository) {
         this.repository = repository;
     }
@@ -23,10 +23,10 @@ public class ProjectionExample {
         ProjectedMovieDocument movie =
             new ProjectedMovieDocument("projection-1", "The Conversation", "Francis Ford Coppola", 1974, 7.8);
 
-        // save(...) stores the full document; projection queries can read selected fields later.
+        // save(...) stores the full document; projection queries can read selected fields later
         ProjectedMovieDocument saved = repository.save(movie);
 
-        // findMovieSummaryById(...) returns the DTO projection declared by the repository method.
+        // findMovieSummaryById(...) returns the DTO projection declared by the repository method
         List<MovieSummary> dtoProjection = repository.findMovieSummaryById(saved.getId());
 
         int dtoProjectionCount = dtoProjection.size();
@@ -35,7 +35,7 @@ public class ProjectionExample {
         String dtoProjectionTitle = dtoProjection.get(0).getTitle();
         require("The Conversation".equals(dtoProjectionTitle), "DTO projection title did not match");
 
-        // findById(..., type) selects the projection target dynamically at call time.
+        // findById(..., type) selects the projection target dynamically at call time
         List<MovieSummary> dynamicProjection = repository.findById(saved.getId(), MovieSummary.class);
 
         int dynamicProjectionCount = dynamicProjection.size();

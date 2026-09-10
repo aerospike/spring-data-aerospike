@@ -1,10 +1,13 @@
 package org.springframework.data.aerospike.examples.support;
 
+import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.aerospike.mapping.Document;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,8 +61,43 @@ class ExampleSupportTests {
                 "indexed-query",
                 "projection",
                 "indexed-annotation",
-                "custom-query-dsl"
+                "custom-query-dsl",
+                "blocking-query-methods",
+                "reactive-query-methods",
+                "blocking-custom-query-programmatic",
+                "reactive-custom-query-programmatic",
+                "blocking-template",
+                "reactive-template",
+                "blocking-custom-converters",
+                "reactive-custom-converters",
+                "blocking-transactions",
+                "reactive-transactions"
             );
+    }
+
+    @Test
+    void multiIndexFixtureFactoryStoresEveryDirectIndexDefinition() throws Exception {
+        ExampleFixture fixture = ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(
+            HookOrderDocument.class,
+            ExampleFixture.index("sda_examples_test_genre_idx", "genre", IndexType.STRING),
+            ExampleFixture.index("sda_examples_test_year_idx", "releaseYear", IndexType.NUMERIC)
+        );
+
+        List<String> indexNames = fixtureField(fixture, "indexNames");
+        List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+            fixtureField(fixture, "indexesToCreateBeforeContextRefresh");
+
+        assertThat(indexNames)
+            .containsExactly("sda_examples_test_genre_idx", "sda_examples_test_year_idx");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::indexName)
+            .containsExactly("sda_examples_test_genre_idx", "sda_examples_test_year_idx");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::binName)
+            .containsExactly("genre", "releaseYear");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::indexType)
+            .containsExactly(IndexType.STRING, IndexType.NUMERIC);
     }
 
     @Test
@@ -81,6 +119,43 @@ class ExampleSupportTests {
             assertThat(result.status()).isEqualTo(ExampleStatus.SKIPPED);
             assertThat(result.message()).contains("--allow-non-test-namespace");
         });
+    }
+
+    @Test
+    void runnerReportsExampleSkippedExceptionAndStillCleansUp() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void setup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("setup");
+            }
+
+            @Override
+            public void verify(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("verify");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "skip-contract",
+            "test",
+            SkippingConfiguration.class,
+            SkippingExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"skip-contract"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.SKIPPED);
+            assertThat(result.message()).contains("Server 8.0.0+");
+        });
+        assertThat(hookOrderEvents).containsExactly("setup", "run", "cleanup");
     }
 
     @Test
@@ -138,5 +213,33 @@ class ExampleSupportTests {
         public void run() {
             hookOrderEvents.add("run");
         }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class SkippingConfiguration {
+
+        @Bean
+        SkippingExample skippingExample() {
+            return new SkippingExample();
+        }
+    }
+
+    static class SkippingExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+            throw new ExampleSkippedException("Server 8.0.0+ is required");
+        }
+    }
+
+    @Document(collection = "sda_examples_hook_order")
+    static class HookOrderDocument {
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T fixtureField(ExampleFixture fixture, String fieldName) throws Exception {
+        Field field = fixture.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(fixture);
     }
 }

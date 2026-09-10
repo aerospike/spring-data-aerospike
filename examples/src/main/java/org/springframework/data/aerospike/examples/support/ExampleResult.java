@@ -12,6 +12,10 @@ public record ExampleResult(String name, ExampleStatus status, Duration duration
         return new ExampleResult(name, ExampleStatus.SKIPPED, Duration.ZERO, message, null);
     }
 
+    public static ExampleResult skipped(String name, Duration duration, String message) {
+        return new ExampleResult(name, ExampleStatus.SKIPPED, duration, message, null);
+    }
+
     public static ExampleResult failed(String name, Duration duration, Throwable cause) {
         return new ExampleResult(name, ExampleStatus.FAILED, duration, cause.getMessage(), cause);
     }

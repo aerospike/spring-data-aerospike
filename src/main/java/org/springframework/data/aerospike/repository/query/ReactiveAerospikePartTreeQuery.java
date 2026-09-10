@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.core.PostProcessingUtils.applyPostProcessingOnResults;
@@ -98,8 +97,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         } else if (isCountQuery(queryMethod)) {
             return template.count(query, queryMethod.getEntityInformation().getJavaType());
         } else if (isDeleteQuery(queryMethod)) {
-            template.delete(query, queryMethod.getEntityInformation().getJavaType());
-            return Optional.empty();
+            return template.delete(query, queryMethod.getEntityInformation().getJavaType());
         } else if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Pageable pageable = accessor.getPageable();
             Flux<?> unprocessedResults = template.findUsingQueryWithoutPostProcessing(entityClass, targetClass,

@@ -13,7 +13,7 @@ public class CustomQueryDslExample {
 
     private final CustomQueryMovieRepository repository;
 
-    // Spring injects a repository proxy whose method carries the custom @Query expression.
+    // Spring injects a repository proxy whose method carries the custom @Query expression
     public CustomQueryDslExample(CustomQueryMovieRepository repository) {
         this.repository = repository;
     }
@@ -25,10 +25,10 @@ public class CustomQueryDslExample {
             new CustomQueryMovieDocument("custom-query-3", "High and Low", "crime", 1963)
         );
 
-        // saveAll(...) writes sample records before the custom query runs.
+        // saveAll(...) writes sample records before the custom query runs
         repository.saveAll(movies);
 
-        // findByReleaseYearBetween(...) executes the @Query DSL expression declared on the repository method.
+        // findByReleaseYearBetween(...) executes the @Query DSL expression declared on the repository method
         List<CustomQueryMovieDocument> modernMovies = repository.findByReleaseYearBetween(2000, 2010);
 
         int modernMovieCount = modernMovies.size();
@@ -37,6 +37,6 @@ public class CustomQueryDslExample {
         String modernMovieTitle = modernMovies.get(0).getTitle();
         require("Children of Men".equals(modernMovieTitle), "DSL query result title did not match");
 
-        System.out.println("Queried movies with an @Query DSL expression backed by a numeric index.");
+        System.out.println("Queried movies with an @Query DSL expression backed by a numeric index");
     }
 }

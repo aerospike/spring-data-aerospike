@@ -16,14 +16,14 @@ public class SecondaryIndexQueryExample {
     private final IndexedMovieRepository repository;
     private final AerospikeTemplate template;
 
-    // Spring injects both the repository proxy and the template used for index administration.
+    // Spring injects both the repository proxy and the template used for index administration
     public SecondaryIndexQueryExample(IndexedMovieRepository repository, AerospikeTemplate template) {
         this.repository = repository;
         this.template = template;
     }
 
     public void run() {
-        // createIndex(...) creates the secondary index required by the derived query method.
+        // createIndex(...) creates the secondary index required by the derived query method
         template.createIndex(IndexedMovieDocument.class, IndexedMovieDocument.GENRE_INDEX, "genre", IndexType.STRING);
 
         List<IndexedMovieDocument> movies = List.of(
@@ -32,10 +32,10 @@ public class SecondaryIndexQueryExample {
             new IndexedMovieDocument("query-3", "Heat", "crime", 1995)
         );
 
-        // saveAll(...) writes all sample records before querying the indexed bin.
+        // saveAll(...) writes all sample records before querying the indexed bin
         repository.saveAll(movies);
 
-        // findByGenre(...) is a repository query method resolved from its method name.
+        // findByGenre(...) is a repository query method resolved from its method name
         List<IndexedMovieDocument> scienceFiction = repository.findByGenre("science-fiction");
 
         int scienceFictionCount = scienceFiction.size();

@@ -205,6 +205,14 @@ public class QueryContextBuilder {
      */
     private static Qualifier getNewParentQualifierForAND(Qualifier parentQualifier,
                                                          List<Qualifier> newInnerQualifiers) {
+        if (newInnerQualifiers.isEmpty()) {
+            return null;
+        }
+        if (newInnerQualifiers.size() == 1) {
+            Qualifier qualifier = newInnerQualifiers.get(0);
+            qualifier.setDataSettings(parentQualifier.getDataSettings());
+            return qualifier;
+        }
         Qualifier newParentQualifier = Qualifier.and(newInnerQualifiers.toArray(Qualifier[]::new));
         newParentQualifier.setDataSettings(parentQualifier.getDataSettings());
         return newParentQualifier;
@@ -221,10 +229,10 @@ public class QueryContextBuilder {
         Filter filter = null;
         for (Qualifier innerQualifier : parentQualifier.getQualifiers()) {
             if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
-                // Filter from the first processed qualifier
-                filter = innerQualifier.getSecondaryIndexFilter();
-                if (filter != null) {
-                    // Skip this inner qualifier in subsequent Exp building as it already has secondary index Filter
+                Filter candidateFilter = innerQualifier.getSecondaryIndexFilter();
+                if (filter == null && candidateFilter != null) {
+                    filter = candidateFilter;
+                    // Skip only the selected filter qualifier in subsequent Exp building.
                     if (dualFilterOperations.contains(innerQualifier.getOperation())) {
                         // Still use the inner qualifier in case if it is a dual filter operation
                         newInnerQualifiers.add(innerQualifier);

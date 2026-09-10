@@ -47,10 +47,22 @@ public interface ExampleFixture {
         return new CleanupFixture(entityClass, Arrays.asList(indexNames), false, true, List.of());
     }
 
+    static DirectIndexDefinition index(String indexName, String binName, IndexType indexType) {
+        return new DirectIndexDefinition(indexName, binName, indexType);
+    }
+
     static ExampleFixture cleanSetAndCreateIndexBeforeContextRefresh(Class<?> entityClass, String indexName,
                                                                     String binName, IndexType indexType) {
-        DirectIndexDefinition indexDefinition = new DirectIndexDefinition(indexName, binName, indexType);
-        return new CleanupFixture(entityClass, List.of(indexName), false, true, List.of(indexDefinition));
+        return cleanSetAndCreateIndexesBeforeContextRefresh(entityClass, index(indexName, binName, indexType));
+    }
+
+    static ExampleFixture cleanSetAndCreateIndexesBeforeContextRefresh(Class<?> entityClass,
+                                                                       DirectIndexDefinition... indexes) {
+        List<DirectIndexDefinition> indexDefinitions = Arrays.asList(indexes);
+        List<String> indexNames = indexDefinitions.stream()
+            .map(DirectIndexDefinition::indexName)
+            .toList();
+        return new CleanupFixture(entityClass, indexNames, false, true, indexDefinitions);
     }
 
     class CleanupFixture implements ExampleFixture {

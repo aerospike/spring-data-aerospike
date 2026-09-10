@@ -13,7 +13,7 @@ public class IndexedAnnotationExample {
 
     private final AnnotatedMovieRepository repository;
 
-    // Spring injects a repository proxy for the document whose indexed field is annotated.
+    // Spring injects a repository proxy for the document whose indexed field is annotated
     public IndexedAnnotationExample(AnnotatedMovieRepository repository) {
         this.repository = repository;
     }
@@ -24,10 +24,10 @@ public class IndexedAnnotationExample {
             new AnnotatedMovieDocument("indexed-annotation-2", "The Third Man", "noir")
         );
 
-        // saveAll(...) writes records after startup has created the @Indexed secondary index.
+        // saveAll(...) writes records after startup has created the @Indexed secondary index
         repository.saveAll(movies);
 
-        // findByGenre(...) uses a derived repository query against the annotated indexed field.
+        // findByGenre(...) uses a derived repository query against the annotated indexed field
         List<AnnotatedMovieDocument> results = repository.findByGenre("science-fiction");
 
         int resultCount = results.size();
