@@ -26,6 +26,21 @@ The current set covers:
 * `reactive-query-methods` - reactive method-name queries for read, exists, count, and delete operations backed by fixture-managed secondary indexes.
 * `blocking-custom-query-programmatic` - blocking `findUsingQuery(Query)` with programmatic `Qualifier` objects and target-class projection.
 * `reactive-custom-query-programmatic` - reactive `findUsingQuery(Query)` with programmatic `Qualifier` objects and target-class projection.
+* `blocking-logical-derived-indexed-and` - blocking derived AND queries that use fixture-created `lGenre`/`lTitle` secondary indexes with scans disabled.
+* `reactive-logical-derived-indexed-and` - reactive derived AND queries that use fixture-created `lGenre`/`lTitle` secondary indexes with scans disabled.
+* `blocking-logical-derived-indexed-scan` - blocking derived OR and mixed top-level OR queries that scan even when `lGenre` is indexed.
+* `reactive-logical-derived-indexed-scan` - reactive derived OR and mixed top-level OR queries that scan even when `lGenre` is indexed.
+* `blocking-logical-derived-no-index` - blocking derived AND/OR logical queries in a scan-enabled context with no logical secondary index.
+* `reactive-logical-derived-no-index` - reactive derived AND/OR logical queries in a scan-enabled context with no logical secondary index.
+* `blocking-logical-programmatic-indexed-and` - blocking programmatic `Qualifier` AND queries, including `AND(indexedGenre, OR(...))`, backed by `lGenre`.
+* `reactive-logical-programmatic-indexed-and` - reactive programmatic `Qualifier` AND queries, including `AND(indexedGenre, OR(...))`, backed by `lGenre`.
+* `blocking-logical-programmatic-indexed-scan` - blocking programmatic top-level OR queries that scan even when `lGenre` is indexed.
+* `reactive-logical-programmatic-indexed-scan` - reactive programmatic top-level OR queries that scan even when `lGenre` is indexed.
+* `blocking-logical-programmatic-no-index` - blocking programmatic AND/OR logical queries in a scan-enabled context with no logical secondary index.
+* `reactive-logical-programmatic-no-index` - reactive programmatic AND/OR logical queries in a scan-enabled context with no logical secondary index.
+* `blocking-logical-query-dsl-indexed-and` - blocking `@Query` DSL AND expressions that use `indexToUse` for the `lGenre` index with scans disabled.
+* `blocking-logical-query-dsl-indexed-scan` - blocking `@Query` DSL top-level OR expressions that scan even when `lGenre` is indexed.
+* `blocking-logical-query-dsl-no-index` - blocking `@Query` DSL AND/OR logical expressions in a scan-enabled context with no logical secondary index.
 * `blocking-template` - blocking `AerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, partial update, and custom `WritePolicy` persist operations.
 * `reactive-template` - reactive `ReactiveAerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, and partial update operations.
 * `blocking-custom-converters` - blocking template operations with custom read/write converters for a composite id.
@@ -73,6 +88,9 @@ By default the runner only performs live cleanup in namespace `test`. To run aga
 ----
 ./examples/run_examples all --hosts localhost:3000 --namespace dev --allow-non-test-namespace
 ----
+
+Some logical operator examples intentionally enable scans. They demonstrate no-index execution and top-level OR query
+shapes, where Spring Data Aerospike cannot choose a single secondary-index filter even if one predicate is indexed.
 
 == Local Verification
 

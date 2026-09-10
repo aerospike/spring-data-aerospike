@@ -4,18 +4,29 @@ import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.aerospike.annotation.Query;
+import org.springframework.data.aerospike.examples.logical.blocking.dsl.repository.BlockingLogicalQueryDslMovieRepository;
+import org.springframework.data.aerospike.examples.logical.entity.LogicalMovieDocument;
 import org.springframework.data.aerospike.mapping.Document;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ExampleSupportTests {
 
+    private static final Pattern QUERY_PARAMETER_PLACEHOLDER = Pattern.compile("\\?(\\d+)");
     private static final List<String> hookOrderEvents = new ArrayList<>();
 
     @Test
@@ -66,6 +77,21 @@ class ExampleSupportTests {
                 "reactive-query-methods",
                 "blocking-custom-query-programmatic",
                 "reactive-custom-query-programmatic",
+                "blocking-logical-derived-indexed-and",
+                "reactive-logical-derived-indexed-and",
+                "blocking-logical-derived-indexed-scan",
+                "reactive-logical-derived-indexed-scan",
+                "blocking-logical-derived-no-index",
+                "reactive-logical-derived-no-index",
+                "blocking-logical-programmatic-indexed-and",
+                "reactive-logical-programmatic-indexed-and",
+                "blocking-logical-programmatic-indexed-scan",
+                "reactive-logical-programmatic-indexed-scan",
+                "blocking-logical-programmatic-no-index",
+                "reactive-logical-programmatic-no-index",
+                "blocking-logical-query-dsl-indexed-and",
+                "blocking-logical-query-dsl-indexed-scan",
+                "blocking-logical-query-dsl-no-index",
                 "blocking-template",
                 "reactive-template",
                 "blocking-custom-converters",
@@ -98,6 +124,97 @@ class ExampleSupportTests {
         assertThat(indexesToCreate)
             .extracting(ExampleFixture.DirectIndexDefinition::indexType)
             .containsExactly(IndexType.STRING, IndexType.NUMERIC);
+    }
+
+    @Test
+    void logicalExampleConfigurationsAvoidComponentScanning() {
+        List<ExampleDefinition> logicalDefinitions = ExampleRegistry.all().stream()
+            .filter(definition -> definition.name().contains("logical"))
+            .toList();
+
+        assertThat(logicalDefinitions).isNotEmpty();
+        assertThat(logicalDefinitions)
+            .allSatisfy(definition -> assertThat(definition.configurationClass().getAnnotation(ComponentScan.class))
+                .as(definition.name() + " should use explicit beans instead of component scanning")
+                .isNull());
+    }
+
+    @Test
+    void logicalIndexedExamplesCreateExpectedIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> indexedDefinitions = ExampleRegistry.all().stream()
+            .filter(definition -> definition.name().contains("logical"))
+            .filter(definition -> definition.tags().contains("indexed"))
+            .toList();
+
+        assertThat(indexedDefinitions).isNotEmpty();
+        for (ExampleDefinition definition : indexedDefinitions) {
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+                fixtureField(definition.fixture(), "indexesToCreateBeforeContextRefresh");
+
+            if (definition.name().contains("derived-indexed-and")) {
+                assertThat(indexNames)
+                    .as(definition.name() + " index names")
+                    .containsExactly(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX);
+                assertThat(indexesToCreate)
+                    .as(definition.name() + " indexes to create")
+                    .extracting(ExampleFixture.DirectIndexDefinition::binName)
+                    .containsExactly(LogicalMovieDocument.GENRE_BIN, LogicalMovieDocument.TITLE_BIN);
+            } else {
+                assertThat(indexNames)
+                    .as(definition.name() + " index names")
+                    .containsExactly(LogicalMovieDocument.GENRE_INDEX);
+                assertThat(indexesToCreate)
+                    .as(definition.name() + " indexes to create")
+                    .extracting(ExampleFixture.DirectIndexDefinition::binName)
+                    .containsExactly(LogicalMovieDocument.GENRE_BIN);
+            }
+            assertThat(indexesToCreate)
+                .as(definition.name() + " index types")
+                .extracting(ExampleFixture.DirectIndexDefinition::indexType)
+                .containsOnly(IndexType.STRING);
+        }
+    }
+
+    @Test
+    void logicalNoIndexExamplesDropLogicalIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> noIndexDefinitions = ExampleRegistry.all().stream()
+            .filter(definition -> definition.name().contains("logical"))
+            .filter(definition -> definition.tags().contains("no-index"))
+            .toList();
+
+        assertThat(noIndexDefinitions).isNotEmpty();
+        for (ExampleDefinition definition : noIndexDefinitions) {
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            boolean dropIndexesBeforeContextRefresh =
+                fixtureField(definition.fixture(), "dropIndexesBeforeContextRefresh");
+            List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+                fixtureField(definition.fixture(), "indexesToCreateBeforeContextRefresh");
+
+            assertThat(indexNames)
+                .as(definition.name() + " index names")
+                .containsExactly(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX);
+            assertThat(dropIndexesBeforeContextRefresh)
+                .as(definition.name() + " drops indexes before context refresh")
+                .isTrue();
+            assertThat(indexesToCreate)
+                .as(definition.name() + " should not create indexes")
+                .isEmpty();
+        }
+    }
+
+    @Test
+    void logicalDslQueriesDeclareParametersOnlyForBoundPlaceholders() {
+        for (Method method : BlockingLogicalQueryDslMovieRepository.class.getDeclaredMethods()) {
+            Query query = method.getAnnotation(Query.class);
+
+            assertThat(query)
+                .as(method.getName() + " should declare @Query")
+                .isNotNull();
+            assertThat(placeholders(query.expression()))
+                .as(method.getName() + " should align declared parameters with @Query placeholders")
+                .containsExactlyElementsOf(expectedPlaceholders(method));
+        }
     }
 
     @Test
@@ -241,5 +358,18 @@ class ExampleSupportTests {
         Field field = fixture.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         return (T) field.get(fixture);
+    }
+
+    private static Set<Integer> placeholders(String expression) {
+        return QUERY_PARAMETER_PLACEHOLDER.matcher(expression)
+            .results()
+            .map(result -> Integer.parseInt(result.group(1)))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static Set<Integer> expectedPlaceholders(Method method) {
+        return IntStream.range(0, method.getParameterCount())
+            .boxed()
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
