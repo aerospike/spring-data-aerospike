@@ -90,7 +90,7 @@ h1#spring-data-aerospike-documentation {
     <li><a href="#aerospike.query_methods.map">Map Queries</a></li>
     <li><a href="#aerospike.query_methods.pojo">POJO Queries</a></li>
     <li><a href="#aerospike.query_methods.id">Id Queries</a></li>
-    <li><a href="#aerospike.query-methods-combined">Combined Query Methods</a></li>
+    <li><a href="#aerospike.query-methods-combined">Combined Derived Queries</a></li>
     <li><a href="#query-methods-modification">Query Modification</a></li>
     <li><a href="#custom-queries">Custom Queries</a></li>
     <li><a href="#dsl.expressions">DSL Expressions</a></li>

@@ -30,6 +30,7 @@ public final class Main {
             if (results.stream().anyMatch(result -> result.status() == ExampleStatus.FAILED)) {
                 System.exit(1);
             }
+            System.exit(0);
         } catch (IllegalArgumentException ex) {
             System.err.println(ex.getMessage());
             System.err.println();

@@ -31,32 +31,32 @@ import org.springframework.data.aerospike.examples.blocking.template.entity.Temp
 import org.springframework.data.aerospike.examples.blocking.transactions.BlockingTransactionExample;
 import org.springframework.data.aerospike.examples.blocking.transactions.config.BlockingTransactionAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.transactions.entity.BlockingTransactionalMovieDocument;
-import org.springframework.data.aerospike.examples.logical.blocking.derived.BlockingLogicalDerivedIndexedANDExample;
-import org.springframework.data.aerospike.examples.logical.blocking.derived.BlockingLogicalDerivedIndexedScanExample;
-import org.springframework.data.aerospike.examples.logical.blocking.derived.BlockingLogicalDerivedNoIndexExample;
-import org.springframework.data.aerospike.examples.logical.blocking.derived.config.BlockingLogicalDerivedIndexedConfiguration;
-import org.springframework.data.aerospike.examples.logical.blocking.derived.config.BlockingLogicalDerivedScanConfiguration;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.BlockingLogicalQueryDslIndexedANDExample;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.BlockingLogicalQueryDslIndexedScanExample;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.BlockingLogicalQueryDslNoIndexExample;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.config.BlockingLogicalQueryDslIndexedConfiguration;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.config.BlockingLogicalQueryDslScanConfiguration;
-import org.springframework.data.aerospike.examples.logical.blocking.programmatic.BlockingLogicalProgrammaticIndexedAndExample;
-import org.springframework.data.aerospike.examples.logical.blocking.programmatic.BlockingLogicalProgrammaticIndexedScanExample;
-import org.springframework.data.aerospike.examples.logical.blocking.programmatic.BlockingLogicalProgrammaticNoIndexExample;
-import org.springframework.data.aerospike.examples.logical.blocking.programmatic.config.BlockingLogicalProgrammaticIndexedConfiguration;
-import org.springframework.data.aerospike.examples.logical.blocking.programmatic.config.BlockingLogicalProgrammaticScanConfiguration;
-import org.springframework.data.aerospike.examples.logical.entity.LogicalMovieDocument;
-import org.springframework.data.aerospike.examples.logical.reactive.derived.ReactiveLogicalDerivedIndexedANDExample;
-import org.springframework.data.aerospike.examples.logical.reactive.derived.ReactiveLogicalDerivedIndexedScanExample;
-import org.springframework.data.aerospike.examples.logical.reactive.derived.ReactiveLogicalDerivedNoIndexExample;
-import org.springframework.data.aerospike.examples.logical.reactive.derived.config.ReactiveLogicalDerivedIndexedConfiguration;
-import org.springframework.data.aerospike.examples.logical.reactive.derived.config.ReactiveLogicalDerivedScanConfiguration;
-import org.springframework.data.aerospike.examples.logical.reactive.programmatic.ReactiveLogicalProgrammaticIndexedANDExample;
-import org.springframework.data.aerospike.examples.logical.reactive.programmatic.ReactiveLogicalProgrammaticIndexedScanExample;
-import org.springframework.data.aerospike.examples.logical.reactive.programmatic.ReactiveLogicalProgrammaticNoIndexExample;
-import org.springframework.data.aerospike.examples.logical.reactive.programmatic.config.ReactiveLogicalProgrammaticIndexedConfiguration;
-import org.springframework.data.aerospike.examples.logical.reactive.programmatic.config.ReactiveLogicalProgrammaticScanConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.derived.BlockingDerivedQueryConjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.derived.BlockingDerivedQueryDisjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.derived.BlockingDerivedQueryNoIndexExample;
+import org.springframework.data.aerospike.examples.combined.blocking.derived.config.BlockingDerivedQueryConjunctionConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.derived.config.BlockingDerivedQueryScanConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.BlockingDeclaredQueryConjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.BlockingDeclaredQueryDisjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.BlockingDeclaredQueryNoIndexExample;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.config.BlockingDeclaredQueryConjunctionConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.config.BlockingDeclaredQueryScanConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.programmatic.BlockingCustomQueryConjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.programmatic.BlockingCustomQueryDisjunctionExample;
+import org.springframework.data.aerospike.examples.combined.blocking.programmatic.BlockingCustomQueryNoIndexExample;
+import org.springframework.data.aerospike.examples.combined.blocking.programmatic.config.BlockingCustomQueryConjunctionConfiguration;
+import org.springframework.data.aerospike.examples.combined.blocking.programmatic.config.BlockingCustomQueryScanConfiguration;
+import org.springframework.data.aerospike.examples.combined.entity.Movie;
+import org.springframework.data.aerospike.examples.combined.reactive.derived.ReactiveDerivedQueryConjunctionExample;
+import org.springframework.data.aerospike.examples.combined.reactive.derived.ReactiveDerivedQueryDisjunctionExample;
+import org.springframework.data.aerospike.examples.combined.reactive.derived.ReactiveDerivedQueryNoIndexExample;
+import org.springframework.data.aerospike.examples.combined.reactive.derived.config.ReactiveDerivedQueryConjunctionConfiguration;
+import org.springframework.data.aerospike.examples.combined.reactive.derived.config.ReactiveDerivedQueryScanConfiguration;
+import org.springframework.data.aerospike.examples.combined.reactive.programmatic.ReactiveCustomQueryConjunctionExample;
+import org.springframework.data.aerospike.examples.combined.reactive.programmatic.ReactiveCustomQueryDisjunctionExample;
+import org.springframework.data.aerospike.examples.combined.reactive.programmatic.ReactiveCustomQueryNoIndexExample;
+import org.springframework.data.aerospike.examples.combined.reactive.programmatic.config.ReactiveCustomQueryConjunctionConfiguration;
+import org.springframework.data.aerospike.examples.combined.reactive.programmatic.config.ReactiveCustomQueryScanConfiguration;
 import org.springframework.data.aerospike.examples.reactive.converters.ReactiveCustomConvertersExample;
 import org.springframework.data.aerospike.examples.reactive.converters.config.ReactiveCustomConvertersAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderDocument;
@@ -181,145 +181,145 @@ public final class ExampleRegistry {
                 "reactive", "repository", "query", "custom", "programmatic"
             ),
             ExampleDefinition.of(
-                "blocking-logical-derived-indexed-and",
+                "blocking-derived-query-conjunction",
                 "blocking",
-                BlockingLogicalDerivedIndexedConfiguration.class,
-                BlockingLogicalDerivedIndexedANDExample.class,
-                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    ExampleFixture.index(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN,
+                BlockingDerivedQueryConjunctionConfiguration.class,
+                BlockingDerivedQueryConjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(Movie.class,
+                    ExampleFixture.index(Movie.GENRE_INDEX, Movie.GENRE_BIN,
                         IndexType.STRING),
-                    ExampleFixture.index(LogicalMovieDocument.TITLE_INDEX, LogicalMovieDocument.TITLE_BIN,
+                    ExampleFixture.index(Movie.TITLE_INDEX, Movie.TITLE_BIN,
                         IndexType.STRING)),
-                "repository", "query", "logical", "derived", "indexed"
+                "repository", "query", "combined-query", "derived-query", "conjunction", "indexed"
             ),
             ExampleDefinition.of(
-                "reactive-logical-derived-indexed-and",
+                "reactive-derived-query-conjunction",
                 "reactive",
-                ReactiveLogicalDerivedIndexedConfiguration.class,
-                ReactiveLogicalDerivedIndexedANDExample.class,
-                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    ExampleFixture.index(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN,
+                ReactiveDerivedQueryConjunctionConfiguration.class,
+                ReactiveDerivedQueryConjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(Movie.class,
+                    ExampleFixture.index(Movie.GENRE_INDEX, Movie.GENRE_BIN,
                         IndexType.STRING),
-                    ExampleFixture.index(LogicalMovieDocument.TITLE_INDEX, LogicalMovieDocument.TITLE_BIN,
+                    ExampleFixture.index(Movie.TITLE_INDEX, Movie.TITLE_BIN,
                         IndexType.STRING)),
-                "reactive", "repository", "query", "logical", "derived", "indexed"
+                "reactive", "repository", "query", "combined-query", "derived-query", "conjunction", "indexed"
             ),
             ExampleDefinition.of(
-                "blocking-logical-derived-indexed-scan",
+                "blocking-derived-query-disjunction",
                 "blocking",
-                BlockingLogicalDerivedScanConfiguration.class,
-                BlockingLogicalDerivedIndexedScanExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "repository", "query", "logical", "derived", "indexed", "scan"
+                BlockingDerivedQueryScanConfiguration.class,
+                BlockingDerivedQueryDisjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "repository", "query", "combined-query", "derived-query", "disjunction", "indexed", "scan"
             ),
             ExampleDefinition.of(
-                "reactive-logical-derived-indexed-scan",
+                "reactive-derived-query-disjunction",
                 "reactive",
-                ReactiveLogicalDerivedScanConfiguration.class,
-                ReactiveLogicalDerivedIndexedScanExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "reactive", "repository", "query", "logical", "derived", "indexed", "scan"
+                ReactiveDerivedQueryScanConfiguration.class,
+                ReactiveDerivedQueryDisjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "reactive", "repository", "query", "combined-query", "derived-query", "disjunction", "indexed", "scan"
             ),
             ExampleDefinition.of(
-                "blocking-logical-derived-no-index",
+                "blocking-derived-query-no-index",
                 "blocking",
-                BlockingLogicalDerivedScanConfiguration.class,
-                BlockingLogicalDerivedNoIndexExample.class,
-                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX),
-                "repository", "query", "logical", "derived", "no-index", "scan"
+                BlockingDerivedQueryScanConfiguration.class,
+                BlockingDerivedQueryNoIndexExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.TITLE_INDEX),
+                "repository", "query", "combined-query", "derived-query", "no-index", "scan"
             ),
             ExampleDefinition.of(
-                "reactive-logical-derived-no-index",
+                "reactive-derived-query-no-index",
                 "reactive",
-                ReactiveLogicalDerivedScanConfiguration.class,
-                ReactiveLogicalDerivedNoIndexExample.class,
-                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX),
-                "reactive", "repository", "query", "logical", "derived", "no-index", "scan"
+                ReactiveDerivedQueryScanConfiguration.class,
+                ReactiveDerivedQueryNoIndexExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.TITLE_INDEX),
+                "reactive", "repository", "query", "combined-query", "derived-query", "no-index", "scan"
             ),
             ExampleDefinition.of(
-                "blocking-logical-programmatic-indexed-and",
+                "blocking-custom-query-conjunction",
                 "blocking",
-                BlockingLogicalProgrammaticIndexedConfiguration.class,
-                BlockingLogicalProgrammaticIndexedAndExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "repository", "query", "logical", "custom", "programmatic", "indexed"
+                BlockingCustomQueryConjunctionConfiguration.class,
+                BlockingCustomQueryConjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "repository", "query", "combined-query", "custom-query", "conjunction", "indexed"
             ),
             ExampleDefinition.of(
-                "reactive-logical-programmatic-indexed-and",
+                "reactive-custom-query-conjunction",
                 "reactive",
-                ReactiveLogicalProgrammaticIndexedConfiguration.class,
-                ReactiveLogicalProgrammaticIndexedANDExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "reactive", "repository", "query", "logical", "custom", "programmatic", "indexed"
+                ReactiveCustomQueryConjunctionConfiguration.class,
+                ReactiveCustomQueryConjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "reactive", "repository", "query", "combined-query", "custom-query", "conjunction", "indexed"
             ),
             ExampleDefinition.of(
-                "blocking-logical-programmatic-indexed-scan",
+                "blocking-custom-query-disjunction",
                 "blocking",
-                BlockingLogicalProgrammaticScanConfiguration.class,
-                BlockingLogicalProgrammaticIndexedScanExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "repository", "query", "logical", "custom", "programmatic", "indexed", "scan"
+                BlockingCustomQueryScanConfiguration.class,
+                BlockingCustomQueryDisjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "repository", "query", "combined-query", "custom-query", "disjunction", "indexed", "scan"
             ),
             ExampleDefinition.of(
-                "reactive-logical-programmatic-indexed-scan",
+                "reactive-custom-query-disjunction",
                 "reactive",
-                ReactiveLogicalProgrammaticScanConfiguration.class,
-                ReactiveLogicalProgrammaticIndexedScanExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "reactive", "repository", "query", "logical", "custom", "programmatic", "indexed", "scan"
+                ReactiveCustomQueryScanConfiguration.class,
+                ReactiveCustomQueryDisjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "reactive", "repository", "query", "combined-query", "custom-query", "disjunction", "indexed", "scan"
             ),
             ExampleDefinition.of(
-                "blocking-logical-programmatic-no-index",
+                "blocking-custom-query-no-index",
                 "blocking",
-                BlockingLogicalProgrammaticScanConfiguration.class,
-                BlockingLogicalProgrammaticNoIndexExample.class,
-                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX),
-                "repository", "query", "logical", "custom", "programmatic", "no-index", "scan"
+                BlockingCustomQueryScanConfiguration.class,
+                BlockingCustomQueryNoIndexExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.TITLE_INDEX),
+                "repository", "query", "combined-query", "custom-query", "no-index", "scan"
             ),
             ExampleDefinition.of(
-                "reactive-logical-programmatic-no-index",
+                "reactive-custom-query-no-index",
                 "reactive",
-                ReactiveLogicalProgrammaticScanConfiguration.class,
-                ReactiveLogicalProgrammaticNoIndexExample.class,
-                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX),
-                "reactive", "repository", "query", "logical", "custom", "programmatic", "no-index", "scan"
+                ReactiveCustomQueryScanConfiguration.class,
+                ReactiveCustomQueryNoIndexExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.TITLE_INDEX),
+                "reactive", "repository", "query", "combined-query", "custom-query", "no-index", "scan"
             ),
             ExampleDefinition.of(
-                "blocking-logical-query-dsl-indexed-and",
+                "blocking-declared-query-conjunction",
                 "blocking",
-                BlockingLogicalQueryDslIndexedConfiguration.class,
-                BlockingLogicalQueryDslIndexedANDExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "repository", "query", "logical", "dsl", "indexed"
+                BlockingDeclaredQueryConjunctionConfiguration.class,
+                BlockingDeclaredQueryConjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "repository", "query", "combined-query", "declared-query", "conjunction", "indexed", "dsl"
             ),
             ExampleDefinition.of(
-                "blocking-logical-query-dsl-indexed-scan",
+                "blocking-declared-query-disjunction",
                 "blocking",
-                BlockingLogicalQueryDslScanConfiguration.class,
-                BlockingLogicalQueryDslIndexedScanExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.GENRE_BIN, IndexType.STRING),
-                "repository", "query", "logical", "dsl", "indexed", "scan"
+                BlockingDeclaredQueryScanConfiguration.class,
+                BlockingDeclaredQueryDisjunctionExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.GENRE_BIN, IndexType.STRING),
+                "repository", "query", "combined-query", "declared-query", "disjunction", "indexed", "scan", "dsl"
             ),
             ExampleDefinition.of(
-                "blocking-logical-query-dsl-no-index",
+                "blocking-declared-query-no-index",
                 "blocking",
-                BlockingLogicalQueryDslScanConfiguration.class,
-                BlockingLogicalQueryDslNoIndexExample.class,
-                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(LogicalMovieDocument.class,
-                    LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX),
-                "repository", "query", "logical", "dsl", "no-index", "scan"
+                BlockingDeclaredQueryScanConfiguration.class,
+                BlockingDeclaredQueryNoIndexExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(Movie.class,
+                    Movie.GENRE_INDEX, Movie.TITLE_INDEX),
+                "repository", "query", "combined-query", "declared-query", "no-index", "scan", "dsl"
             ),
             ExampleDefinition.of(
                 "blocking-template",

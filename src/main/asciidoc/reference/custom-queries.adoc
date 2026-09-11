@@ -4,8 +4,7 @@
 [[custom-queries-intro]]
 == Introduction
 
-Regular repository queries are obviously helpful for most of the querying tasks. Each of the repositories
-adds more functionality by providing its query methods.
+Derived queries are helpful for most querying tasks. Each repository adds more functionality by providing query methods.
 
 There are some cases, however, when data finding tasks require building query methods which are more complex,
 more flexible or unsupported in a standard repository. Custom queries is such a special mechanism
@@ -14,8 +13,9 @@ in Spring Data Aerospike. Currently only finding (reading) queries are supported
 [[find-using-query]]
 == Find Using Query
 
-User can perform a custom `Query` using a special custom `Qualifier` which represents an expression.
-It may contain other qualifiers and combine them using either `AND` or `OR`, with some limitations due to Qualifier type.
+Users can perform a custom query by passing a `Query` with a custom `Qualifier` to `findUsingQuery(Query)`.
+The qualifier may contain other qualifiers and combine them into conjunctions with `Qualifier.and(...)` or
+disjunctions with `Qualifier.or(...)`, with some limitations due to qualifier type.
 
 Custom `Qualifier` can be created for queries of the following types: regular (Aerospike bins), metadata,
 DSL expression, indexed with expression, ids (primary keys) and filtering (accepting `Expression`
@@ -108,7 +108,7 @@ Below are examples for the mentioned custom queries types.
 
         assertThatThrownBy(() -> new Query(Qualifier.and(firstNameEq, ageBetween)))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Cannot combine DSL expression qualifiers in a custom logical query");
+            .hasMessageContaining("Cannot combine DSL expression qualifiers in a combined custom query");
 
 ----
 

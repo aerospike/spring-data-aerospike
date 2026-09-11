@@ -1,9 +1,8 @@
 [[aerospike.query-methods-combined]]
-= Combined Query Methods
+= Combined Derived Queries
 
-In Spring Data, complex query methods using `And` or `Or` conjunction allow developers to define custom
-database queries based on method names that combine multiple conditions. These methods leverage query derivation,
-enabling developers to create expressive and type-safe queries by simply defining method signatures.
+In Spring Data, combined derived queries use method-name connectors such as `And` and `Or` to combine multiple
+conditions. `And` forms a conjunction, `Or` forms a disjunction, and both are created from repository method names.
 
 For more details,
 see link:https://docs.spring.io/spring-data/commons/reference/repositories/query-methods-details.html[Defining Query Methods].
@@ -13,7 +12,7 @@ while `findByFirstNameOrLastName` will return records that match either conditio
 database interaction by reducing boilerplate code and relying on convention over configuration for readability
 and maintainability.
 
-In Spring Data Aerospike you define such queries by adding query methods signatures to a `Repository`, as you would
+In Spring Data Aerospike you define such queries by adding query method signatures to a `Repository`, as you would
 typically, wrapping each query parameter with `QueryParam.of()` method. This method is required to pass arguments
 to each part of a combined query, it can receive one or more objects of the same type.
 
@@ -33,16 +32,16 @@ public interface CustomerRepository extends AerospikeRepository<Customer, String
      // simple query
     List<Customer> findByFirstName(String firstName);
 
-    // combined query with AND conjunction
+    // combined query conjunction
     List<Customer> findByEmailAndFirstName(QueryParam email, QueryParam firstName);
 
-    // combined query with AND conjunctions
+    // combined query conjunction
     List<Customer> findByIdAndFirstNameAndAge(QueryParam id, QueryParam firstName, QueryParam age);
 
-    // combined query with OR conjunction
+    // combined query disjunction
     List<Consumer> findByFirstNameOrAge(QueryParam firstName, QueryParam age);
 
-    // combined query with AND and OR conjunctions
+    // mixed combined query with a top-level disjunction
     List<Consumer> findByEmailAndFirstNameOrAge(QueryParam email, QueryParam firstName, QueryParam age);
 }
 
@@ -57,7 +56,7 @@ public interface CustomerRepository extends AerospikeRepository<Customer, String
         QueryParam firstName = QueryParam.of(leroi.getFirstName());
         QueryParam age = QueryParam.of(leroi.getAge());
         List<Customer> customers2 = repository.findByIdAndFirstNameAndAge(ids, firstName, age);
-        assertThat(customers).containsOnly(leroi);
+        assertThat(customers2).containsOnly(leroi);
     }
 ----
 

@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.annotation.Query;
-import org.springframework.data.aerospike.examples.logical.blocking.dsl.repository.BlockingLogicalQueryDslMovieRepository;
-import org.springframework.data.aerospike.examples.logical.entity.LogicalMovieDocument;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.repository.BlockingDeclaredQueryRepository;
+import org.springframework.data.aerospike.examples.combined.entity.Movie;
 import org.springframework.data.aerospike.mapping.Document;
 
 import java.lang.reflect.Field;
@@ -77,21 +77,21 @@ class ExampleSupportTests {
                 "reactive-query-methods",
                 "blocking-custom-query-programmatic",
                 "reactive-custom-query-programmatic",
-                "blocking-logical-derived-indexed-and",
-                "reactive-logical-derived-indexed-and",
-                "blocking-logical-derived-indexed-scan",
-                "reactive-logical-derived-indexed-scan",
-                "blocking-logical-derived-no-index",
-                "reactive-logical-derived-no-index",
-                "blocking-logical-programmatic-indexed-and",
-                "reactive-logical-programmatic-indexed-and",
-                "blocking-logical-programmatic-indexed-scan",
-                "reactive-logical-programmatic-indexed-scan",
-                "blocking-logical-programmatic-no-index",
-                "reactive-logical-programmatic-no-index",
-                "blocking-logical-query-dsl-indexed-and",
-                "blocking-logical-query-dsl-indexed-scan",
-                "blocking-logical-query-dsl-no-index",
+                "blocking-derived-query-conjunction",
+                "reactive-derived-query-conjunction",
+                "blocking-derived-query-disjunction",
+                "reactive-derived-query-disjunction",
+                "blocking-derived-query-no-index",
+                "reactive-derived-query-no-index",
+                "blocking-custom-query-conjunction",
+                "reactive-custom-query-conjunction",
+                "blocking-custom-query-disjunction",
+                "reactive-custom-query-disjunction",
+                "blocking-custom-query-no-index",
+                "reactive-custom-query-no-index",
+                "blocking-declared-query-conjunction",
+                "blocking-declared-query-disjunction",
+                "blocking-declared-query-no-index",
                 "blocking-template",
                 "reactive-template",
                 "blocking-custom-converters",
@@ -127,22 +127,62 @@ class ExampleSupportTests {
     }
 
     @Test
-    void logicalExampleConfigurationsAvoidComponentScanning() {
-        List<ExampleDefinition> logicalDefinitions = ExampleRegistry.all().stream()
-            .filter(definition -> definition.name().contains("logical"))
-            .toList();
+    void combinedQueryExampleNamesAndTagsUsePublicTerminology() {
+        List<ExampleDefinition> combinedQueryDefinitions = combinedQueryDefinitions();
 
-        assertThat(logicalDefinitions).isNotEmpty();
-        assertThat(logicalDefinitions)
+        assertThat(combinedQueryDefinitions).isNotEmpty();
+        assertThat(combinedQueryDefinitions)
+            .allSatisfy(definition -> {
+                assertThat(definition.name()).doesNotContain("logical", "indexed-and", "indexed-scan");
+                assertThat(definition.tags()).doesNotContain("logical");
+                assertThat(definition.tags()).contains("combined-query");
+            });
+    }
+
+    @Test
+    void registeredExamplesDeclarePublicRunMethod() throws Exception {
+        for (ExampleDefinition definition : ExampleRegistry.all()) {
+            Method runMethod = definition.exampleClass().getMethod("run");
+
+            assertThat(runMethod.getReturnType())
+                .as(definition.name() + " run() return type")
+                .isEqualTo(void.class);
+        }
+    }
+
+    @Test
+    void registryCleanupFixturesOwnOnlyExampleResources() throws Exception {
+        for (ExampleDefinition definition : ExampleRegistry.all()) {
+            Class<?> entityClass = fixtureField(definition.fixture(), "entityClass");
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            Document document = entityClass.getAnnotation(Document.class);
+
+            assertThat(document)
+                .as(definition.name() + " cleanup entity should be a mapped document")
+                .isNotNull();
+            assertThat(document.collection())
+                .as(definition.name() + " collection should stay inside the example namespace")
+                .startsWith("sda_examples_");
+            assertThat(indexNames)
+                .as(definition.name() + " indexes should stay inside the example namespace")
+                .allSatisfy(indexName -> assertThat(indexName).startsWith("sda_examples_"));
+        }
+    }
+
+    @Test
+    void combinedQueryExampleConfigurationsAvoidComponentScanning() {
+        List<ExampleDefinition> combinedQueryDefinitions = combinedQueryDefinitions();
+
+        assertThat(combinedQueryDefinitions).isNotEmpty();
+        assertThat(combinedQueryDefinitions)
             .allSatisfy(definition -> assertThat(definition.configurationClass().getAnnotation(ComponentScan.class))
                 .as(definition.name() + " should use explicit beans instead of component scanning")
                 .isNull());
     }
 
     @Test
-    void logicalIndexedExamplesCreateExpectedIndexesBeforeContextRefresh() throws Exception {
-        List<ExampleDefinition> indexedDefinitions = ExampleRegistry.all().stream()
-            .filter(definition -> definition.name().contains("logical"))
+    void combinedQueryIndexedExamplesCreateExpectedIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> indexedDefinitions = combinedQueryDefinitions().stream()
             .filter(definition -> definition.tags().contains("indexed"))
             .toList();
 
@@ -152,22 +192,22 @@ class ExampleSupportTests {
             List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
                 fixtureField(definition.fixture(), "indexesToCreateBeforeContextRefresh");
 
-            if (definition.name().contains("derived-indexed-and")) {
+            if (definition.name().contains("derived-query-conjunction")) {
                 assertThat(indexNames)
                     .as(definition.name() + " index names")
-                    .containsExactly(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX);
+                    .containsExactly(Movie.GENRE_INDEX, Movie.TITLE_INDEX);
                 assertThat(indexesToCreate)
                     .as(definition.name() + " indexes to create")
                     .extracting(ExampleFixture.DirectIndexDefinition::binName)
-                    .containsExactly(LogicalMovieDocument.GENRE_BIN, LogicalMovieDocument.TITLE_BIN);
+                    .containsExactly(Movie.GENRE_BIN, Movie.TITLE_BIN);
             } else {
                 assertThat(indexNames)
                     .as(definition.name() + " index names")
-                    .containsExactly(LogicalMovieDocument.GENRE_INDEX);
+                    .containsExactly(Movie.GENRE_INDEX);
                 assertThat(indexesToCreate)
                     .as(definition.name() + " indexes to create")
                     .extracting(ExampleFixture.DirectIndexDefinition::binName)
-                    .containsExactly(LogicalMovieDocument.GENRE_BIN);
+                    .containsExactly(Movie.GENRE_BIN);
             }
             assertThat(indexesToCreate)
                 .as(definition.name() + " index types")
@@ -177,9 +217,8 @@ class ExampleSupportTests {
     }
 
     @Test
-    void logicalNoIndexExamplesDropLogicalIndexesBeforeContextRefresh() throws Exception {
-        List<ExampleDefinition> noIndexDefinitions = ExampleRegistry.all().stream()
-            .filter(definition -> definition.name().contains("logical"))
+    void combinedQueryNoIndexExamplesDropIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> noIndexDefinitions = combinedQueryDefinitions().stream()
             .filter(definition -> definition.tags().contains("no-index"))
             .toList();
 
@@ -193,7 +232,7 @@ class ExampleSupportTests {
 
             assertThat(indexNames)
                 .as(definition.name() + " index names")
-                .containsExactly(LogicalMovieDocument.GENRE_INDEX, LogicalMovieDocument.TITLE_INDEX);
+                .containsExactly(Movie.GENRE_INDEX, Movie.TITLE_INDEX);
             assertThat(dropIndexesBeforeContextRefresh)
                 .as(definition.name() + " drops indexes before context refresh")
                 .isTrue();
@@ -204,8 +243,8 @@ class ExampleSupportTests {
     }
 
     @Test
-    void logicalDslQueriesDeclareParametersOnlyForBoundPlaceholders() {
-        for (Method method : BlockingLogicalQueryDslMovieRepository.class.getDeclaredMethods()) {
+    void declaredQueryMethodsDeclareParametersOnlyForBoundPlaceholders() {
+        for (Method method : BlockingDeclaredQueryRepository.class.getDeclaredMethods()) {
             Query query = method.getAnnotation(Query.class);
 
             assertThat(query)
@@ -371,5 +410,11 @@ class ExampleSupportTests {
         return IntStream.range(0, method.getParameterCount())
             .boxed()
             .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static List<ExampleDefinition> combinedQueryDefinitions() {
+        return ExampleRegistry.all().stream()
+            .filter(definition -> definition.tags().contains("combined-query"))
+            .toList();
     }
 }

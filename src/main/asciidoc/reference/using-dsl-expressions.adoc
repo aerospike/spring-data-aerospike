@@ -105,12 +105,13 @@ DSL expressions support standard comparison and logical operators:
 
 For more details, see link:https://github.com/aerospike/expression-dsl-java[DSLParser project].
 
-[[dsl.expressions.repository.methods]]
-== Usage with Repository Query Methods
+[[dsl.expressions.declared.queries]]
+== Usage with Declared Queries
 
-You can annotate repository methods in Spring Data Aerospike with `@Query` to define DSL expression. The expressions will be executed automatically when the annotated repository method is called.
+You can declare repository queries in Spring Data Aerospike by annotating query methods with `@Query`.
+The declared DSL expressions are executed automatically when the annotated repository method is called.
 
-=== Static Expressions in Repository Queries
+=== Static Expressions in Declared Queries
 
 Static expressions have fixed values embedded directly in the DSL string:
 
@@ -125,7 +126,7 @@ List<P> findByLastName(String name);
 
 NOTE: In static expressions, the method parameters are ignored - the query always uses the fixed value in the expression.
 
-=== Dynamic Expressions with Placeholders in Repository Queries
+=== Dynamic Expressions with Placeholders in Declared Queries
 
 Dynamic expressions use placeholders that are replaced with actual method parameter values at runtime:
 
@@ -133,11 +134,11 @@ Dynamic expressions use placeholders that are replaced with actual method parame
 * `?1` - Second parameter
 * And so on
 
-.Examples of repository methods annotated with `@Query`
+.Examples of declared queries with `@Query`
 ====
 [source,java]
 ----
-public interface PersonQueryAnnotationRepository<P extends Person>
+public interface PersonDeclaredQueryRepository<P extends Person>
         extends AerospikeRepository<P, String> {
 
     // Dynamic expression with placeholder for first parameter
@@ -260,7 +261,8 @@ Iterable<Person> result = repository.findUsingQuery(query);
 ====
 **Combining custom Qualifiers**: For custom queries, it is currently NOT allowed to combine
 DSL expression qualifiers with non-DSL qualifiers using `Qualifier.and()` or `Qualifier.or()`.
-This limitation is irrelevant to regular repository queries.
+This limitation does not apply to declared queries that put the DSL expression directly on a repository method with
+`@Query`.
 ====
 
 .Invalid qualifier combination

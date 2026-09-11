@@ -1,8 +1,8 @@
 [[aerospike.query-methods-preface]]
 = Query Methods
 
-Spring Data Aerospike supports defining queries by method names in the Repository interface so that the implementation
-is generated.
+Spring Data Aerospike supports derived queries: query methods declared in a repository interface where Spring Data
+creates the query from the method name.
 The format of method names is fairly flexible, comprising a verb and criteria.
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
@@ -13,7 +13,7 @@ link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories
 
 == Using Secondary Index
 
-Repository queries in Spring Data Aerospike can be divided into 3 groups:
+Derived queries in Spring Data Aerospike can be divided into 3 groups:
 
 * Queries that utilize secondary index (if at least one corresponding index is available)
 
@@ -23,11 +23,11 @@ Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
 If no corresponding secondary index is found, each query does a fallback to using scan only.
 
-For details on particular repository queries see the tables referring to queries examples below.
+For details on particular derived queries see the tables referring to query examples below.
 
 == Repository Query Keywords
 
-Here are the references to the examples of repository queries:
+Here are the references to the examples of derived query methods:
 
 <<aerospike.query_methods.simple_property, Simple property queries>>
 

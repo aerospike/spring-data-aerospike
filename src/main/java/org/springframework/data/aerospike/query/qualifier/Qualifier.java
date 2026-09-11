@@ -520,7 +520,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
      */
     private static void checkForNonDslQualifiers(Qualifier[] qualifiers) {
         if (Arrays.stream(qualifiers).anyMatch(Qualifier::hasDslExprString)) {
-            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers in a custom logical " +
+            throw new UnsupportedOperationException("Cannot combine DSL expression qualifiers in a combined custom " +
                 "query, " +
                 "please incorporate all conditions into one comprehensive DSL expression or combine non-DSL " +
                 "qualifiers");
