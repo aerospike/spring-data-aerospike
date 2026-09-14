@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.examples.blocking.querymethods.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractAerospikeDataConfiguration;
@@ -10,11 +10,15 @@ import org.springframework.data.aerospike.examples.blocking.querymethods.entity.
 import org.springframework.data.aerospike.examples.blocking.querymethods.repository.QueryMethodsMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = BlockingRepositoryQueryMethodsExample.class)
 @EnableAerospikeRepositories(basePackageClasses = QueryMethodsMovieRepository.class)
 public class QueryMethodsAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+
+    @Bean
+    BlockingRepositoryQueryMethodsExample blockingRepositoryQueryMethodsExample(QueryMethodsMovieRepository repository) {
+        return new BlockingRepositoryQueryMethodsExample(repository);
+    }
 
     @Override
     protected String getMappingBasePackage() {

@@ -4,13 +4,11 @@ import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.examples.blocking.query.entity.IndexedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.query.repository.IndexedMovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class SecondaryIndexQueryExample {
 
     private final IndexedMovieRepository repository;

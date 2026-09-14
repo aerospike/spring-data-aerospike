@@ -2,7 +2,6 @@ package org.springframework.data.aerospike.examples.reactive.crud;
 
 import org.springframework.data.aerospike.examples.reactive.crud.entity.ReactiveMovieDocument;
 import org.springframework.data.aerospike.examples.reactive.crud.repository.ReactiveMovieRepository;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.Comparator;
@@ -11,7 +10,6 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
-@Component
 public class ReactiveRepositoryCrudExample {
 
     private final ReactiveMovieRepository repository;

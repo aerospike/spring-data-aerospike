@@ -2,7 +2,6 @@ package org.springframework.data.aerospike.examples.blocking.crud;
 
 import org.springframework.data.aerospike.examples.blocking.crud.entity.MovieDocument;
 import org.springframework.data.aerospike.examples.blocking.crud.repository.MovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
-@Component
 public class BlockingRepositoryCrudExample {
 
     private final MovieRepository repository;

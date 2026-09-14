@@ -1,20 +1,25 @@
 package org.springframework.data.aerospike.examples.blocking.converters.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractAerospikeDataConfiguration;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.examples.blocking.converters.BlockingCustomConvertersExample;
 import org.springframework.data.aerospike.examples.blocking.converters.entity.ConverterOrderDocument;
 import org.springframework.data.aerospike.examples.blocking.converters.entity.ConverterOrderId;
 
 import java.util.List;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = BlockingCustomConvertersExample.class)
 public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+
+    @Bean
+    BlockingCustomConvertersExample blockingCustomConvertersExample(AerospikeTemplate template) {
+        return new BlockingCustomConvertersExample(template);
+    }
 
     @Override
     protected String getMappingBasePackage() {

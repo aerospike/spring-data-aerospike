@@ -2,7 +2,6 @@ package org.springframework.data.aerospike.examples.blocking.querymethods;
 
 import org.springframework.data.aerospike.examples.blocking.querymethods.entity.QueryMethodsMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.querymethods.repository.QueryMethodsMovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
-@Component
 public class BlockingRepositoryQueryMethodsExample {
 
     private final QueryMethodsMovieRepository repository;

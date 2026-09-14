@@ -2,13 +2,11 @@ package org.springframework.data.aerospike.examples.blocking.indexed;
 
 import org.springframework.data.aerospike.examples.blocking.indexed.entity.AnnotatedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.indexed.repository.AnnotatedMovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class IndexedAnnotationExample {
 
     private final AnnotatedMovieRepository repository;

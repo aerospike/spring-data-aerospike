@@ -3,13 +3,11 @@ package org.springframework.data.aerospike.examples.reactive.converters;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderDocument;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderId;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class ReactiveCustomConvertersExample {
 
     private final ReactiveAerospikeTemplate template;

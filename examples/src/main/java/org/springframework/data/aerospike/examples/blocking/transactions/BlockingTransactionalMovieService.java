@@ -3,10 +3,8 @@ package org.springframework.data.aerospike.examples.blocking.transactions;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.examples.blocking.transactions.entity.BlockingTransactionalMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.transactions.repository.BlockingTransactionalMovieRepository;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
 public class BlockingTransactionalMovieService {
 
     private final BlockingTransactionalMovieRepository repository;

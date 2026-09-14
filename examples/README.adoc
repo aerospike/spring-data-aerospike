@@ -8,8 +8,38 @@ Java code. This lets readers navigate repository methods and Spring Data Aerospi
 the published library artifact. The examples are not independently versioned; they compile and run against the
 dependencies declared by the current root `pom.xml`.
 
-For complete application walkthroughs, use the
+For application walkthroughes, use the
 https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
+
+== Configuration Style
+
+The examples use Java configuration classes with explicit `@Bean` methods for runnable example objects.
+Spring supports both this JavaConfig style and component scanning: `@ComponentScan` discovers classes annotated with
+`@Component` and related stereotypes, while an explicit `@Bean` method registers exactly the object returned by that
+method.
+
+This folder prefers explicit beans because the runner starts a focused Spring context for one registered scenario at a
+time. Keeping the runnable example bean in the selected configuration class makes dependencies visible and avoids
+scanning unrelated examples.
+
+Use `@Configuration(proxyBeanMethods = false)` when bean methods do not call other bean methods directly. Declare
+collaborators as method parameters so Spring injects repository, template, transaction, or support beans:
+
+[source,java]
+----
+@Bean
+BlockingRepositoryCrudExample blockingRepositoryCrudExample(MovieRepository repository) {
+    return new BlockingRepositoryCrudExample(repository);
+}
+----
+
+Repository interfaces are still discovered through `@EnableAerospikeRepositories` or
+`@EnableReactiveAerospikeRepositories`; only the runnable example and local service beans avoid component scanning. A
+Spring Data Aerospike user can copy the configuration, entity, repository, and example class as a small working slice,
+or adapt the runnable class to `@Component` in their Spring Boot application that already uses component scanning.
+
+`ExampleRegistry` and `ExampleFixture` are runner infrastructure. They keep execution repeatable and safe, but they are
+not application code that users need to copy.
 
 == Examples
 
@@ -119,6 +149,3 @@ Run the live smoke set:
 ----
 ./examples/run_examples all --hosts localhost:3000 --namespace test > examples-live-run.log 2>&1
 ----
-
-CI/CD wiring, report publishing, generated snippets, and automatic documentation rendering are intentionally left for a
-later iteration.

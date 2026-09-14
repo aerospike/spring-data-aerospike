@@ -7,9 +7,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.annotation.Query;
+import org.springframework.data.aerospike.examples.blocking.transactions.BlockingTransactionalMovieService;
 import org.springframework.data.aerospike.examples.combined.blocking.dsl.repository.BlockingDeclaredQueryRepository;
 import org.springframework.data.aerospike.examples.combined.entity.Movie;
 import org.springframework.data.aerospike.mapping.Document;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -170,14 +172,22 @@ class ExampleSupportTests {
     }
 
     @Test
-    void combinedQueryExampleConfigurationsAvoidComponentScanning() {
-        List<ExampleDefinition> combinedQueryDefinitions = combinedQueryDefinitions();
+    void registeredExamplesUseExplicitBeanRegistration() {
+        List<ExampleDefinition> definitions = ExampleRegistry.all();
 
-        assertThat(combinedQueryDefinitions).isNotEmpty();
-        assertThat(combinedQueryDefinitions)
-            .allSatisfy(definition -> assertThat(definition.configurationClass().getAnnotation(ComponentScan.class))
-                .as(definition.name() + " should use explicit beans instead of component scanning")
-                .isNull());
+        assertThat(definitions).isNotEmpty();
+        assertThat(definitions)
+            .allSatisfy(definition -> {
+                assertThat(definition.configurationClass().getAnnotation(ComponentScan.class))
+                    .as(definition.name() + " should use explicit beans instead of component scanning")
+                    .isNull();
+                assertThat(definition.exampleClass().getAnnotation(Component.class))
+                    .as(definition.name() + " example should be registered by its configuration class")
+                    .isNull();
+            });
+        assertThat(BlockingTransactionalMovieService.class.getAnnotation(Component.class))
+            .as("blocking transaction service should be registered by its configuration class")
+            .isNull();
     }
 
     @Test

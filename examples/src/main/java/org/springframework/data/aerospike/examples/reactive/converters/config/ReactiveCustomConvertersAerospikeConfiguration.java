@@ -1,20 +1,25 @@
 package org.springframework.data.aerospike.examples.reactive.converters.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractReactiveAerospikeDataConfiguration;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.examples.reactive.converters.ReactiveCustomConvertersExample;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderDocument;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderId;
 
 import java.util.List;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = ReactiveCustomConvertersExample.class)
 public class ReactiveCustomConvertersAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
+
+    @Bean
+    ReactiveCustomConvertersExample reactiveCustomConvertersExample(ReactiveAerospikeTemplate template) {
+        return new ReactiveCustomConvertersExample(template);
+    }
 
     @Override
     protected String getMappingBasePackage() {

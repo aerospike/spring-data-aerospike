@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.examples.reactive.querymethods.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractReactiveAerospikeDataConfiguration;
@@ -10,11 +10,16 @@ import org.springframework.data.aerospike.examples.reactive.querymethods.entity.
 import org.springframework.data.aerospike.examples.reactive.querymethods.repository.ReactiveQueryMethodsMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = ReactiveRepositoryQueryMethodsExample.class)
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveQueryMethodsMovieRepository.class)
 public class ReactiveQueryMethodsAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
+
+    @Bean
+    ReactiveRepositoryQueryMethodsExample reactiveRepositoryQueryMethodsExample(
+        ReactiveQueryMethodsMovieRepository repository) {
+        return new ReactiveRepositoryQueryMethodsExample(repository);
+    }
 
     @Override
     protected String getMappingBasePackage() {

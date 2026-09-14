@@ -6,7 +6,6 @@ import org.springframework.data.aerospike.examples.reactive.template.entity.Reac
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
-@Component
 public class ReactiveTemplateExample {
 
     private final ReactiveAerospikeTemplate template;

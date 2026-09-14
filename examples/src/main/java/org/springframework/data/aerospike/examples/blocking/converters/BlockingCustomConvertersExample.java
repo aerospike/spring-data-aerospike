@@ -3,13 +3,11 @@ package org.springframework.data.aerospike.examples.blocking.converters;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.examples.blocking.converters.entity.ConverterOrderDocument;
 import org.springframework.data.aerospike.examples.blocking.converters.entity.ConverterOrderId;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class BlockingCustomConvertersExample {
 
     private final AerospikeTemplate template;

@@ -6,12 +6,10 @@ import org.springframework.data.aerospike.examples.reactive.transactions.entity.
 import org.springframework.data.aerospike.examples.reactive.transactions.repository.ReactiveTransactionalMovieRepository;
 import org.springframework.data.aerospike.examples.support.ExampleSkippedException;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class ReactiveTransactionExample {
 
     private final ReactiveTransactionalMovieRepository repository;

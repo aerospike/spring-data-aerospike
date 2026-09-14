@@ -3,13 +3,11 @@ package org.springframework.data.aerospike.examples.blocking.projection;
 import org.springframework.data.aerospike.examples.blocking.projection.dto.MovieSummary;
 import org.springframework.data.aerospike.examples.blocking.projection.entity.ProjectedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.projection.repository.ProjectionMovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class ProjectionExample {
 
     private final ProjectionMovieRepository repository;

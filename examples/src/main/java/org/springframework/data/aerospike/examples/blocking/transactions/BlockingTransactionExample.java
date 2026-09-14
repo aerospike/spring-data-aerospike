@@ -4,11 +4,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.examples.blocking.transactions.repository.BlockingTransactionalMovieRepository;
 import org.springframework.data.aerospike.examples.support.ExampleSkippedException;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.stereotype.Component;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class BlockingTransactionExample {
 
     private final BlockingTransactionalMovieRepository repository;

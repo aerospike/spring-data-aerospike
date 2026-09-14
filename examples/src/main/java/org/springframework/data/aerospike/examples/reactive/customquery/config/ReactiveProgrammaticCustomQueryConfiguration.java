@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.examples.reactive.customquery.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractReactiveAerospikeDataConfiguration;
@@ -10,11 +10,16 @@ import org.springframework.data.aerospike.examples.reactive.customquery.entity.R
 import org.springframework.data.aerospike.examples.reactive.customquery.repository.ReactiveProgrammaticCustomQueryMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = ReactiveProgrammaticCustomQueryExample.class)
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveProgrammaticCustomQueryMovieRepository.class)
 public class ReactiveProgrammaticCustomQueryConfiguration extends AbstractReactiveAerospikeDataConfiguration {
+
+    @Bean
+    ReactiveProgrammaticCustomQueryExample reactiveProgrammaticCustomQueryExample(
+        ReactiveProgrammaticCustomQueryMovieRepository repository) {
+        return new ReactiveProgrammaticCustomQueryExample(repository);
+    }
 
     @Override
     protected String getMappingBasePackage() {

@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.examples.blocking.projection.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractAerospikeDataConfiguration;
@@ -10,11 +10,15 @@ import org.springframework.data.aerospike.examples.blocking.projection.entity.Pr
 import org.springframework.data.aerospike.examples.blocking.projection.repository.ProjectionMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
-@ComponentScan(basePackageClasses = ProjectionExample.class)
 @EnableAerospikeRepositories(basePackageClasses = ProjectionMovieRepository.class)
 public class ProjectionAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+
+    @Bean
+    ProjectionExample projectionExample(ProjectionMovieRepository repository) {
+        return new ProjectionExample(repository);
+    }
 
     @Override
     protected String getMappingBasePackage() {

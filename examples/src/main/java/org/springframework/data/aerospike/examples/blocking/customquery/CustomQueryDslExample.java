@@ -2,13 +2,11 @@ package org.springframework.data.aerospike.examples.blocking.customquery;
 
 import org.springframework.data.aerospike.examples.blocking.customquery.entity.CustomQueryMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.customquery.repository.CustomQueryMovieRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
-@Component
 public class CustomQueryDslExample {
 
     private final CustomQueryMovieRepository repository;
