@@ -21,6 +21,9 @@ public interface ExampleFixture {
     default void beforeContextRefresh(Args args) {
     }
 
+    default void cleanupAfterContextRefreshFailure(Args args) {
+    }
+
     default void setup(ConfigurableApplicationContext context) {
     }
 
@@ -94,9 +97,16 @@ public interface ExampleFixture {
 
         @Override
         public void beforeContextRefresh(Args args) {
-            if ((dropIndexesBeforeContextRefresh && !indexNames.isEmpty())
-                || !indexesToCreateBeforeContextRefresh.isEmpty()) {
-                cleanupIndexes(args);
+            if (usesDirectIndexSetup()) {
+                dropDirectIndexes(args);
+                createDirectIndexes(args);
+            }
+        }
+
+        @Override
+        public void cleanupAfterContextRefreshFailure(Args args) {
+            if (usesDirectIndexSetup()) {
+                dropDirectIndexes(args);
             }
         }
 
@@ -128,13 +138,33 @@ public interface ExampleFixture {
             }
         }
 
-        private void cleanupIndexes(Args args) {
+        private boolean usesDirectIndexSetup() {
+            return (dropIndexesBeforeContextRefresh && !indexNames.isEmpty())
+                || !indexesToCreateBeforeContextRefresh.isEmpty();
+        }
+
+        private void dropDirectIndexes(Args args) {
             ClientPolicy clientPolicy = new ClientPolicy();
             clientPolicy.failIfNotConnected = true;
 
             AerospikeClient client = new AerospikeClient(clientPolicy, Host.parseHosts(args.hosts(), 3000));
             try {
                 indexNames.forEach(indexName -> dropDirectIndex(client, args.namespace(), indexName));
+            } finally {
+                client.close();
+            }
+        }
+
+        private void createDirectIndexes(Args args) {
+            if (indexesToCreateBeforeContextRefresh.isEmpty()) {
+                return;
+            }
+
+            ClientPolicy clientPolicy = new ClientPolicy();
+            clientPolicy.failIfNotConnected = true;
+
+            AerospikeClient client = new AerospikeClient(clientPolicy, Host.parseHosts(args.hosts(), 3000));
+            try {
                 indexesToCreateBeforeContextRefresh
                     .forEach(indexDefinition -> createDirectIndex(client, args.namespace(), indexDefinition));
             } finally {

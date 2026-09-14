@@ -276,6 +276,33 @@ class ExampleSupportTests {
     }
 
     @Test
+    void runnerAllowsAllOnlySelection() {
+        List<ExampleDefinition> definitions = List.of(
+            ExampleDefinition.of("first-example", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none()),
+            ExampleDefinition.of("second-example", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none())
+        );
+        ExampleRunner runner = new ExampleRunner(definitions);
+
+        assertThat(runner.definitionsToRun(Args.parse(new String[]{"all"})))
+            .containsExactlyElementsOf(definitions);
+    }
+
+    @Test
+    void runnerRejectsAllMixedWithNamedExamples() {
+        ExampleRunner runner = new ExampleRunner(ExampleRegistry.all());
+
+        assertThatThrownBy(() -> runner.definitionsToRun(Args.parse(new String[]{"all", "blocking-crud"})))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("'all' cannot be combined with named examples");
+
+        assertThatThrownBy(() -> runner.definitionsToRun(Args.parse(new String[]{"blocking-crud,all"})))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("'all' cannot be combined with named examples");
+    }
+
+    @Test
     void runnerSkipsNonTestNamespaceWithoutExplicitOverride() {
         ExampleRunner runner = new ExampleRunner(ExampleRegistry.all());
 
@@ -365,6 +392,103 @@ class ExampleSupportTests {
             .containsExactly("beforeContextRefresh", "setup", "run", "verify", "cleanup");
     }
 
+    @Test
+    void runnerReportsCleanupFailureAsFailedResultAndFailFastStops() {
+        hookOrderEvents.clear();
+        RuntimeException cleanupFailure = new IllegalStateException("cleanup failed");
+        ExampleFixture cleanupFailingFixture = new ExampleFixture() {
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+                throw cleanupFailure;
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(
+            ExampleDefinition.of("cleanup-failure", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                cleanupFailingFixture),
+            ExampleDefinition.of("should-not-run", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none())
+        ));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"all", "--fail-fast"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.message()).contains("cleanup failed");
+            assertThat(result.cause()).isSameAs(cleanupFailure);
+        });
+        assertThat(hookOrderEvents).containsExactly("run", "cleanup");
+    }
+
+    @Test
+    void runnerSuppressesCleanupFailureWhenExampleAlreadyFailed() {
+        hookOrderEvents.clear();
+        RuntimeException cleanupFailure = new IllegalStateException("cleanup failed");
+        ExampleFixture cleanupFailingFixture = new ExampleFixture() {
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+                throw cleanupFailure;
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "primary-failure",
+            "test",
+            FailingConfiguration.class,
+            FailingExample.class,
+            cleanupFailingFixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"primary-failure"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.message()).contains("primary failure");
+            assertThat(result.cause()).isInstanceOf(IllegalStateException.class);
+            assertThat(result.cause().getSuppressed()).containsExactly(cleanupFailure);
+        });
+        assertThat(hookOrderEvents).containsExactly("run", "cleanup");
+    }
+
+    @Test
+    void runnerInvokesPreContextCleanupWhenRefreshFails() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void beforeContextRefresh(Args args) {
+                hookOrderEvents.add("beforeContextRefresh");
+            }
+
+            @Override
+            public void cleanupAfterContextRefreshFailure(Args args) {
+                hookOrderEvents.add("cleanupAfterContextRefreshFailure");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "refresh-failure",
+            "test",
+            RefreshFailureConfiguration.class,
+            HookOrderExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"refresh-failure"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.cause()).hasRootCauseMessage("refresh failure");
+        });
+        assertThat(hookOrderEvents).containsExactly("beforeContextRefresh", "cleanupAfterContextRefreshFailure");
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class HookOrderConfiguration {
 
@@ -395,6 +519,32 @@ class ExampleSupportTests {
         public void run() {
             hookOrderEvents.add("run");
             throw new ExampleSkippedException("Server 8.0.0+ is required");
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class FailingConfiguration {
+
+        @Bean
+        FailingExample failingExample() {
+            return new FailingExample();
+        }
+    }
+
+    static class FailingExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+            throw new IllegalStateException("primary failure");
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class RefreshFailureConfiguration {
+
+        @Bean
+        HookOrderExample hookOrderExample() {
+            throw new IllegalStateException("refresh failure");
         }
     }
 

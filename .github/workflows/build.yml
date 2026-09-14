@@ -4,6 +4,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
 
 jobs:
   build:
@@ -41,3 +42,84 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean test -B -U
+
+  examples:
+    name: Run examples
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      aerospike:
+        image: aerospike/aerospike-server-enterprise:8.1.2.3
+        ports:
+          - 3000/tcp
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      # Checkout repo using https://github.com/marketplace/actions/checkout
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Set up Maven
+        uses: step-security/setup-maven@8b5f727904660c4b112d02624218c791126af325 # v5.0.0
+        with:
+          maven-version: 3.9.8
+
+      # See: https://github.com/actions/cache/blob/main/examples.md#java---maven
+      - name: Maven cache and restore deps
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Wait for Aerospike
+        run: |
+          port="${{ job.services.aerospike.ports[3000] }}"
+          for attempt in {1..60}; do
+            if timeout 1 bash -c "</dev/tcp/127.0.0.1/${port}" 2>/dev/null; then
+              echo "Aerospike is accepting connections on port ${port}"
+              exit 0
+            fi
+            echo "Waiting for Aerospike (${attempt}/60)..."
+            sleep 2
+          done
+
+          docker logs "${{ job.services.aerospike.id }}" 2>&1 || true
+          exit 1
+
+      - name: Run examples
+        run: |
+          set -o pipefail
+          MAVEN_ARGS="--batch-mode --no-transfer-progress --update-snapshots" \
+            ./examples/run_examples all \
+              --hosts "127.0.0.1:${{ job.services.aerospike.ports[3000] }}" \
+              --namespace test \
+              --fail-fast 2>&1 | tee examples-live-run.log
+
+      - name: Dump Aerospike logs on failure
+        if: failure()
+        run: docker logs "${{ job.services.aerospike.id }}" 2>&1 || true
+
+      - name: Upload example diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: example-diagnostics-${{ github.run_id }}
+          path: |
+            target/surefire-reports/**
+            target/failsafe-reports/**
+            *.log
+          if-no-files-found: ignore
+          retention-days: 14

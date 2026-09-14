@@ -23,6 +23,9 @@ public class ExampleRunner {
 
     public List<ExampleDefinition> definitionsToRun(Args args) {
         if (args.runsAllExamples()) {
+            if (args.examples().size() > 1) {
+                throw new IllegalArgumentException("'all' cannot be combined with named examples.");
+            }
             return definitions;
         }
 
@@ -68,38 +71,89 @@ public class ExampleRunner {
 
         Instant started = Instant.now();
         AnnotationConfigApplicationContext context = null;
+        boolean beforeContextRefreshStarted = false;
+        boolean contextRefreshed = false;
+        ExampleResult result;
 
         try {
+            beforeContextRefreshStarted = true;
             definition.fixture().beforeContextRefresh(args);
             context = new AnnotationConfigApplicationContext();
             context.getEnvironment().getPropertySources()
                 .addFirst(new MapPropertySource("exampleCliArguments", args.springProperties()));
             context.register(definition.configurationClass());
             context.refresh();
+            contextRefreshed = true;
 
             definition.fixture().setup(context);
             invokeRunMethod(context.getBean(definition.exampleClass()));
             definition.fixture().verify(context);
 
-            return ExampleResult.passed(definition.name(), Duration.between(started, Instant.now()), "completed");
+            result = ExampleResult.passed(definition.name(), Duration.between(started, Instant.now()), "completed");
         } catch (ExampleSkippedException skipped) {
-            return ExampleResult.skipped(definition.name(), Duration.between(started, Instant.now()),
+            result = ExampleResult.skipped(definition.name(), Duration.between(started, Instant.now()),
                 skipped.getMessage());
         } catch (Throwable failure) {
-            return ExampleResult.failed(definition.name(), Duration.between(started, Instant.now()), unwrap(failure));
-        } finally {
-            try {
-                if (context != null && context.isActive()) {
-                    definition.fixture().cleanup(context);
-                }
-            } catch (RuntimeException cleanupFailure) {
-                System.err.println("Cleanup failed for " + definition.name() + ": " + cleanupFailure.getMessage());
-            } finally {
-                if (context != null) {
-                    context.close();
-                }
-            }
+            result = ExampleResult.failed(definition.name(), Duration.between(started, Instant.now()),
+                unwrap(failure));
         }
+
+        RuntimeException cleanupFailure = cleanup(definition, args, context, beforeContextRefreshStarted,
+            contextRefreshed);
+        return resultWithCleanupFailure(definition, result, cleanupFailure, started);
+    }
+
+    private RuntimeException cleanup(ExampleDefinition definition, Args args, AnnotationConfigApplicationContext context,
+                                     boolean beforeContextRefreshStarted, boolean contextRefreshed) {
+        RuntimeException cleanupFailure = null;
+        try {
+            if (context != null && context.isActive()) {
+                definition.fixture().cleanup(context);
+            } else if (beforeContextRefreshStarted && !contextRefreshed) {
+                definition.fixture().cleanupAfterContextRefreshFailure(args);
+            }
+        } catch (RuntimeException failure) {
+            cleanupFailure = failure;
+        } finally {
+            cleanupFailure = closeContext(context, cleanupFailure);
+        }
+        return cleanupFailure;
+    }
+
+    private RuntimeException closeContext(AnnotationConfigApplicationContext context,
+                                          RuntimeException cleanupFailure) {
+        if (context == null) {
+            return cleanupFailure;
+        }
+
+        try {
+            context.close();
+            return cleanupFailure;
+        } catch (RuntimeException failure) {
+            return combineCleanupFailures(cleanupFailure, failure);
+        }
+    }
+
+    private ExampleResult resultWithCleanupFailure(ExampleDefinition definition, ExampleResult result,
+                                                  RuntimeException cleanupFailure, Instant started) {
+        if (cleanupFailure == null) {
+            return result;
+        }
+
+        if (result.cause() != null) {
+            result.cause().addSuppressed(cleanupFailure);
+            return result;
+        }
+
+        return ExampleResult.failed(definition.name(), Duration.between(started, Instant.now()), cleanupFailure);
+    }
+
+    private RuntimeException combineCleanupFailures(RuntimeException primary, RuntimeException secondary) {
+        if (primary == null) {
+            return secondary;
+        }
+        primary.addSuppressed(secondary);
+        return primary;
     }
 
     private void invokeRunMethod(Object exampleBean) throws Throwable {
