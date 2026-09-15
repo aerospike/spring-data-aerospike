@@ -35,7 +35,9 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Install Asciidoctor
-        run: gem install asciidoctor -v 2.0.23 --no-document
+        run: |
+          gem install asciidoctor -v 2.0.23 --no-document --user-install
+          echo "$(ruby -e 'print Gem.user_dir')/bin" >> "$GITHUB_PATH"
 
       - name: Build documentation
         run: |
