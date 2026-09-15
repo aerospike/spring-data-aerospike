@@ -6,9 +6,11 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 import java.util.List;
 
+// tag::projection-repository[]
 public interface ProjectionMovieRepository extends AerospikeRepository<ProjectedMovieDocument, String> {
 
     List<MovieSummary> findMovieSummaryById(String id);
 
     <T> List<T> findById(String id, Class<T> type);
 }
+// end::projection-repository[]

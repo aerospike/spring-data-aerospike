@@ -9,6 +9,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates blocking derived repository query methods backed by indexes.
 public class BlockingRepositoryQueryMethodsExample {
 
     private final QueryMethodsMovieRepository repository;
@@ -26,30 +27,35 @@ public class BlockingRepositoryQueryMethodsExample {
             new QueryMethodsMovieDocument("blocking-query-methods-4", "Collateral", "crime", 2004)
         ));
 
+        // tag::blocking-query-methods-usage[]
         // findByGenre(...) uses the fixture-created string index on the genre bin
         List<QueryMethodsMovieDocument> scienceFiction = toSortedList(repository.findByGenre("science-fiction"),
             Comparator.comparing(QueryMethodsMovieDocument::getId));
-        require(scienceFiction.size() == 2, "Expected two science-fiction movies");
-        require("Alien".equals(scienceFiction.get(0).getTitle()), "First genre query title did not match");
-        require("Aliens".equals(scienceFiction.get(1).getTitle()), "Second genre query title did not match");
 
         // findByReleaseYearBetween(...) uses the numeric releaseYear index for a range query
         List<QueryMethodsMovieDocument> ninetiesMovies =
             toSortedList(repository.findByReleaseYearBetween(1990, 1999),
                 Comparator.comparing(QueryMethodsMovieDocument::getId));
-        require(ninetiesMovies.size() == 1, "Expected one movie released in the 1990s");
-        require("Heat".equals(ninetiesMovies.get(0).getTitle()), "Range query title did not match");
 
         // existsByGenre(...) returns a boolean without exposing the matching records
-        require(repository.existsByGenre("crime"), "Expected a crime movie to exist");
-        require(!repository.existsByGenre("western"), "Did not expect a western movie to exist");
+        boolean crimeMovieExists = repository.existsByGenre("crime");
+        boolean westernMovieExists = repository.existsByGenre("western");
 
         // countByReleaseYearBetween(...) counts records matching the indexed range
         long eightiesAndEarlier = repository.countByReleaseYearBetween(1970, 1989);
-        require(eightiesAndEarlier == 2, "Expected two movies from 1970 through 1989");
 
         // deleteByGenre(...) deletes every record matched by the derived query
         repository.deleteByGenre("crime");
+        // end::blocking-query-methods-usage[]
+
+        require(scienceFiction.size() == 2, "Expected two science-fiction movies");
+        require("Alien".equals(scienceFiction.get(0).getTitle()), "First genre query title did not match");
+        require("Aliens".equals(scienceFiction.get(1).getTitle()), "Second genre query title did not match");
+        require(ninetiesMovies.size() == 1, "Expected one movie released in the 1990s");
+        require("Heat".equals(ninetiesMovies.get(0).getTitle()), "Range query title did not match");
+        require(crimeMovieExists, "Expected a crime movie to exist");
+        require(!westernMovieExists, "Did not expect a western movie to exist");
+        require(eightiesAndEarlier == 2, "Expected two movies from 1970 through 1989");
         require(!repository.existsByGenre("crime"), "Crime movies should be deleted");
         require(repository.count() == 2, "Only science-fiction movies should remain");
 

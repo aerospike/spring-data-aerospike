@@ -4,11 +4,12 @@
 [[custom-queries-intro]]
 == Introduction
 
-Derived queries are helpful for most querying tasks. Each repository adds more functionality by providing query methods.
+<<aerospike.derived-query,Derived queries>> are helpful for most querying tasks. Each repository adds more
+functionality by providing query methods.
 
 There are some cases, however, when data finding tasks require building query methods which are more complex,
-more flexible or unsupported in a standard repository. Custom queries is such a special mechanism
-in Spring Data Aerospike. Currently only finding (reading) queries are supported.
+more flexible or unsupported in a standard repository. <<aerospike.custom-query,Custom queries>> are such a special
+mechanism in Spring Data Aerospike. Currently only finding (reading) queries are supported.
 
 [[find-using-query]]
 == Find Using Query
@@ -27,15 +28,7 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-    // Creating an expression "firsName is equal to John"
-    Qualifier firstNameEqJohn = Qualifier.builder() // Regular qualifier
-        .setPath("firstName")
-        .setFilterOperation(FilterOperation.EQ)
-        .setValue("John")
-        .build();
-    result = repository.findUsingQuery(new Query(firstNameEqJohn));
-    assertThat(result).containsOnly(john);
-
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-regular-qualifier,indent=0]
 ----
 
 [[custom-query-id]]
@@ -43,10 +36,16 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-    // Creating an expression "primary key is equal to person's id"
-    Qualifier keyEqJohnsId = Qualifier.idEquals(john.getId()); // Id qualifier
-    result = repository.findUsingQuery(new Query(keyEqJohnsId));
-    assertThat(result).containsOnly(john);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-id-qualifier,indent=0]
+
+----
+
+[[custom-query-id-and-regular]]
+== ID and Regular Custom Query Example
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-id-and-regular-qualifier,indent=0]
 
 ----
 
@@ -55,18 +54,7 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-    // creating an expression "since_update_time metadata value is less than 50 seconds"
-    Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder() // Metadata qualifier
-        .setMetadataField(SINCE_UPDATE_TIME)
-        .setFilterOperation(FilterOperation.LT)
-        .setValue(50000L)
-        .build();
-    result = repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds));
-    assertThat(result).contains(john);
-
-    // expressions are combined using AND
-    result = repository.findUsingQuery(new Query(Qualifier.and(firstNameEqJohn, keyEqJohnsId, sinceUpdateTimeLt50Seconds)));
-    assertThat(result).containsOnly(john);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-metadata-qualifier,indent=0]
 
 ----
 
@@ -75,84 +63,19 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-    // DSL expression qualifier
-    Qualifier firstNameAndAge = Qualifier.dslExpressionBuilder()
-            // Using a comprehensive static DSL expression with fixed values
-            .setDSLExpressionString("$.firstName == 'Leroi' and $.age >= 25 and $.age < 45")
-            .build();
-        Query query = new Query(firstNameAndAge);
-
-        // This is full filter expression represented by the DSL string
-        assertThat(query.getCriteriaObject().getFilterExpression()).isEqualTo(Exp.build(
-            Exp.and(
-                Exp.eq(Exp.bin("firstName", Exp.Type.STRING), Exp.val("Leroi")),
-                Exp.ge(Exp.bin("age", Exp.Type.INT), Exp.val(25)),
-                Exp.lt(Exp.bin("age", Exp.Type.INT), Exp.val(45))
-            )
-        ));
-
-        Iterable<Person> result = repository.findUsingQuery(new Query(firstNameAndAge));
-        assertThat(result).containsExactlyInAnyOrder(leroi, leroi2);
-
-        // It is currently NOT allowed to combine qualifiers if at least one of them is a DSL expression qualifier
-        Qualifier firstNameEq = Qualifier.dslExpressionBuilder()
-            // Using a comprehensive static DSL expression with fixed values
-            .setDSLExpressionString("$.firstName == 'Leroi'")
-            .build();
-        Qualifier ageBetween = Qualifier.builder()
-            .setPath("age")
-            .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue(25)
-            .setSecondValue(45)
-            .build();
-
-        assertThatThrownBy(() -> new Query(Qualifier.and(firstNameEq, ageBetween)))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Cannot combine DSL expression qualifiers in a combined custom query");
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-dsl-expression-qualifier,indent=0]
 
 ----
 
 [[custom-query-indexed-expression]]
 == Indexed Using Expression Custom Query Example
 
+NOTE: Expression indexes require Aerospike Server 8.1.0 or later. The runnable example skips this section on older
+server versions.
+
 [source,java]
 ----
-        String indexName = "idx_selected_names_above_25";
-        // Build an expression that filters age only for adults with expected names that are 25 or older
-        Expression filterExpr = Exp.build(
-            Exp.cond(
-                Exp.and(
-                    Exp.ge( // Is the age 25 or older?
-                        Exp.intBin("age"),
-                        Exp.val(25)
-                    ),
-                    ListExp.getByValue( // Do they have the expected names?
-                        ListReturnType.EXISTS,
-                        Exp.stringBin("firstName"),
-                        Exp.val(List.of("Leroi", "Stefan"))
-                    )
-                ),
-                Exp.intBin("age"), // If true, return the age of the customer to be indexed
-                Exp.unknown() // Returns "unknown" to exclude the record from the index
-            )
-        );
-
-        // Create an index using the Expression
-        String setName = template.getSetName(Person.class);
-        template.createIndex(setName, indexName, IndexType.NUMERIC, IndexCollectionType.DEFAULT, filterExpr);
-        assertThat(template.indexExists(indexName)).isTrue();
-
-        // Create the query
-        Qualifier usingIndexWithExpression = Qualifier.indexedWithExpressionBuilder()
-            .setIndexName(indexName)
-            .setFilterOperation(FilterOperation.GT)
-            .setValue(25)
-            .build();
-        Query query = new Query(usingIndexWithExpression);
-
-        // Run the query
-        Iterable<Person> result = repository.findUsingQuery(query);
-        assertThat(result).containsExactlyInAnyOrder(stefan, leroi);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-indexed-expression-qualifier,indent=0]
 ----
 
 
@@ -161,36 +84,6 @@ Below are examples for the mentioned custom queries types.
 
 [source,java]
 ----
-        // Create an expression that filters last name satisfying a regex
-        Expression lastNameExpr = Exp.build(
-            Exp.regexCompare(
-                ".*ford.*",
-                RegexFlag.ICASE,
-                Exp.bin("lastName", Exp.Type.STRING)
-            )
-        );
-
-        // Create secondary index filter for age >= 30
-        Filter ageFilter = Filter.range("age", 30, Long.MAX_VALUE);
-
-        // Create a qualifier
-        Qualifier filterQualifier = Qualifier.filterBuilder()
-            .setExpression(lastNameExpr)
-            .setFilter(ageFilter)
-            .build();
-        Query query = new Query(filterQualifier);
-
-        // Run query
-        Iterable<Person> result = repository.findUsingQuery(query);
-
-        // Filter test persons according to the chosen criteria
-        List<Person> filteredPersons = allPersons.stream()
-            .filter(person -> person.getAge() >= 30 &&
-                person.getLastName() != null &&
-                person.getLastName().toLowerCase().contains("ford"))
-            .toList();
-
-        // Verify results
-        assertThat(result).containsExactlyInAnyOrderElementsOf(filteredPersons);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-filtering-qualifier,indent=0]
 ----
 

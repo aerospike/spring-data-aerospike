@@ -16,6 +16,7 @@ public class BlockingTransactionalMovieService {
         this.template = template;
     }
 
+    // tag::transactions-declarative-service[]
     @Transactional(transactionManager = "aerospikeTransactionManager")
     public void saveCommittedMovies() {
         repository.save(new BlockingTransactionalMovieDocument(
@@ -32,4 +33,5 @@ public class BlockingTransactionalMovieService {
         template.insert(duplicate);
         template.insert(duplicate);
     }
+    // end::transactions-declarative-service[]
 }

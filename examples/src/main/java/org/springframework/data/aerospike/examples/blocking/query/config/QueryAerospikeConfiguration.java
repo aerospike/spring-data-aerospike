@@ -11,9 +11,11 @@ import org.springframework.data.aerospike.examples.blocking.query.entity.Indexed
 import org.springframework.data.aerospike.examples.blocking.query.repository.IndexedMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
+// tag::secondary-index-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = IndexedMovieRepository.class)
+// Enables the repository proxy that runs the secondary-index query example.
 public class QueryAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
@@ -33,3 +35,4 @@ public class QueryAerospikeConfiguration extends AbstractAerospikeDataConfigurat
         aerospikeDataSettings.setScansEnabled(false);
     }
 }
+// end::secondary-index-configuration[]

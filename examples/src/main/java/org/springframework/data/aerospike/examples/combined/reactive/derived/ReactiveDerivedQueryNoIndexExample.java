@@ -8,6 +8,7 @@ import static org.springframework.data.aerospike.examples.combined.support.Movie
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireTitles;
 import static org.springframework.data.aerospike.query.QueryParam.of;
 
+// Demonstrates reactive combined derived queries in a scan-enabled no-index context.
 public class ReactiveDerivedQueryNoIndexExample {
 
     private final ReactiveDerivedQueryRepository repository;
@@ -31,7 +32,8 @@ public class ReactiveDerivedQueryNoIndexExample {
                 .block(),
             "No-index reactive derived query disjunction should scan", "Alien", "Collateral", "Heat");
 
-        // Multiple AND is still expression-only here because no lGenre index was created.
+        // Multiple AND is still expression-only here because no Movie.GENRE_INDEX was created on
+        // Movie.GENRE_BIN (`bin_genre`).
         requireTitles(repository.findByGenreAndReleaseYearAndTitle(
                     of(SCIENCE_FICTION), of(1979), of("Alien"))
                 .collectList()

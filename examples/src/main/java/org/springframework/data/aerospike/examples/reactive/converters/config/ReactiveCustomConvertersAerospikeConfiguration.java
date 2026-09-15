@@ -14,6 +14,7 @@ import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
+// Registers custom id converters and maps only the reactive converter example documents.
 public class ReactiveCustomConvertersAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 
     @Bean
@@ -21,6 +22,7 @@ public class ReactiveCustomConvertersAerospikeConfiguration extends AbstractReac
         return new ReactiveCustomConvertersExample(template);
     }
 
+    // Restrict mapping so the reactive converter example scans only its document package.
     @Override
     protected String getMappingBasePackage() {
         return ReactiveConverterOrderDocument.class.getPackageName();

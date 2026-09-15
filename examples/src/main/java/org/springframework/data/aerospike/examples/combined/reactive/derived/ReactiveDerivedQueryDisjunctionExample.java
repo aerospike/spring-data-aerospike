@@ -8,6 +8,7 @@ import static org.springframework.data.aerospike.examples.combined.support.Movie
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireTitles;
 import static org.springframework.data.aerospike.query.QueryParam.of;
 
+// Demonstrates reactive combined derived OR queries that require scans.
 public class ReactiveDerivedQueryDisjunctionExample {
 
     private final ReactiveDerivedQueryRepository repository;
@@ -19,12 +20,12 @@ public class ReactiveDerivedQueryDisjunctionExample {
     public void run() {
         MovieExamples.saveMovies("reactive-derived-query-disjunction", repository);
 
-        // One OR: the lGenre index exists, but a top-level OR widens the result set.
+        // One OR: Movie.GENRE_INDEX exists on Movie.GENRE_BIN (`bin_genre`), but a top-level OR widens the result set.
         // QueryContextBuilder cannot represent that as one secondary-index filter, so scans must be enabled.
         requireTitles(repository.findByGenreOrReleaseYear(of(CRIME), of(1979))
                 .collectList()
                 .block(),
-            "One reactive derived query disjunction should scan even with an lGenre index",
+            "One reactive derived query disjunction should scan even with Movie.GENRE_INDEX",
             "Alien", "Collateral", "Heat");
 
         // Multiple OR: adding title keeps OR at the top level and still produces no secondary-index filter.
@@ -32,17 +33,18 @@ public class ReactiveDerivedQueryDisjunctionExample {
                     of(CRIME), of(1979), of("Network"))
                 .collectList()
                 .block(),
-            "Multiple reactive derived query disjunction should scan even with an lGenre index",
+            "Multiple reactive derived query disjunction should scan even with Movie.GENRE_INDEX",
             "Alien", "Collateral", "Heat", "Network");
 
-        // Mixed derived query: Spring Data parses this method as OR(AND(genre, releaseYear), title),
+        // Mixed derived query: Spring Data parses this method as
+        // OR(AND(Movie.GENRE_BIN, Movie.RELEASE_YEAR_BIN), Movie.TITLE_BIN),
         // not as AND(genre, OR(releaseYear, title)).
         // Because OR is the top-level operator, no single Aerospike secondary-index filter can be used.
         requireTitles(repository.findByGenreAndReleaseYearOrTitle(
                     of(SCIENCE_FICTION), of(1979), of("Heat"))
                 .collectList()
                 .block(),
-            "Mixed reactive derived top-level OR query should scan even with an lGenre index", "Alien", "Heat");
+            "Mixed reactive derived top-level OR query should scan even with Movie.GENRE_INDEX", "Alien", "Heat");
 
         System.out.println("Ran reactive derived query disjunctions in a scan-enabled indexed context");
     }

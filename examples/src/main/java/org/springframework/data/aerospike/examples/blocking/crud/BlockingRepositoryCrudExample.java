@@ -9,6 +9,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates inherited blocking AerospikeRepository CRUD operations.
 public class BlockingRepositoryCrudExample {
 
     private final MovieRepository repository;
@@ -30,6 +31,7 @@ public class BlockingRepositoryCrudExample {
     private void saveAndReadSingleMovie() {
         MovieDocument movie = new MovieDocument("blocking-crud-1", "Sneakers", 1992, 7.1);
 
+        // tag::blocking-crud-save-read[]
         // save(...) writes the entity to the Aerospike set declared by @Document
         MovieDocument saved = repository.save(movie);
 
@@ -38,14 +40,17 @@ public class BlockingRepositoryCrudExample {
             .orElseThrow(() -> new IllegalStateException("Saved movie was not found"));
 
         String loadedTitle = loaded.getTitle();
-        require("Sneakers".equals(loadedTitle), "Loaded movie title did not match");
 
         // existsById(...) checks whether a record is present without loading the whole entity
         boolean savedMovieExists = repository.existsById(saved.getId());
+        // end::blocking-crud-save-read[]
+
+        require("Sneakers".equals(loadedTitle), "Loaded movie title did not match");
         require(savedMovieExists, "Saved movie should exist");
     }
 
     private void saveAndReadSeveralMovies() {
+        // tag::blocking-crud-batch-save-read[]
         List<MovieDocument> movies = List.of(
             new MovieDocument("blocking-crud-2", "The Conversation", 1974, 7.8),
             new MovieDocument("blocking-crud-3", "The Third Man", 1949, 8.1),
@@ -61,24 +66,30 @@ public class BlockingRepositoryCrudExample {
         List<MovieDocument> selectedMovies = toSortedList(
             repository.findAllById(List.of("blocking-crud-2", "blocking-crud-4")),
             Comparator.comparing(MovieDocument::getId));
+        // end::blocking-crud-batch-save-read[]
+
         require(selectedMovies.size() == 2, "Expected two movies loaded by id");
         require("The Conversation".equals(selectedMovies.get(0).getTitle()), "First selected movie title did not match");
         require("The Long Goodbye".equals(selectedMovies.get(1).getTitle()), "Second selected movie title did not match");
     }
 
     private void countAndFindAllMovies() {
+        // tag::blocking-crud-count-find-all[]
         // count() sees all records currently owned by this example's set
         long count = repository.count();
-        require(count == 4, "Expected four movies before deletes");
 
         // findAll() is intentionally sorted in memory because Aerospike does not guarantee scan ordering
         List<MovieDocument> allMovies = toSortedList(repository.findAll(), Comparator.comparing(MovieDocument::getId));
+        // end::blocking-crud-count-find-all[]
+
+        require(count == 4, "Expected four movies before deletes");
         require(allMovies.size() == 4, "Expected four movies from findAll");
         require("blocking-crud-1".equals(allMovies.get(0).getId()), "First sorted movie id did not match");
         require("blocking-crud-4".equals(allMovies.get(3).getId()), "Last sorted movie id did not match");
     }
 
     private void deleteMovies() {
+        // tag::blocking-crud-delete[]
         MovieDocument deleteByEntity = new MovieDocument("blocking-crud-delete-entity", "Thief", 1981, 7.4);
         MovieDocument deleteById = new MovieDocument("blocking-crud-delete-id", "Ronin", 1998, 7.2);
         MovieDocument deleteByIdsOne = new MovieDocument("blocking-crud-delete-ids-1", "Charade", 1963, 7.9);
@@ -88,19 +99,21 @@ public class BlockingRepositoryCrudExample {
 
         // delete(entity) removes the record represented by the entity instance
         repository.delete(deleteByEntity);
-        require(!repository.existsById(deleteByEntity.getId()), "Movie deleted by entity should not exist");
 
         // deleteById(...) removes one record by its id
         repository.deleteById(deleteById.getId());
-        require(!repository.existsById(deleteById.getId()), "Movie deleted by id should not exist");
 
         // deleteAllById(...) removes a batch of records by id
         repository.deleteAllById(List.of(deleteByIdsOne.getId(), deleteByIdsTwo.getId()));
-        require(!repository.existsById(deleteByIdsOne.getId()), "First movie deleted by ids should not exist");
-        require(!repository.existsById(deleteByIdsTwo.getId()), "Second movie deleted by ids should not exist");
 
         // deleteAll() clears the remaining records in this example set
         repository.deleteAll();
+        // end::blocking-crud-delete[]
+
+        require(!repository.existsById(deleteByEntity.getId()), "Movie deleted by entity should not exist");
+        require(!repository.existsById(deleteById.getId()), "Movie deleted by id should not exist");
+        require(!repository.existsById(deleteByIdsOne.getId()), "First movie deleted by ids should not exist");
+        require(!repository.existsById(deleteByIdsTwo.getId()), "Second movie deleted by ids should not exist");
         require(repository.count() == 0, "Repository should be empty after deleteAll");
     }
 }

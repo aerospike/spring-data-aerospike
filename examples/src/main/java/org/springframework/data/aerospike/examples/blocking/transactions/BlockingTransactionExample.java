@@ -7,6 +7,7 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
+// Demonstrates committed and rolled-back blocking Aerospike transactions.
 public class BlockingTransactionExample {
 
     private final BlockingTransactionalMovieRepository repository;
@@ -25,6 +26,7 @@ public class BlockingTransactionExample {
         skipUnlessTransactionsSupported();
 
         try {
+            // This @Transactional service call commits both repository/template writes together.
             service.saveCommittedMovies();
         } catch (RuntimeException ex) {
             skipIfTransactionFeatureUnavailable(ex);
@@ -32,6 +34,7 @@ public class BlockingTransactionExample {
         require(repository.count() == 2, "Committed blocking transaction should persist both movies");
 
         try {
+            // The duplicate insert forces an error so Spring rolls the whole transaction back.
             service.rollbackDuplicateInsert();
             throw new IllegalStateException("Duplicate insert should fail and roll back the transaction");
         } catch (DuplicateKeyException expected) {

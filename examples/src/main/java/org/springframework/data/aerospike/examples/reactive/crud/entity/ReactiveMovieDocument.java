@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.reactive.crud.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::reactive-crud-entity[]
 @Document(collection = "sda_examples_reactive_movies")
 public class ReactiveMovieDocument {
 
@@ -54,3 +55,4 @@ public class ReactiveMovieDocument {
         this.rating = rating;
     }
 }
+// end::reactive-crud-entity[]

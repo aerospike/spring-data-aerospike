@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.examples.blocking.template.dto;
 
+// tag::template-projection-dto[]
 public class TemplateMovieSummary {
 
     private String title;
@@ -24,3 +25,4 @@ public class TemplateMovieSummary {
         this.releaseYear = releaseYear;
     }
 }
+// end::template-projection-dto[]

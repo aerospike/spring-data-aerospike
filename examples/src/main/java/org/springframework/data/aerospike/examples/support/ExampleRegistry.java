@@ -7,21 +7,35 @@ import org.springframework.data.aerospike.examples.blocking.converters.entity.Co
 import org.springframework.data.aerospike.examples.blocking.crud.BlockingRepositoryCrudExample;
 import org.springframework.data.aerospike.examples.blocking.crud.config.AerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.crud.entity.MovieDocument;
-import org.springframework.data.aerospike.examples.blocking.customquery.CustomQueryDslExample;
-import org.springframework.data.aerospike.examples.blocking.customquery.config.CustomQueryConfiguration;
-import org.springframework.data.aerospike.examples.blocking.customquery.entity.CustomQueryMovieDocument;
+import org.springframework.data.aerospike.examples.blocking.caching.BlockingCachingExample;
+import org.springframework.data.aerospike.examples.blocking.caching.config.BlockingCachingAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.caching.entity.CacheEntryDocument;
+import org.springframework.data.aerospike.examples.blocking.declaredquery.BlockingDeclaredQueryExample;
+import org.springframework.data.aerospike.examples.blocking.declaredquery.config.BlockingDeclaredQueryConfiguration;
+import org.springframework.data.aerospike.examples.blocking.declaredquery.entity.DeclaredQueryMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.customquery.programmatic.ProgrammaticCustomQueryExample;
+import org.springframework.data.aerospike.examples.blocking.customquery.programmatic.ProgrammaticCustomQueryIdAndBinExample;
 import org.springframework.data.aerospike.examples.blocking.customquery.programmatic.config.ProgrammaticCustomQueryConfiguration;
 import org.springframework.data.aerospike.examples.blocking.customquery.programmatic.entity.ProgrammaticCustomQueryMovieDocument;
+import org.springframework.data.aerospike.examples.blocking.customquery.types.CustomQueryTypesExample;
+import org.springframework.data.aerospike.examples.blocking.customquery.types.config.CustomQueryTypesConfiguration;
+import org.springframework.data.aerospike.examples.blocking.customquery.types.entity.CustomQueryTypesMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.indexed.IndexedAnnotationExample;
 import org.springframework.data.aerospike.examples.blocking.indexed.config.IndexedAnnotationConfiguration;
+import org.springframework.data.aerospike.examples.blocking.indexed.context.IndexedContextExample;
+import org.springframework.data.aerospike.examples.blocking.indexed.context.config.IndexedContextConfiguration;
+import org.springframework.data.aerospike.examples.blocking.indexed.context.entity.IndexedPersonDocument;
 import org.springframework.data.aerospike.examples.blocking.indexed.entity.AnnotatedMovieDocument;
+import org.springframework.data.aerospike.examples.blocking.pagination.PaginationAndSortingExample;
+import org.springframework.data.aerospike.examples.blocking.pagination.config.PaginationAerospikeConfiguration;
+import org.springframework.data.aerospike.examples.blocking.pagination.entity.PaginationMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.projection.ProjectionExample;
 import org.springframework.data.aerospike.examples.blocking.projection.config.ProjectionAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.projection.entity.ProjectedMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.query.SecondaryIndexQueryExample;
 import org.springframework.data.aerospike.examples.blocking.query.config.QueryAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.query.entity.IndexedMovieDocument;
+import org.springframework.data.aerospike.examples.blocking.querymethods.BlockingRepositoryDerivedIdAndBinQueryExample;
 import org.springframework.data.aerospike.examples.blocking.querymethods.BlockingRepositoryQueryMethodsExample;
 import org.springframework.data.aerospike.examples.blocking.querymethods.config.QueryMethodsAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.blocking.querymethods.entity.QueryMethodsMovieDocument;
@@ -61,11 +75,13 @@ import org.springframework.data.aerospike.examples.reactive.converters.ReactiveC
 import org.springframework.data.aerospike.examples.reactive.converters.config.ReactiveCustomConvertersAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.reactive.converters.entity.ReactiveConverterOrderDocument;
 import org.springframework.data.aerospike.examples.reactive.customquery.ReactiveProgrammaticCustomQueryExample;
+import org.springframework.data.aerospike.examples.reactive.customquery.ReactiveProgrammaticCustomQueryIdAndBinExample;
 import org.springframework.data.aerospike.examples.reactive.customquery.config.ReactiveProgrammaticCustomQueryConfiguration;
 import org.springframework.data.aerospike.examples.reactive.customquery.entity.ReactiveProgrammaticCustomQueryMovieDocument;
 import org.springframework.data.aerospike.examples.reactive.crud.ReactiveRepositoryCrudExample;
 import org.springframework.data.aerospike.examples.reactive.crud.config.ReactiveAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.reactive.crud.entity.ReactiveMovieDocument;
+import org.springframework.data.aerospike.examples.reactive.querymethods.ReactiveRepositoryDerivedIdAndBinQueryExample;
 import org.springframework.data.aerospike.examples.reactive.querymethods.ReactiveRepositoryQueryMethodsExample;
 import org.springframework.data.aerospike.examples.reactive.querymethods.config.ReactiveQueryMethodsAerospikeConfiguration;
 import org.springframework.data.aerospike.examples.reactive.querymethods.entity.ReactiveQueryMethodsMovieDocument;
@@ -127,13 +143,33 @@ public final class ExampleRegistry {
                 "indexed", "repository", "startup-index"
             ),
             ExampleDefinition.of(
-                "custom-query-dsl",
+                "indexed-context",
                 "blocking",
-                CustomQueryConfiguration.class,
-                CustomQueryDslExample.class,
-                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(CustomQueryMovieDocument.class,
-                    CustomQueryMovieDocument.RELEASE_YEAR_INDEX, "releaseYear", IndexType.NUMERIC),
-                "repository", "query", "dsl"
+                IndexedContextConfiguration.class,
+                IndexedContextExample.class,
+                ExampleFixture.cleanSetAndDropIndexesBeforeContextRefresh(IndexedPersonDocument.class,
+                    IndexedPersonDocument.FRIEND_ADDRESS_KEYS_INDEX),
+                "indexed", "repository", "startup-index", "context"
+            ),
+            ExampleDefinition.of(
+                "blocking-declared-query",
+                "blocking",
+                BlockingDeclaredQueryConfiguration.class,
+                BlockingDeclaredQueryExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(DeclaredQueryMovieDocument.class,
+                    DeclaredQueryMovieDocument.RELEASE_YEAR_INDEX, "releaseYear", IndexType.NUMERIC),
+                "repository", "query", "declared-query", "dsl"
+            ),
+            ExampleDefinition.of(
+                "blocking-custom-query-types",
+                "blocking",
+                CustomQueryTypesConfiguration.class,
+                CustomQueryTypesExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(CustomQueryTypesMovieDocument.class,
+                    List.of(CustomQueryTypesMovieDocument.EXPRESSION_INDEX),
+                    ExampleFixture.index(CustomQueryTypesMovieDocument.RELEASE_YEAR_INDEX, "releaseYear",
+                        IndexType.NUMERIC)),
+                "repository", "query", "custom", "qualifier", "dsl"
             ),
             ExampleDefinition.of(
                 "blocking-query-methods",
@@ -144,6 +180,15 @@ public final class ExampleRegistry {
                     ExampleFixture.index(QueryMethodsMovieDocument.GENRE_INDEX, "genre", IndexType.STRING),
                     ExampleFixture.index(QueryMethodsMovieDocument.RELEASE_YEAR_INDEX, "releaseYear", IndexType.NUMERIC)),
                 "repository", "query", "derived"
+            ),
+            ExampleDefinition.of(
+                "blocking-derived-query-id-bin",
+                "blocking",
+                QueryMethodsAerospikeConfiguration.class,
+                BlockingRepositoryDerivedIdAndBinQueryExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(QueryMethodsMovieDocument.class,
+                    ExampleFixture.index(QueryMethodsMovieDocument.GENRE_INDEX, "genre", IndexType.STRING)),
+                "repository", "query", "derived", "id", "combined-query"
             ),
             ExampleDefinition.of(
                 "reactive-query-methods",
@@ -157,6 +202,26 @@ public final class ExampleRegistry {
                 "reactive", "repository", "query", "derived"
             ),
             ExampleDefinition.of(
+                "reactive-derived-query-id-bin",
+                "reactive",
+                ReactiveQueryMethodsAerospikeConfiguration.class,
+                ReactiveRepositoryDerivedIdAndBinQueryExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(ReactiveQueryMethodsMovieDocument.class,
+                    ExampleFixture.index(ReactiveQueryMethodsMovieDocument.GENRE_INDEX, "genre", IndexType.STRING)),
+                "reactive", "repository", "query", "derived", "id", "combined-query"
+            ),
+            ExampleDefinition.of(
+                "pagination-sorting",
+                "blocking",
+                PaginationAerospikeConfiguration.class,
+                PaginationAndSortingExample.class,
+                ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(PaginationMovieDocument.class,
+                    ExampleFixture.index(PaginationMovieDocument.GENRE_INDEX, "genre", IndexType.STRING),
+                    ExampleFixture.index(PaginationMovieDocument.RELEASE_YEAR_INDEX, "releaseYear",
+                        IndexType.NUMERIC)),
+                "repository", "query", "pagination", "sorting"
+            ),
+            ExampleDefinition.of(
                 "blocking-custom-query-programmatic",
                 "blocking",
                 ProgrammaticCustomQueryConfiguration.class,
@@ -166,6 +231,15 @@ public final class ExampleRegistry {
                     ExampleFixture.index(ProgrammaticCustomQueryMovieDocument.RELEASE_YEAR_INDEX, "releaseYear",
                         IndexType.NUMERIC)),
                 "repository", "query", "custom", "programmatic"
+            ),
+            ExampleDefinition.of(
+                "blocking-custom-query-id-bin",
+                "blocking",
+                ProgrammaticCustomQueryConfiguration.class,
+                ProgrammaticCustomQueryIdAndBinExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(ProgrammaticCustomQueryMovieDocument.class,
+                    ProgrammaticCustomQueryMovieDocument.GENRE_INDEX, "genre", IndexType.STRING),
+                "repository", "query", "custom", "programmatic", "id", "combined-query"
             ),
             ExampleDefinition.of(
                 "reactive-custom-query-programmatic",
@@ -179,6 +253,16 @@ public final class ExampleRegistry {
                     ExampleFixture.index(ReactiveProgrammaticCustomQueryMovieDocument.RELEASE_YEAR_INDEX, "releaseYear",
                         IndexType.NUMERIC)),
                 "reactive", "repository", "query", "custom", "programmatic"
+            ),
+            ExampleDefinition.of(
+                "reactive-custom-query-id-bin",
+                "reactive",
+                ReactiveProgrammaticCustomQueryConfiguration.class,
+                ReactiveProgrammaticCustomQueryIdAndBinExample.class,
+                ExampleFixture.cleanSetAndCreateIndexBeforeContextRefresh(
+                    ReactiveProgrammaticCustomQueryMovieDocument.class,
+                    ReactiveProgrammaticCustomQueryMovieDocument.GENRE_INDEX, "genre", IndexType.STRING),
+                "reactive", "repository", "query", "custom", "programmatic", "id", "combined-query"
             ),
             ExampleDefinition.of(
                 "blocking-derived-query-conjunction",
@@ -373,6 +457,14 @@ public final class ExampleRegistry {
                 ReactiveTransactionExample.class,
                 ExampleFixture.cleanSet(ReactiveTransactionalMovieDocument.class),
                 "reactive", "repository", "template", "transaction"
+            ),
+            ExampleDefinition.of(
+                "caching",
+                "blocking",
+                BlockingCachingAerospikeConfiguration.class,
+                BlockingCachingExample.class,
+                ExampleFixture.cleanSet(CacheEntryDocument.class),
+                "cache"
             )
         );
     }

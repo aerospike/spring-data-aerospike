@@ -6,6 +6,7 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 import java.util.List;
 
+// tag::combined-derived-query-repository[]
 public interface BlockingDerivedQueryRepository extends AerospikeRepository<Movie, String> {
 
     List<Movie> findByGenreAndReleaseYear(QueryParam genre, QueryParam releaseYear);
@@ -21,3 +22,4 @@ public interface BlockingDerivedQueryRepository extends AerospikeRepository<Movi
     List<Movie> findByGenreAndReleaseYearOrTitle(
         QueryParam genre, QueryParam releaseYear, QueryParam title);
 }
+// end::combined-derived-query-repository[]

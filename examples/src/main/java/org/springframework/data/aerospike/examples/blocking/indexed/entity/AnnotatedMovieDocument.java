@@ -5,6 +5,7 @@ import org.springframework.data.aerospike.annotation.Indexed;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::indexed-annotation-entity[]
 @Document(collection = "sda_examples_indexed_movies")
 public class AnnotatedMovieDocument {
 
@@ -13,8 +14,10 @@ public class AnnotatedMovieDocument {
     @Id
     private String id;
     private String title;
+    // tag::indexed-annotation-field[]
     @Indexed(type = IndexType.STRING, name = GENRE_INDEX)
     private String genre;
+    // end::indexed-annotation-field[]
 
     public AnnotatedMovieDocument() {
     }
@@ -49,3 +52,4 @@ public class AnnotatedMovieDocument {
         this.genre = genre;
     }
 }
+// end::indexed-annotation-entity[]

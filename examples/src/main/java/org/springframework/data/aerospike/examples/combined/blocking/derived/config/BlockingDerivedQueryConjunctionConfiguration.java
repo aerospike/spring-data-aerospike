@@ -13,6 +13,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingDerivedQueryRepository.class)
+// Registers blocking derived-query repositories with scans disabled for indexed AND examples.
 public class BlockingDerivedQueryConjunctionConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean

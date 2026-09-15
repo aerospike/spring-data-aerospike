@@ -14,15 +14,15 @@ Let's consider a simple query for finding by equality:
 
 [source,java]
 ----
-public List<Person> personRepository.findByLastName(lastName);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/query/repository/IndexedMovieRepository.java[tag=secondary-index-exact-query-method,indent=0]
 ----
 
-Notice that findByLastName is not a simple lookup by key, but rather finding all records in a set.
+Notice that `findByGenre` is not a simple lookup by key, but rather finding all records in a set.
 Aerospike has 2 ways of achieving this:
 
 [arabic]
 . Scanning all the records in the set and extracting the appropriate records.
-. Defining a secondary index on the field `lastName` and using this secondary index to satisfy the query.
+. Defining a secondary index on the field `genre` and using this secondary index to satisfy the query.
 
 The second approach is far more efficient.
 Aerospike stores the secondary indexes in a memory structure, allowing exceptionally fast identification of the
@@ -48,52 +48,21 @@ For more information about AerospikeTemplate see the <<aerospike.template, docum
 Setting a secondary index via AerospikeTemplate can be helpful, for example, in cases when an index creation does not
 change a lot.
 
-Here is an example of a numeric secondary index for the `rating` field in the `MovieDocument` entity:
+Here is an example of a string secondary index for the `genre` field in the `IndexedMovieDocument` entity:
 
 [source,java]
 ----
-@Slf4j
-@Configuration
-public class AerospikeIndexConfiguration {
-
-    private static final String INDEX_NAME = "movie-rating-index";
-
-    @Bean
-    @ConditionalOnProperty(
-            value = "aerospike." + INDEX_NAME + ".create-on-startup",
-            havingValue = "true",
-            matchIfMissing = true)
-    public boolean createAerospikeIndex(AerospikeTemplate aerospikeTemplate) {
-        try {
-            aerospikeTemplate.createIndex(MovieDocument.class, INDEX_NAME, "rating", IndexType.NUMERIC);
-            log.info("Index {} was successfully created", INDEX_NAME);
-        } catch (Exception e) {
-            log.info("Index {} creation failed: {}", INDEX_NAME, e.getMessage());
-        }
-        return true;
-    }
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/query/SecondaryIndexQueryExample.java[tag=secondary-index-create-with-template,indent=0]
 ----
 
 == Creating Secondary Index using @Indexed annotation
 
 You can use `@Indexed` annotation on the field where the index is required.
-Here is an example of the `Person` object getting indexed by `lastName`:
+Here is an example of a movie document getting indexed by `genre`:
 
 [source,java]
 ----
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Document
-public class Person {
-    @Id
-    private long id;
-    private String firstName;
-    @Indexed(name = "lastName_idx", type = IndexType.STRING)
-    private String lastName;
-    private Date dateOfBirth;
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/indexed/entity/AnnotatedMovieDocument.java[tag=indexed-annotation-field,indent=0]
 ----
 
 The annotation allows to specify also bin name, collectionType and ctx (context) if needed.
@@ -103,15 +72,15 @@ For the details on using `@Indexed` annotation see <<indexed-annotation, Indexed
 
 NOTE: In Aerospike, secondary indexes are case-sensitive, they match the exact queries.
 
-Following the query from the example above, assume there was a new requirement to be able to find by `lastName`
+Following the query from the example above, assume there was a new requirement to be able to find by `genre`
 containing a String (rather than having an equality match):
 
 [source,java]
 ----
-public List<Person> findByLastNameContaining(String lastName);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/query/repository/IndexedMovieRepository.java[tag=secondary-index-unsupported-containing-method,indent=0]
 ----
 
-In this case `findByLastNameContaining` query is not satisfied by the created secondary index.
+In this case `findByGenreContaining` query is not satisfied by the created secondary index.
 Aerospike would need to scan the data which can be an expensive operation as all records in the set must be read
 by the Aerospike server, and then the condition is applied to see if they match.
 
@@ -119,16 +88,15 @@ Due to the cost of performing this operation, scans from Spring Data Aerospike a
 
 For the details on how to enable scans see <<aerospike.scan-operation, scan operation>>.
 
-Following the query from the example above, assume there was a new requirement to be able to find by `firstName`
+Following the query from the example above, assume there was a new requirement to be able to find by `title`
 with an exact match:
 
 [source,java]
 ----
-public List<Person> findByLastName(String lastName);
-public List<Person> findByFirstName(String firstName);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/query/repository/IndexedMovieRepository.java[tag=secondary-index-missing-index-method,indent=0]
 ----
 
-In this case `firstName` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
+In this case `title` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
 Hence, it will scan the repository (a costly operation that could be avoided by using an index).
 
 NOTE: There are relevant configuration parameters:

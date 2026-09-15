@@ -13,6 +13,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates blocking programmatic custom queries built from Qualifier objects.
 public class ProgrammaticCustomQueryExample {
 
     private final ProgrammaticCustomQueryMovieRepository repository;
@@ -31,6 +32,7 @@ public class ProgrammaticCustomQueryExample {
             new ProgrammaticCustomQueryMovieDocument("blocking-programmatic-query-5", "Network", "drama", 1976)
         ));
 
+        // tag::programmatic-custom-query-qualifiers[]
         Qualifier scienceFiction = Qualifier.builder()
             .setPath("genre")
             .setFilterOperation(FilterOperation.EQ)
@@ -46,17 +48,23 @@ public class ProgrammaticCustomQueryExample {
 
         // AND combines explicit Qualifier objects. Both bins are indexed by the example fixture
         Query lateSeventiesScienceFiction = new Query(Qualifier.and(scienceFiction, releasedInLateSeventies));
+        // end::programmatic-custom-query-qualifiers[]
 
+        // tag::programmatic-custom-query-usage[]
         List<ProgrammaticCustomQueryMovieDocument> matches =
             toSortedList(repository.findUsingQuery(lateSeventiesScienceFiction),
                 Comparator.comparing(ProgrammaticCustomQueryMovieDocument::getId));
-        require(matches.size() == 1, "Expected one movie from the programmatic query");
-        require("Stalker".equals(matches.get(0).getTitle()), "Programmatic query title did not match");
+        // end::programmatic-custom-query-usage[]
 
+        // tag::programmatic-custom-query-projection[]
         // The target-class overload maps matching records into a projection DTO
         List<ProgrammaticMovieSummary> summaries =
             toSortedList(repository.findUsingQuery(lateSeventiesScienceFiction, ProgrammaticMovieSummary.class),
                 Comparator.comparing(ProgrammaticMovieSummary::getTitle));
+        // end::programmatic-custom-query-projection[]
+
+        require(matches.size() == 1, "Expected one movie from the programmatic query");
+        require("Stalker".equals(matches.get(0).getTitle()), "Programmatic query title did not match");
         require(summaries.size() == 1, "Expected one projected programmatic query result");
         require("Stalker".equals(summaries.get(0).getTitle()), "Projected title did not match");
         require(summaries.get(0).getReleaseYear() == 1979, "Projected release year did not match");

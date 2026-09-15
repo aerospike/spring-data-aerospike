@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.blocking.converters.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::custom-converters-entity[]
 @Document(collection = "sda_examples_blocking_converter_orders")
 public class ConverterOrderDocument {
 
@@ -44,3 +45,4 @@ public class ConverterOrderDocument {
         this.quantity = quantity;
     }
 }
+// end::custom-converters-entity[]

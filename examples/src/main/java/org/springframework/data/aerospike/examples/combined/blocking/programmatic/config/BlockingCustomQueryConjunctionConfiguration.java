@@ -13,6 +13,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingCustomQueryRepository.class)
+// Registers blocking custom-query repositories with scans disabled for indexed AND examples.
 public class BlockingCustomQueryConjunctionConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean

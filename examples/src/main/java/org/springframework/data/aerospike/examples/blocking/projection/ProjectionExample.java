@@ -8,6 +8,7 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
+// Demonstrates interface, DTO, and dynamic projections from repository queries.
 public class ProjectionExample {
 
     private final ProjectionMovieRepository repository;
@@ -24,22 +25,25 @@ public class ProjectionExample {
         // save(...) stores the full document; projection queries can read selected fields later
         ProjectedMovieDocument saved = repository.save(movie);
 
+        // tag::projection-usage[]
         // findMovieSummaryById(...) returns the DTO projection declared by the repository method
         List<MovieSummary> dtoProjection = repository.findMovieSummaryById(saved.getId());
 
         int dtoProjectionCount = dtoProjection.size();
-        require(dtoProjectionCount == 1, "Expected one DTO projection result");
 
         String dtoProjectionTitle = dtoProjection.get(0).getTitle();
-        require("The Conversation".equals(dtoProjectionTitle), "DTO projection title did not match");
 
         // findById(..., type) selects the projection target dynamically at call time
         List<MovieSummary> dynamicProjection = repository.findById(saved.getId(), MovieSummary.class);
 
         int dynamicProjectionCount = dynamicProjection.size();
-        require(dynamicProjectionCount == 1, "Expected one dynamic projection result");
 
         int dynamicProjectionReleaseYear = dynamicProjection.get(0).getReleaseYear();
+        // end::projection-usage[]
+
+        require(dtoProjectionCount == 1, "Expected one DTO projection result");
+        require("The Conversation".equals(dtoProjectionTitle), "DTO projection title did not match");
+        require(dynamicProjectionCount == 1, "Expected one dynamic projection result");
         require(dynamicProjectionReleaseYear == 1974, "Dynamic projection release year did not match");
 
         System.out.println("Loaded DTO and dynamic target-class projections from repository methods");

@@ -10,9 +10,11 @@ import org.springframework.data.aerospike.examples.blocking.indexed.entity.Annot
 import org.springframework.data.aerospike.examples.blocking.indexed.repository.AnnotatedMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
+// tag::indexed-annotation-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = AnnotatedMovieRepository.class)
+// Enables the repository proxy while startup index creation reads @Indexed metadata.
 public class IndexedAnnotationConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
@@ -25,9 +27,12 @@ public class IndexedAnnotationConfiguration extends AbstractAerospikeDataConfigu
         return AnnotatedMovieDocument.class.getPackageName();
     }
 
+    // tag::indexed-annotation-startup-setting[]
     @Override
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setCreateIndexesOnStartup(true);
         aerospikeDataSettings.setScansEnabled(false);
     }
+    // end::indexed-annotation-startup-setting[]
 }
+// end::indexed-annotation-configuration[]

@@ -12,8 +12,10 @@ import org.springframework.data.aerospike.examples.blocking.converters.entity.Co
 
 import java.util.List;
 
+// tag::custom-converters-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
+// Registers custom id converters and maps only the converter example documents.
 public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
@@ -21,11 +23,13 @@ public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDat
         return new BlockingCustomConvertersExample(template);
     }
 
+    // Restrict mapping so the converter example scans only its document package.
     @Override
     protected String getMappingBasePackage() {
         return ConverterOrderDocument.class.getPackageName();
     }
 
+    // tag::custom-converters-registration[]
     @Override
     protected List<Object> customConverters() {
         return List.of(
@@ -33,6 +37,7 @@ public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDat
             ConverterOrderId.StringToConverterOrderIdConverter.INSTANCE
         );
     }
+    // end::custom-converters-registration[]
 
     @Override
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
@@ -40,3 +45,4 @@ public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDat
         aerospikeDataSettings.setScansEnabled(true);
     }
 }
+// end::custom-converters-configuration[]

@@ -74,11 +74,18 @@ class ExampleSupportTests {
                 "indexed-query",
                 "projection",
                 "indexed-annotation",
-                "custom-query-dsl",
+                "indexed-context",
+                "blocking-declared-query",
+                "blocking-custom-query-types",
                 "blocking-query-methods",
+                "blocking-derived-query-id-bin",
                 "reactive-query-methods",
+                "reactive-derived-query-id-bin",
+                "pagination-sorting",
                 "blocking-custom-query-programmatic",
+                "blocking-custom-query-id-bin",
                 "reactive-custom-query-programmatic",
+                "reactive-custom-query-id-bin",
                 "blocking-derived-query-conjunction",
                 "reactive-derived-query-conjunction",
                 "blocking-derived-query-disjunction",
@@ -99,7 +106,8 @@ class ExampleSupportTests {
                 "blocking-custom-converters",
                 "reactive-custom-converters",
                 "blocking-transactions",
-                "reactive-transactions"
+                "reactive-transactions",
+                "caching"
             );
     }
 

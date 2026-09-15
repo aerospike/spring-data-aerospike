@@ -45,39 +45,51 @@ not application code that users need to copy.
 
 Run `./examples/run_examples list` to list the currently registered examples.
 
+The query examples use the terminology defined in
+link:../src/main/asciidoc/reference/query-methods-preface.adoc#query-terminology[Query Terminology]:
+derived query, declared query, custom query, and combined query.
+
 The current set covers:
 
-* `blocking-crud` - blocking `AerospikeRepository` save, batch save, read by id, read many ids, read all, count, exists, and delete operations.
-* `reactive-crud` - reactive `ReactiveAerospikeRepository` save, batch save, publisher id overloads, read all, count, exists, and delete operations.
-* `indexed-query` - a blocking derived query backed by an explicitly created secondary index.
-* `projection` - DTO and dynamic target-class projection from repository methods.
-* `indexed-annotation` - startup index creation from the `@Indexed` annotation.
-* `custom-query-dsl` - a declared repository query backed by a Spring Data Aerospike `@Query` DSL expression.
-* `blocking-query-methods` - blocking derived queries for read, exists, count, and delete operations backed by fixture-managed secondary indexes.
-* `reactive-query-methods` - reactive derived queries for read, exists, count, and delete operations backed by fixture-managed secondary indexes.
-* `blocking-custom-query-programmatic` - blocking custom queries with programmatic `Qualifier` objects and target-class projection.
-* `reactive-custom-query-programmatic` - reactive custom queries with programmatic `Qualifier` objects and target-class projection.
-* `blocking-derived-query-conjunction` - blocking combined derived query conjunctions that use fixture-created `lGenre`/`lTitle` secondary indexes with scans disabled.
-* `reactive-derived-query-conjunction` - reactive combined derived query conjunctions that use fixture-created `lGenre`/`lTitle` secondary indexes with scans disabled.
-* `blocking-derived-query-disjunction` - blocking combined derived query disjunctions and mixed top-level disjunctions that scan even when `lGenre` is indexed.
-* `reactive-derived-query-disjunction` - reactive combined derived query disjunctions and mixed top-level disjunctions that scan even when `lGenre` is indexed.
-* `blocking-derived-query-no-index` - blocking combined derived queries in a scan-enabled context with no secondary index.
-* `reactive-derived-query-no-index` - reactive combined derived queries in a scan-enabled context with no secondary index.
-* `blocking-custom-query-conjunction` - blocking combined custom query conjunctions, including `AND(indexedGenre, OR(...))`, backed by `lGenre`.
-* `reactive-custom-query-conjunction` - reactive combined custom query conjunctions, including `AND(indexedGenre, OR(...))`, backed by `lGenre`.
-* `blocking-custom-query-disjunction` - blocking combined custom query disjunctions that scan even when `lGenre` is indexed.
-* `reactive-custom-query-disjunction` - reactive combined custom query disjunctions that scan even when `lGenre` is indexed.
-* `blocking-custom-query-no-index` - blocking combined custom queries in a scan-enabled context with no secondary index.
-* `reactive-custom-query-no-index` - reactive combined custom queries in a scan-enabled context with no secondary index.
-* `blocking-declared-query-conjunction` - blocking combined declared query conjunctions with `@Query` DSL expressions and `indexToUse`.
-* `blocking-declared-query-disjunction` - blocking combined declared query disjunctions with `@Query` DSL expressions that scan even when `lGenre` is indexed.
-* `blocking-declared-query-no-index` - blocking combined declared queries with `@Query` DSL expressions in a scan-enabled context with no secondary index.
-* `blocking-template` - blocking `AerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, partial update, and custom `WritePolicy` persist operations.
-* `reactive-template` - reactive `ReactiveAerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, and partial update operations.
-* `blocking-custom-converters` - blocking template operations with custom read/write converters for a composite id.
-* `reactive-custom-converters` - reactive template operations with custom read/write converters for a composite id.
-* `blocking-transactions` - blocking repository/template writes using `AerospikeTransactionManager` and a proxied `@Transactional` service.
-* `reactive-transactions` - reactive repository/template writes using `AerospikeReactiveTransactionManager` and `TransactionalOperator`.
+* `BlockingRepositoryCrudExample` (`blocking-crud` via examples runner) - blocking `AerospikeRepository` save, batch save, read by id, read many ids, read all, count, exists, and delete operations.
+* `ReactiveRepositoryCrudExample` (`reactive-crud` via examples runner) - reactive `ReactiveAerospikeRepository` save, batch save, publisher id overloads, read all, count, exists, and delete operations.
+* `SecondaryIndexQueryExample` (`indexed-query` via examples runner) - a blocking derived query backed by the secondary index declared in `QueryAerospikeConfiguration`.
+* `ProjectionExample` (`projection` via examples runner) - DTO and dynamic target-class projection from repository methods.
+* `IndexedAnnotationExample` (`indexed-annotation` via examples runner) - startup index creation from the `@Indexed` annotation.
+* `IndexedContextExample` (`indexed-context` via examples runner) - startup index creation from `@Indexed` with a nested Aerospike context.
+* `BlockingDeclaredQueryExample` (`blocking-declared-query` via examples runner) - blocking declared repository query using a Spring Data Aerospike `@Query` DSL expression and `indexToUse`.
+* `CustomQueryTypesExample` (`blocking-custom-query-types` via examples runner) - blocking custom query examples for regular, id, id-plus-bin, metadata, DSL, filtering, and expression-index qualifiers.
+* `BlockingRepositoryQueryMethodsExample` (`blocking-query-methods` via examples runner) - blocking derived queries for read, exists, count, and delete operations backed by secondary indexes.
+* `BlockingRepositoryDerivedIdAndBinQueryExample` (`blocking-derived-query-id-bin` via examples runner) - blocking derived queries that combine id criteria with a regular bin criterion.
+* `ReactiveRepositoryQueryMethodsExample` (`reactive-query-methods` via examples runner) - reactive derived queries for read, exists, count, and delete operations backed by secondary indexes.
+* `ReactiveRepositoryDerivedIdAndBinQueryExample` (`reactive-derived-query-id-bin` via examples runner) - reactive derived queries that combine id criteria with a regular bin criterion.
+* `PaginationAndSortingExample` (`pagination-sorting` via examples runner) - repository sorting, `Page`, `Slice`, and sorted offset pagination with secondary indexes.
+* `ProgrammaticCustomQueryExample` (`blocking-custom-query-programmatic` via examples runner) - blocking custom queries with programmatic `Qualifier` objects and target-class projection.
+* `ProgrammaticCustomQueryIdAndBinExample` (`blocking-custom-query-id-bin` via examples runner) - blocking custom queries that combine id qualifiers with a regular bin qualifier.
+* `ReactiveProgrammaticCustomQueryExample` (`reactive-custom-query-programmatic` via examples runner) - reactive custom queries with programmatic `Qualifier` objects and target-class projection.
+* `ReactiveProgrammaticCustomQueryIdAndBinExample` (`reactive-custom-query-id-bin` via examples runner) - reactive custom queries that combine id qualifiers with a regular bin qualifier.
+* `BlockingDerivedQueryConjunctionExample` (`blocking-derived-query-conjunction` via examples runner) - blocking combined derived query conjunctions that use secondary indexes with scans disabled.
+* `ReactiveDerivedQueryConjunctionExample` (`reactive-derived-query-conjunction` via examples runner) - reactive combined derived query conjunctions that use secondary indexes with scans disabled.
+* `BlockingDerivedQueryDisjunctionExample` (`blocking-derived-query-disjunction` via examples runner) - blocking combined derived query disjunctions and mixed top-level disjunctions that scan even when a secondary index exists.
+* `ReactiveDerivedQueryDisjunctionExample` (`reactive-derived-query-disjunction` via examples runner) - reactive combined derived query disjunctions and mixed top-level disjunctions that scan even when a secondary index exists.
+* `BlockingDerivedQueryNoIndexExample` (`blocking-derived-query-no-index` via examples runner) - blocking combined derived queries in a scan-enabled context with no secondary index.
+* `ReactiveDerivedQueryNoIndexExample` (`reactive-derived-query-no-index` via examples runner) - reactive combined derived queries in a scan-enabled context with no secondary index.
+* `BlockingCustomQueryConjunctionExample` (`blocking-custom-query-conjunction` via examples runner) - blocking combined custom query conjunctions, including `AND(indexedGenre, OR(...))`, backed by secondary index.
+* `ReactiveCustomQueryConjunctionExample` (`reactive-custom-query-conjunction` via examples runner) - reactive combined custom query conjunctions, including `AND(indexedGenre, OR(...))`, backed by secondary index.
+* `BlockingCustomQueryDisjunctionExample` (`blocking-custom-query-disjunction` via examples runner) - blocking combined custom query disjunctions that scan even when a secondary index exists.
+* `ReactiveCustomQueryDisjunctionExample` (`reactive-custom-query-disjunction` via examples runner) - reactive combined custom query disjunctions that scan even when a secondary index exists.
+* `BlockingCustomQueryNoIndexExample` (`blocking-custom-query-no-index` via examples runner) - blocking combined custom queries in a scan-enabled context with no secondary index.
+* `ReactiveCustomQueryNoIndexExample` (`reactive-custom-query-no-index` via examples runner) - reactive combined custom queries in a scan-enabled context with no secondary index.
+* `BlockingDeclaredQueryConjunctionExample` (`blocking-declared-query-conjunction` via examples runner) - blocking combined declared query conjunctions with `@Query` DSL expressions and `indexToUse`.
+* `BlockingDeclaredQueryDisjunctionExample` (`blocking-declared-query-disjunction` via examples runner) - blocking combined declared query disjunctions with `@Query` DSL expressions that scan even when a secondary index exists.
+* `BlockingDeclaredQueryNoIndexExample` (`blocking-declared-query-no-index` via examples runner) - blocking combined declared queries with `@Query` DSL expressions in a scan-enabled context with no secondary index.
+* `BlockingTemplateExample` (`blocking-template` via examples runner) - blocking `AerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, partial update, and custom `WritePolicy` persist operations.
+* `ReactiveTemplateExample` (`reactive-template` via examples runner) - reactive `ReactiveAerospikeTemplate` query, count, exists, projection, batch ids, atomic bin mutation, and partial update operations.
+* `BlockingCustomConvertersExample` (`blocking-custom-converters` via examples runner) - blocking template operations with custom read/write converters for a composite id.
+* `ReactiveCustomConvertersExample` (`reactive-custom-converters` via examples runner) - reactive template operations with custom read/write converters for a composite id.
+* `BlockingTransactionExample` (`blocking-transactions` via examples runner) - blocking repository/template writes using `AerospikeTransactionManager` and a proxied `@Transactional` service.
+* `ReactiveTransactionExample` (`reactive-transactions` via examples runner) - reactive repository/template writes using `AerospikeReactiveTransactionManager` and `TransactionalOperator`.
+* `BlockingCachingExample` (`caching` via examples runner) - Spring Cache annotations backed by `AerospikeCacheManager` using a dedicated example cache set.
 
 Transaction examples report `SKIPPED` on Aerospike Server versions older than 8.0.0.
 

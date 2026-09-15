@@ -4,6 +4,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
+// tag::custom-converters-id[]
 public class ConverterOrderId {
 
     private String accountId;
@@ -33,6 +34,7 @@ public class ConverterOrderId {
         this.orderNumber = orderNumber;
     }
 
+    // tag::custom-converters-writing-converter[]
     @WritingConverter
     public enum ConverterOrderIdToStringConverter implements Converter<ConverterOrderId, String> {
         INSTANCE;
@@ -42,7 +44,9 @@ public class ConverterOrderId {
             return source.accountId + "::" + source.orderNumber;
         }
     }
+    // end::custom-converters-writing-converter[]
 
+    // tag::custom-converters-reading-converter[]
     @ReadingConverter
     public enum StringToConverterOrderIdConverter implements Converter<String, ConverterOrderId> {
         INSTANCE;
@@ -53,4 +57,6 @@ public class ConverterOrderId {
             return new ConverterOrderId(parts[0], Long.parseLong(parts[1]));
         }
     }
+    // end::custom-converters-reading-converter[]
 }
+// end::custom-converters-id[]

@@ -16,10 +16,12 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+// tag::transactions-blocking-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingTransactionalMovieRepository.class)
 @EnableTransactionManagement
+// Enables repository proxies and Spring transaction interception for blocking transaction examples.
 public class BlockingTransactionAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
@@ -46,8 +48,12 @@ public class BlockingTransactionAerospikeConfiguration extends AbstractAerospike
         aerospikeDataSettings.setScansEnabled(true);
     }
 
+    // tag::transactions-blocking-manager[]
+    // Spring uses this manager for @Transactional blocking Aerospike operations.
     @Bean
     public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
         return new AerospikeTransactionManager(client);
     }
+    // end::transactions-blocking-manager[]
 }
+// end::transactions-blocking-configuration[]

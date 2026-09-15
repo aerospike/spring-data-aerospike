@@ -15,6 +15,9 @@ transaction are not visible to others.
 For more details, see
 link:https://docs.spring.io/spring-framework/reference/data-access/transaction.html[Spring Transaction Management].
 
+NOTE: Aerospike transactions require Aerospike Server 8.0.0 or later and a transaction-enabled namespace. The runnable
+examples report `SKIPPED` when those requirements are not met.
+
 == Choosing Transaction Management Model
 
 Spring offers two models of transaction management: **declarative** and **programmatic**. When choosing between them,
@@ -55,26 +58,14 @@ It ensures that the entire method runs within a transaction context, and Spring 
 
 [source,java]
 ----
-@Configuration
-@EnableTransactionManagement
-public class Config {
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/transactions/config/BlockingTransactionAerospikeConfiguration.java[tag=transactions-blocking-manager,indent=0]
+----
 
-    @Bean
-    public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
-        return new AerospikeTransactionManager(client);
-    }
+The service method declares the transaction boundary:
 
-    // Other configuration
-}
-
-@Service
-public class MyService {
-
-    @Transactional
-    public void performDatabaseOperations() {
-        // Perform database operations
-    }
-}
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/transactions/BlockingTransactionalMovieService.java[tag=transactions-declarative-service,indent=0]
 ----
 
 == Programmatic Transaction Management
@@ -92,40 +83,27 @@ for reactive code, `TransactionalOperator` is preferred).
 
 === Example
 
-Here is an example that shows using a programmatic transaction in a method.
-You would use `TransactionTemplate` to wrap your database operations in a transaction block,
-ensuring the transaction is automatically committed if successful or rolled back if an exception occurs.
+Here is an example that shows using a programmatic reactive transaction.
+You can define a `TransactionalOperator` and wrap a reactive chain so the transaction is automatically committed
+if successful or rolled back if an exception occurs.
 
 [source,java]
 ----
-@Configuration
-public class Config {
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/transactions/config/ReactiveTransactionAerospikeConfiguration.java[tag=transactions-reactive-operator,indent=0]
+----
 
-    @Bean
-    public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
-        return new AerospikeTransactionManager(client);
-    }
+Then wrap the reactive chain with `TransactionalOperator`:
 
-    @Bean
-    public TransactionTemplate transactionTemplate(AerospikeTransactionManager transactionManager) {
-        return new TransactionTemplate(transactionManager);
-    }
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/transactions/ReactiveTransactionExample.java[tag=transactions-reactive-usage,indent=0]
+----
 
-    // Other configuration
-}
+Rollback happens when an operation in the transactional chain fails:
 
-@Service
-public class MyService {
-
-    @Autowired
-    TransactionTemplate transactionTemplate;
-
-    public void performDatabaseOperations() {
-        transactionTemplate.executeWithoutResult(status -> {
-            // Perform database operations
-        });
-    }
-}
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/transactions/ReactiveTransactionExample.java[tag=transactions-reactive-rollback,indent=0]
 ----
 
 == Aerospike Operations Support

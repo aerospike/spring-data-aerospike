@@ -12,6 +12,7 @@ import static org.springframework.data.aerospike.examples.combined.support.Movie
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireSummaryTitles;
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireTitles;
 
+// Demonstrates reactive custom AND queries that can use a secondary-index filter.
 public class ReactiveCustomQueryConjunctionExample {
 
     private final ReactiveCustomQueryRepository repository;
@@ -23,32 +24,33 @@ public class ReactiveCustomQueryConjunctionExample {
     public void run() {
         MovieExamples.saveMovies("reactive-custom-query-conjunction", repository);
 
-        // One AND: lGenre is the only secondary index in this context and scans are disabled.
-        // QueryContextBuilder uses that index as the Aerospike filter and leaves lYear
+        // One AND: Movie.GENRE_INDEX on Movie.GENRE_BIN (`bin_genre`) is the only secondary index in this
+        // context and scans are disabled.
+        // QueryContextBuilder uses that index as the Aerospike filter and leaves Movie.RELEASE_YEAR_BIN (`bin_year`)
         // as a filter expression.
         Query oneAnd = new Query(Qualifier.and(genre(SCIENCE_FICTION), releaseYear(1979)));
         requireTitles(repository.findUsingQuery(oneAnd).collectList().block(),
-            "One reactive custom query conjunction should use the lGenre index", "Alien");
+            "One reactive custom query conjunction should use the bin_genre index", "Alien");
 
         // The target-class overload can still project results while using the same indexed query.
         requireSummaryTitles(repository.findUsingQuery(oneAnd, MovieSummary.class).collectList().block(),
-            "Reactive custom query conjunction projection should use the lGenre index", "Alien");
+            "Reactive custom query conjunction projection should use the bin_genre index", "Alien");
 
-        // Multiple AND: lGenre remains the only available secondary-index filter.
+        // Multiple AND: Movie.GENRE_INDEX remains the only available secondary-index filter.
         // The release year and title checks are evaluated as expressions after the index lookup.
         Query multipleAnd = new Query(Qualifier.and(genre(SCIENCE_FICTION), releaseYear(1979), title("Alien")));
         requireTitles(repository.findUsingQuery(multipleAnd).collectList().block(),
-            "Multiple reactive custom query conjunction should use the lGenre index", "Alien");
+            "Multiple reactive custom query conjunction should use the bin_genre index", "Alien");
 
-        // Mixed no-DSL custom query: this shape is intentionally AND(lGenre, OR(...)).
+        // Mixed no-DSL custom query: this shape is intentionally AND(Movie.GENRE_BIN, OR(...)).
         // That differs from the mixed derived method example. Because the outer operator is AND and
-        // lGenre is an indexed standalone qualifier, the lGenre index can still be used.
+        // Movie.GENRE_BIN is an indexed standalone qualifier, so Movie.GENRE_INDEX can still be used.
         Query andAroundOr = new Query(Qualifier.and(genre(SCIENCE_FICTION), Qualifier.or(title("Aliens"),
             releaseYear(1979))));
         requireTitles(repository.findUsingQuery(andAroundOr).collectList().block(),
-            "Reactive custom query conjunction around nested OR should use the lGenre index", "Alien", "Aliens");
+            "Reactive custom query conjunction around nested OR should use the bin_genre index", "Alien", "Aliens");
 
-        System.out.println("Ran reactive custom query conjunctions backed by the lGenre index");
+        System.out.println("Ran reactive custom query conjunctions backed by Movie.GENRE_INDEX");
     }
 
     private static Qualifier genre(String genre) {

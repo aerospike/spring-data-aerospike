@@ -4,12 +4,13 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 
+// tag::combined-query-movie-entity[]
 @Document(collection = "sda_examples_combined_movies")
 public class Movie {
 
-    public static final String GENRE_BIN = "lGenre";
-    public static final String RELEASE_YEAR_BIN = "lYear";
-    public static final String TITLE_BIN = "lTitle";
+    public static final String GENRE_BIN = "bin_genre";
+    public static final String RELEASE_YEAR_BIN = "bin_year";
+    public static final String TITLE_BIN = "bin_title";
     public static final String GENRE_INDEX = "sda_examples_combined_genre_idx";
     public static final String TITLE_INDEX = "sda_examples_combined_title_idx";
 
@@ -64,3 +65,4 @@ public class Movie {
         this.releaseYear = releaseYear;
     }
 }
+// end::combined-query-movie-entity[]

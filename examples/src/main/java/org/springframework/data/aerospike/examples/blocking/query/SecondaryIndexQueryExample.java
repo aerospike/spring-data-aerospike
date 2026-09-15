@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
+// Demonstrates a blocking repository query backed by a secondary index.
 public class SecondaryIndexQueryExample {
 
     private final IndexedMovieRepository repository;
@@ -21,8 +22,10 @@ public class SecondaryIndexQueryExample {
     }
 
     public void run() {
+        // tag::secondary-index-create-with-template[]
         // createIndex(...) creates the secondary index required by the derived query method
         template.createIndex(IndexedMovieDocument.class, IndexedMovieDocument.GENRE_INDEX, "genre", IndexType.STRING);
+        // end::secondary-index-create-with-template[]
 
         List<IndexedMovieDocument> movies = List.of(
             new IndexedMovieDocument("query-1", "Alien", "science-fiction", 1979),
@@ -33,8 +36,10 @@ public class SecondaryIndexQueryExample {
         // saveAll(...) writes all sample records before querying the indexed bin
         repository.saveAll(movies);
 
+        // tag::secondary-index-query-method[]
         // findByGenre(...) is a repository query method resolved from its method name
         List<IndexedMovieDocument> scienceFiction = repository.findByGenre("science-fiction");
+        // end::secondary-index-query-method[]
 
         int scienceFictionCount = scienceFiction.size();
         require(scienceFictionCount == 2, "Expected two science-fiction movies");

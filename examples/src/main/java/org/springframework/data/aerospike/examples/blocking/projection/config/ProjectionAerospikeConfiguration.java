@@ -10,9 +10,11 @@ import org.springframework.data.aerospike.examples.blocking.projection.entity.Pr
 import org.springframework.data.aerospike.examples.blocking.projection.repository.ProjectionMovieRepository;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
+// tag::projection-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = ProjectionMovieRepository.class)
+// Enables the repository proxy that returns projection interfaces and DTOs.
 public class ProjectionAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
@@ -30,3 +32,4 @@ public class ProjectionAerospikeConfiguration extends AbstractAerospikeDataConfi
         aerospikeDataSettings.setCreateIndexesOnStartup(false);
     }
 }
+// end::projection-configuration[]

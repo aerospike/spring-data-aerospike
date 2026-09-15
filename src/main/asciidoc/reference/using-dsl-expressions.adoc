@@ -108,7 +108,8 @@ For more details, see link:https://github.com/aerospike/expression-dsl-java[DSLP
 [[dsl.expressions.declared.queries]]
 == Usage with Declared Queries
 
-You can declare repository queries in Spring Data Aerospike by annotating query methods with `@Query`.
+You can use <<aerospike.declared-query,declared queries>> in Spring Data Aerospike by annotating repository methods
+with `@Query`.
 The declared DSL expressions are executed automatically when the annotated repository method is called.
 
 === Static Expressions in Declared Queries
@@ -119,12 +120,12 @@ Static expressions have fixed values embedded directly in the DSL string:
 ====
 [source,java]
 ----
-@Query(expression = "$.lastName == 'Macintire'")
-List<P> findByLastName(String name);
+include::{examples-java}/org/springframework/data/aerospike/examples/combined/blocking/dsl/repository/BlockingDeclaredQueryRepository.java[tag=declared-query-static-method,indent=0]
 ----
 ====
 
-NOTE: In static expressions, the method parameters are ignored - the query always uses the fixed value in the expression.
+NOTE: Static declared expressions embed their values directly in the annotation. The method above declares no
+parameters because the query always uses the fixed values in the expression.
 
 === Dynamic Expressions with Placeholders in Declared Queries
 
@@ -138,21 +139,7 @@ Dynamic expressions use placeholders that are replaced with actual method parame
 ====
 [source,java]
 ----
-public interface PersonDeclaredQueryRepository<P extends Person>
-        extends AerospikeRepository<P, String> {
-
-    // Dynamic expression with placeholder for first parameter
-    @Query(expression = "$.firstName == ?0")
-    List<P> findByFirstName(String name);
-
-    // Numeric comparison
-    @Query(expression = "$.age > ?0")
-    List<P> findByAgeGreaterThan(int age);
-
-    // Boolean with explicit type casting
-    @Query(expression = "$.isActive.get(type: BOOL) == ?0")
-    List<P> findByIsActive(boolean isActive);
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/declaredquery/repository/DeclaredQueryMovieRepository.java[tag=declared-query-repository]
 ----
 ====
 
@@ -171,12 +158,7 @@ Create qualifiers with fixed values embedded in the expression:
 ====
 [source,java]
 ----
-// Setting a static DSL expression with a fixed value
-Qualifier positiveActivityQualifier = Qualifier.dslExpressionBuilder()
-    .setDSLExpressionString("$.isActive == true")
-    .build();
-
-List<Person> activePersons = repository.findUsingQuery(new Query(positiveActivityQualifier));
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-static-dsl-expression-qualifier,indent=0]
 ----
 ====
 
@@ -189,16 +171,7 @@ Create qualifiers with placeholders and provide values separately:
 ====
 [source,java]
 ----
-// Setting a dynamic DSL expression with a placeholder and its value
-String firstName = "Oliver";
-Query firstNameQuery = new Query(
-    Qualifier.dslExpressionBuilder()
-        .setDSLExpressionString("$.firstName == ?0")
-        .setDSLExpressionValues(new Object[]{firstName})
-        .build()
-);
-
-List<Person> persons = repository.findUsingQuery(firstNameQuery);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-dsl-expression-qualifier,indent=0]
 ----
 ====
 
@@ -213,13 +186,7 @@ You can create comprehensive DSL expressions that combine multiple conditions:
 ====
 [source,java]
 ----
-// Using a comprehensive static DSL expression with fixed values
-Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
-    .setDSLExpressionString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
-    .build();
-
-Query query = new Query(colorAndAge);
-List<Person> results = repository.findUsingQuery(query);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/types/CustomQueryTypesExample.java[tag=custom-query-complex-dsl-expression-qualifier,indent=0]
 ----
 ====
 
@@ -227,32 +194,20 @@ List<Person> results = repository.findUsingQuery(query);
 == Secondary Indexes and DSL Expressions
 
 DSL expressions work seamlessly with Aerospike secondary indexes.
-When there is one index for a query, it is used to create secondary index Filter.
+When a declared query names an index with `indexToUse`, Spring Data Aerospike uses that index to build the
+secondary-index `Filter` and evaluates the remaining DSL predicates as a filtering `Expression`.
 
-When multiple indexes are available for bins of a complex query, DSLParser automatically does the following:
-
-1. Selects one index to build the secondary index `Filter` (always one per query) based on index cardinality
-(preferring higher `binValuesRatio`)
-2. Falls back to alphabetical order if cardinality of indexes is equal
-3. Uses filtering `Expression` for remaining parts of the query
-
-.Using static DSL expression with indexed bins in a custom query
+.Declared DSL expression with an explicit secondary index
 ====
 [source,java]
 ----
-Qualifier colorAndAge = Qualifier.dslExpressionBuilder()
-    .setDSLExpressionString("$.favColor == 'green' and $.age >= 28 and $.age < 29")
-    .build();
-
-Query query = new Query(colorAndAge);
-
-// Assuming indexes exist on 'age' and 'favColor' bins
-// DSLParser will choose the optimal index for the secondary index filter -
-// in this case, for "$.age >= 28" part based on alphabetical order due to the same cardinality,
-// and apply the remaining conditions as filtering Expression
-Iterable<Person> result = repository.findUsingQuery(query);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/declaredquery/repository/DeclaredQueryMovieRepository.java[tag=declared-query-method,indent=0]
 ----
 ====
+
+When no index is explicitly named and multiple eligible secondary indexes are available, Spring Data Aerospike follows
+the same selection rules described in <<aerospike.query-methods-combined>>: it prefers the lowest non-zero
+`entries_per_bval`/`binValuesRatio` value from the index cache.
 
 [[dsl.expressions.limitations]]
 == Limitations and Restrictions

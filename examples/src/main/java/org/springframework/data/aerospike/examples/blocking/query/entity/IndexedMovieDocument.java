@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.blocking.query.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::secondary-index-entity[]
 @Document(collection = "sda_examples_query_movies")
 public class IndexedMovieDocument {
 
@@ -56,3 +57,4 @@ public class IndexedMovieDocument {
         this.releaseYear = releaseYear;
     }
 }
+// end::secondary-index-entity[]

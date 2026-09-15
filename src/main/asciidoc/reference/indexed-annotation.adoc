@@ -20,57 +20,31 @@ Here is an example of creating a complex secondary index for fields of a person'
 
 [source,java]
 ----
-@Data
-@AllArgsConstructor
-public class Address {
-
-    private String street;
-    private Integer apartment;
-    private String zipCode;
-    private String city;
-}
-
-@Data
-@NoArgsConstructor
-@Setter
-public class Friend {
-
-    String name;
-    Address address;
-}
-
-@Data
-@Document
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-public class Person {
-
-    @Id
-    String id;
-    @Indexed(type = IndexType.STRING, name = "friend_address_keys_idx",
-    collectionType = IndexCollectionType.MAPKEYS, ctx = "address")
-    Friend friend;
-}
-
-@Test
-void test() {
-    Friend carter = new Friend();
-    carter.setAddress(new Address("Street", 14, "1234567890", "City"));
-
-    Person dave = new Person();
-    dave.setFriend(carter);
-    repository.save(dave);
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/indexed/context/entity/IndexedAddress.java[tag=indexed-context-address]
 ----
 
-A `Person` object in this example has a field called "friend" (`Friend` object).
-A `Friend` object has a field called "address" (`Address` object).
-So when "friend" field is set to a `Friend` with existing `Address`, we have a person (`dave` in the example above)
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/indexed/context/entity/IndexedFriend.java[tag=indexed-context-friend]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/indexed/context/entity/IndexedPersonDocument.java[tag=indexed-context-person]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/indexed/context/IndexedContextExample.java[tag=indexed-context-usage,indent=0]
+----
+
+An `IndexedPersonDocument` object in this example has a field called "friend" (`IndexedFriend` object).
+An `IndexedFriend` object has a field called "address" (`IndexedAddress` object).
+So when "friend" field is set to an `IndexedFriend` with existing `IndexedAddress`, we have a person in the example above
 with a friend (`carter`) who has
 a particular address.
 
-`Address` object on its own has certain fields: `street`, `apartment`, `zipCode`, `city`.
+`IndexedAddress` object on its own has certain fields: `street`, `apartment`, `zipCode`, `city`.
 
 NOTE: In Aerospike DB a POJO (such as `Address`) is represented by a Map, so the fields of POJO become map keys.
 

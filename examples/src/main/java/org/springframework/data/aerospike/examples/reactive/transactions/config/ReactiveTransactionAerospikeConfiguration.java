@@ -17,10 +17,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+// tag::transactions-reactive-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveTransactionalMovieRepository.class)
 @EnableTransactionManagement
+// Enables reactive repository proxies and transaction infrastructure for reactive examples.
 public class ReactiveTransactionAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 
     @Bean
@@ -42,13 +44,20 @@ public class ReactiveTransactionAerospikeConfiguration extends AbstractReactiveA
         aerospikeDataSettings.setScansEnabled(true);
     }
 
+    // tag::transactions-reactive-manager[]
+    // The reactive transaction manager coordinates Aerospike Reactor operations.
     @Bean
     public AerospikeReactiveTransactionManager aerospikeReactiveTransactionManager(IAerospikeReactorClient client) {
         return new AerospikeReactiveTransactionManager(client);
     }
+    // end::transactions-reactive-manager[]
 
+    // tag::transactions-reactive-operator[]
+    // TransactionalOperator applies the manager to a reactive publisher chain.
     @Bean
     public TransactionalOperator transactionalOperator(AerospikeReactiveTransactionManager transactionManager) {
         return TransactionalOperator.create(transactionManager, new DefaultTransactionDefinition());
     }
+    // end::transactions-reactive-operator[]
 }
+// end::transactions-reactive-configuration[]

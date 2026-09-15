@@ -14,6 +14,7 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveCustomQueryRepository.class)
+// Registers reactive custom-query repositories with scans enabled for OR and no-index examples.
 public class ReactiveCustomQueryScanConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 
     @Bean

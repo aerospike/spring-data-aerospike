@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.blocking.crud.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::blocking-crud-entity[]
 @Document(collection = "sda_examples_blocking_movies")
 public class MovieDocument {
 
@@ -54,3 +55,4 @@ public class MovieDocument {
         this.rating = rating;
     }
 }
+// end::blocking-crud-entity[]

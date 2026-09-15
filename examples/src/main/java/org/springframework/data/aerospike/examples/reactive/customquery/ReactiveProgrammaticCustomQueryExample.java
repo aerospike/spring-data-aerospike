@@ -13,6 +13,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates reactive programmatic custom queries built from Qualifier objects.
 public class ReactiveProgrammaticCustomQueryExample {
 
     private final ReactiveProgrammaticCustomQueryMovieRepository repository;

@@ -14,6 +14,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingDeclaredQueryRepository.class)
+// Registers blocking declared-query repositories with scans enabled for OR and no-index expressions.
 public class BlockingDeclaredQueryScanConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean

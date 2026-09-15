@@ -10,6 +10,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
+// Demonstrates committed and rolled-back reactive Aerospike transactions.
 public class ReactiveTransactionExample {
 
     private final ReactiveTransactionalMovieRepository repository;
@@ -31,6 +32,8 @@ public class ReactiveTransactionExample {
         skipUnlessTransactionsSupported();
 
         try {
+            // tag::transactions-reactive-usage[]
+            // TransactionalOperator commits both reactive writes when the chain completes.
             repository.save(new ReactiveTransactionalMovieDocument(
                     "reactive-transaction-1", "The Conversation", "committed"))
                 .then(repository.save(new ReactiveTransactionalMovieDocument(
@@ -38,6 +41,7 @@ public class ReactiveTransactionExample {
                 .then()
                 .as(transactionalOperator::transactional)
                 .block();
+            // end::transactions-reactive-usage[]
         } catch (RuntimeException ex) {
             skipIfTransactionFeatureUnavailable(ex);
         }
@@ -46,11 +50,14 @@ public class ReactiveTransactionExample {
         try {
             ReactiveTransactionalMovieDocument duplicate =
                 new ReactiveTransactionalMovieDocument("reactive-transaction-duplicate", "Duplicate", "rollback");
+            // tag::transactions-reactive-rollback[]
+            // The second insert fails with the same key, causing the reactive transaction to roll back.
             template.insert(duplicate)
                 .then(template.insert(duplicate))
                 .then()
                 .as(transactionalOperator::transactional)
                 .block();
+            // end::transactions-reactive-rollback[]
             throw new IllegalStateException("Duplicate reactive insert should fail and roll back the transaction");
         } catch (DuplicateKeyException expected) {
             // The first insert in the transaction is rolled back when the duplicate insert fails

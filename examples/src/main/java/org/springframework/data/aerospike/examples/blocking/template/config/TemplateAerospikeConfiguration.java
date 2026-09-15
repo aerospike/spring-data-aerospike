@@ -9,14 +9,18 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.examples.blocking.template.BlockingTemplateExample;
 import org.springframework.data.aerospike.examples.blocking.template.entity.TemplateMovieDocument;
 
+// tag::template-configuration[]
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
+// Keeps the blocking template example focused on the mapped movie document package.
 public class TemplateAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
+    // tag::template-bean[]
     @Bean
     BlockingTemplateExample blockingTemplateExample(AerospikeTemplate template) {
         return new BlockingTemplateExample(template);
     }
+    // end::template-bean[]
 
     @Override
     protected String getMappingBasePackage() {
@@ -29,3 +33,4 @@ public class TemplateAerospikeConfiguration extends AbstractAerospikeDataConfigu
         aerospikeDataSettings.setScansEnabled(false);
     }
 }
+// end::template-configuration[]

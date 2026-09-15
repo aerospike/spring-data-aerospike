@@ -7,6 +7,7 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 
+// Demonstrates startup secondary-index creation from @Indexed.
 public class IndexedAnnotationExample {
 
     private final AnnotatedMovieRepository repository;
@@ -22,11 +23,13 @@ public class IndexedAnnotationExample {
             new AnnotatedMovieDocument("indexed-annotation-2", "The Third Man", "noir")
         );
 
+        // tag::indexed-annotation-usage[]
         // saveAll(...) writes records after startup has created the @Indexed secondary index
         repository.saveAll(movies);
 
         // findByGenre(...) uses a derived repository query against the annotated indexed field
         List<AnnotatedMovieDocument> results = repository.findByGenre("science-fiction");
+        // end::indexed-annotation-usage[]
 
         int resultCount = results.size();
         require(resultCount == 1, "Expected one movie from @Indexed-backed query");

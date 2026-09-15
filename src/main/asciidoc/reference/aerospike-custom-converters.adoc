@@ -15,44 +15,26 @@ Here is an example:
 
 [source,java]
 ----
-public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/converters/config/CustomConvertersAerospikeConfiguration.java[tag=custom-converters-registration,indent=0]
+----
 
-    @Override
-    protected List<Object> customConverters() {
-        return List.of(
-            CompositeKey.CompositeKeyToStringConverter.INSTANCE,
-            CompositeKey.StringToCompositeKeyConverter.INSTANCE
-        );
-    }
+The converters themselves implement Spring's `Converter` SPI:
 
-    @Value
-    public static class CompositeKey {
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/converters/entity/ConverterOrderId.java[tag=custom-converters-writing-converter,indent=0]
+----
 
-        String firstPart;
-        long secondPart;
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/converters/entity/ConverterOrderId.java[tag=custom-converters-reading-converter,indent=0]
+----
 
-        @WritingConverter
-        public enum CompositeKeyToStringConverter implements Converter<CompositeKey, String> {
-            INSTANCE;
+The converted id can then be used with regular template operations:
 
-            @Override
-            public String convert(CompositeKey source) {
-                return source.firstPart + "::" + source.secondPart;
-            }
-        }
-
-        @ReadingConverter
-        public enum StringToCompositeKeyConverter implements Converter<String, CompositeKey> {
-            INSTANCE;
-
-            @Override
-            public CompositeKey convert(String source) {
-                String[] split = source.split("::");
-                return new CompositeKey(split[0], Long.parseLong(split[1]));
-            }
-        }
-    }
-}
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/converters/BlockingCustomConvertersExample.java[tag=custom-converters-usage,indent=0]
 ----
 
 For more examples see the link:https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.

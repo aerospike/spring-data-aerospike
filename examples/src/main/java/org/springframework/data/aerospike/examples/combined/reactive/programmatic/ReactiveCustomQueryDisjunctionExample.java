@@ -11,6 +11,7 @@ import static org.springframework.data.aerospike.examples.combined.support.Movie
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.SCIENCE_FICTION;
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireTitles;
 
+// Demonstrates reactive custom OR queries that are evaluated with scans.
 public class ReactiveCustomQueryDisjunctionExample {
 
     private final ReactiveCustomQueryRepository repository;
@@ -22,25 +23,27 @@ public class ReactiveCustomQueryDisjunctionExample {
     public void run() {
         MovieExamples.saveMovies("reactive-custom-query-disjunction", repository);
 
-        // One OR: lGenre is indexed, but top-level Qualifier.or(...) produces no secondary-index filter.
+        // One OR: Movie.GENRE_INDEX exists on Movie.GENRE_BIN (`bin_genre`), but top-level Qualifier.or(...)
+        // produces no secondary-index filter.
         // Scans are enabled here so Aerospike can evaluate the expression against the set.
         Query oneOr = new Query(Qualifier.or(genre(CRIME), releaseYear(1979)));
         requireTitles(repository.findUsingQuery(oneOr).collectList().block(),
-            "One reactive custom query disjunction should scan even with an lGenre index",
+            "One reactive custom query disjunction should scan even with Movie.GENRE_INDEX",
             "Alien", "Collateral", "Heat");
 
-        // Multiple OR: every predicate is part of a widening OR, so the lGenre index is not a query filter.
+        // Multiple OR: every predicate is part of a widening OR, so Movie.GENRE_INDEX is not a query filter.
         Query multipleOr = new Query(Qualifier.or(genre(CRIME), releaseYear(1979), title("Network")));
         requireTitles(repository.findUsingQuery(multipleOr).collectList().block(),
-            "Multiple reactive custom query disjunction should scan even with an lGenre index",
+            "Multiple reactive custom query disjunction should scan even with Movie.GENRE_INDEX",
             "Alien", "Collateral", "Heat", "Network");
 
-        // Mixed top-level OR: OR(AND(lGenre, lYear), lTitle) also has no single secondary-index filter,
-        // even though lGenre is indexed.
+        // Mixed top-level OR: OR(AND(Movie.GENRE_BIN, Movie.RELEASE_YEAR_BIN), Movie.TITLE_BIN) also has
+        // no single secondary-index filter,
+        // even though Movie.GENRE_BIN (`bin_genre`) is indexed.
         Query orAroundAnd = new Query(Qualifier.or(Qualifier.and(genre(SCIENCE_FICTION), releaseYear(1979)),
             title("Heat")));
         requireTitles(repository.findUsingQuery(orAroundAnd).collectList().block(),
-            "Reactive programmatic top-level OR around AND should scan even with an lGenre index",
+            "Reactive programmatic top-level OR around AND should scan even with Movie.GENRE_INDEX",
             "Alien", "Heat");
 
         System.out.println("Ran reactive custom query disjunctions in a scan-enabled indexed context");

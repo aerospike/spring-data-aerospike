@@ -15,12 +15,12 @@ as a parameter to your repository method.
 .Example: Standalone Sorting
 [source, java]
 ----
-// In your repository interface
-List<Person> findByLastNameStartingWith(String lastNamePrefix, Sort sort);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/repository/PaginationMovieRepository.java[tag=pagination-repository]
+----
 
-// Usage example: retrieving persons sorted by last name
-List<Person> persons = repository.findByLastNameStartingWith("M", Sort.by("lastName").ascending());
-// The 'persons' list will contain all matching entities, sorted by their last names in ascending order.
+[source, java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/PaginationAndSortingExample.java[tag=pagination-standalone-sorting,indent=0]
 ----
 
 [[pagination_and_sorting.return_types]]
@@ -38,14 +38,7 @@ or the total record count.
 .Example: `Page` usage
 [source, java]
 ----
-// In your repository interface
-Page<Person> findByAgeLessThan(int age, Pageable pageable);
-
-// Usage example for an unpaged query in a test
-Page<Person> page = repository.findByAgeLessThan(40, Pageable.unpaged());
-// Assertions related to content, element count, and total pages/elements etc.
-assertThat(page.hasContent()).isTrue();
-assertThat(page.getNumberOfElements()).isGreaterThan(1);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/PaginationAndSortingExample.java[tag=pagination-page,indent=0]
 ----
 
 * `Slice`: This type represents a sub-list of data and provides information about whether there's a next
@@ -55,14 +48,7 @@ the total count is not immediately required.
 .Example: `Slice` usage
 [source, java]
 ----
-// In your repository interface
-Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
-
-// Example of using PageRequest in a test
-Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 10));
-// Assertions related to content and next/previous slice availability etc.
-assertThat(slice.hasContent()).isTrue();
-assertThat(slice.hasNext()).isFalse();
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/PaginationAndSortingExample.java[tag=pagination-slice,indent=0]
 ----
 
 [[pagination_and_sorting.page_request]]
@@ -83,35 +69,25 @@ A key consideration in Spring Data Aerospike is that when query methods receive 
 (i.e., `pageNumber` greater than 0), they *must* also include `Sort` criteria. This ensures consistent
 and predictable pagination results, as Aerospike itself does not guarantee natural order across all queries.
 
-The only exception to this rule is for purely ID equality queries, where the inherent order of IDs can be used
-for offset and limitation.
+This applies to regular queries and to combined ID-plus-filter queries.
 
 .Example: Paginated query with sorting
 [source, java]
 ----
-// In your repository interface (example similar to findByAgeGreaterThan)
-Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
-
-// Usage example in a test: a regular query method with offset, sorting must be specified
-Slice<Person> last = repository.findByAgeGreaterThan(20, PageRequest.of(4, 2, Sort.by("age")));
-// Assertions on content and navigation etc.
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/PaginationAndSortingExample.java[tag=pagination-sorted-offset,indent=0]
 ----
 
 [[pagination_and_sorting.id_based_pagination]]
-=== ID-Based Pagination without Explicit Sorting
+=== Pure ID-Based Pagination without Explicit Sorting
 
-For queries that are solely based on ID equality, pagination with an offset is permitted even without explicit sorting.
-This is because the original order of IDs can be leveraged for applying offset and limit on the application level.
+The exception is a query that is based only on IDs.
+For pure ID queries, Spring Data Aerospike can apply offset and limit using the order of the provided IDs.
+This exception does not apply once ID criteria are combined with other filters.
 
-.Example: ID-based pagination
+.Example: Pure ID-based pagination
 [source, java]
 ----
-// In your repository interface, a method just for IDs equality
-Page<P> findAllById(Iterable<String> ids, Pageable pageable);
-
-// Usage example in a test, the only type of queries without mandatory sorting when offset is given
-Page<Person> result1 = repository.findAllById(ids, PageRequest.of(1, 2));
-// Assertions on total pages and iteration over results etc.
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/pagination/PaginationAndSortingExample.java[tag=pagination-pure-id-unsorted-offset,indent=0]
 ----
 
 [[pagination_and_sorting.application_level_operations]]

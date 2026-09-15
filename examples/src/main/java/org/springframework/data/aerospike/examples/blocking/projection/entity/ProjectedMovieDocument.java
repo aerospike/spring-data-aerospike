@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.blocking.projection.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::projection-entity[]
 @Document(collection = "sda_examples_projection_movies")
 public class ProjectedMovieDocument {
 
@@ -64,3 +65,4 @@ public class ProjectedMovieDocument {
         this.rating = rating;
     }
 }
+// end::projection-entity[]

@@ -11,6 +11,7 @@ import static org.springframework.data.aerospike.examples.combined.support.Movie
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.SCIENCE_FICTION;
 import static org.springframework.data.aerospike.examples.combined.support.MovieExamples.requireTitles;
 
+// Demonstrates blocking custom queries in a scan-enabled no-index context.
 public class BlockingCustomQueryNoIndexExample {
 
     private final BlockingCustomQueryRepository repository;
@@ -30,7 +31,7 @@ public class BlockingCustomQueryNoIndexExample {
         requireTitles(repository.findUsingQuery(new Query(Qualifier.or(genre(CRIME), releaseYear(1979)))),
             "No-index custom query disjunction should scan", "Alien", "Collateral", "Heat");
 
-        // Multiple AND remains expression-only because lGenre was deliberately not indexed.
+        // Multiple AND remains expression-only because bin_genre was deliberately not indexed.
         requireTitles(repository.findUsingQuery(new Query(Qualifier.and(genre(SCIENCE_FICTION), releaseYear(1979),
                 title("Alien")))),
             "No-index custom query conjunction should scan", "Alien");
@@ -40,8 +41,8 @@ public class BlockingCustomQueryNoIndexExample {
                 title("Network")))),
             "No-index custom query disjunction should scan", "Alien", "Collateral", "Heat", "Network");
 
-        // Mixed AND around OR can use lGenre only in the indexed example.
-        // Here the same shape is a scan because no lGenre index exists.
+        // Mixed AND around OR can use Movie.GENRE_BIN (`bin_genre`) only in the indexed example.
+        // Here the same shape is a scan because no Movie.GENRE_INDEX exists.
         requireTitles(repository.findUsingQuery(new Query(Qualifier.and(genre(SCIENCE_FICTION),
                 Qualifier.or(title("Aliens"), releaseYear(1979))))),
             "No-index mixed custom query conjunction should scan", "Alien", "Aliens");

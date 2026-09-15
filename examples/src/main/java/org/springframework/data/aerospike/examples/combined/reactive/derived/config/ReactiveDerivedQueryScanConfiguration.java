@@ -14,6 +14,7 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveDerivedQueryRepository.class)
+// Registers reactive derived-query repositories with scans enabled for OR and no-index examples.
 public class ReactiveDerivedQueryScanConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 
     @Bean

@@ -13,6 +13,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates reactive AerospikeTemplate operations for queries, projection, mutation, and deletes.
 public class ReactiveTemplateExample {
 
     private final ReactiveAerospikeTemplate template;
@@ -24,7 +25,8 @@ public class ReactiveTemplateExample {
     public void run() {
         template.insertAll(seedMovies()).collectList().block();
 
-        // A runnable example blocks at scenario boundaries so each step is easy to follow
+        // A runnable example blocks at scenario boundaries so each step is easy to follow.
+        // findByIds(...) performs a reactive batch read for caller-known keys.
         List<ReactiveTemplateMovieDocument> firstTwoMovies = toSortedList(template
             .findByIds(List.of("reactive-template-1", "reactive-template-2"), ReactiveTemplateMovieDocument.class)
             .collectList()
@@ -33,6 +35,7 @@ public class ReactiveTemplateExample {
         require(firstTwoMovies.size() == 2, "Expected two movies from the reactive batch id read");
 
         Query scienceFiction = matchingGenre("science-fiction");
+        // Reactive find, exists, and count operations can share the same query shape.
         List<ReactiveTemplateMovieDocument> queryMatches = toSortedList(template
             .find(scienceFiction, ReactiveTemplateMovieDocument.class)
             .collectList()
@@ -45,6 +48,7 @@ public class ReactiveTemplateExample {
         require(template.count(releasedBetween(1990, 2000), ReactiveTemplateMovieDocument.class).block() == 3,
             "Expected three 1990s movies from the indexed reactive count query");
 
+        // The target-class overload maps matching records into a projection DTO.
         List<ReactiveTemplateMovieSummary> summaries = toSortedList(template
             .find(scienceFiction, ReactiveTemplateMovieDocument.class, ReactiveTemplateMovieSummary.class)
             .collectList()
@@ -56,6 +60,7 @@ public class ReactiveTemplateExample {
         mutateSingleRecord();
         updateSelectedFieldOnly();
 
+        // deleteByIds(...) removes a known batch without first loading the entities.
         template.deleteByIds(List.of("reactive-template-1", "reactive-template-2"), ReactiveTemplateMovieDocument.class)
             .block();
         require(!Boolean.TRUE.equals(template.exists("reactive-template-1", ReactiveTemplateMovieDocument.class)
@@ -96,9 +101,11 @@ public class ReactiveTemplateExample {
             new ReactiveTemplateMovieDocument("reactive-template-mutation", "trix", "science-fiction", 1999, 5, 10);
         template.insert(movie).block();
 
+        // add(...) performs an atomic numeric bin mutation on the server.
         ReactiveTemplateMovieDocument viewed = template.add(movie, "views", 5).block();
         require(viewed.getViews() == 15, "Reactive atomic add should increment the views bin");
 
+        // prepend(...) and append(...) mutate string bins without replacing the whole entity.
         ReactiveTemplateMovieDocument prefixed = template.prepend(viewed, "title", "The Ma").block();
         ReactiveTemplateMovieDocument renamed = template.append(prefixed, "title", " Reloaded").block();
         require("The Matrix Reloaded".equals(renamed.getTitle()),
@@ -110,6 +117,7 @@ public class ReactiveTemplateExample {
             new ReactiveTemplateMovieDocument("reactive-template-partial", "Primer", "science-fiction", 2004, 4, 100);
         template.insert(movie).block();
 
+        // update(..., fields) writes only the selected mapped property.
         template.update(new ReactiveTemplateMovieDocument("reactive-template-partial", null, null, 0, 5, 0),
             List.of("rating")).block();
 

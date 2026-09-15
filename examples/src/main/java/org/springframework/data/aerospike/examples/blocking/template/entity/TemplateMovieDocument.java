@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.examples.blocking.template.entity;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
+// tag::template-entity[]
 @Document(collection = "sda_examples_blocking_template_movies")
 public class TemplateMovieDocument {
 
@@ -77,3 +78,4 @@ public class TemplateMovieDocument {
         this.views = views;
     }
 }
+// end::template-entity[]

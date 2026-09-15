@@ -11,6 +11,7 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,10 +62,18 @@ public interface ExampleFixture {
 
     static ExampleFixture cleanSetAndCreateIndexesBeforeContextRefresh(Class<?> entityClass,
                                                                        DirectIndexDefinition... indexes) {
+        return cleanSetAndCreateIndexesBeforeContextRefresh(entityClass, List.of(), indexes);
+    }
+
+    static ExampleFixture cleanSetAndCreateIndexesBeforeContextRefresh(Class<?> entityClass,
+                                                                       List<String> additionalIndexNamesToDrop,
+                                                                       DirectIndexDefinition... indexes) {
         List<DirectIndexDefinition> indexDefinitions = Arrays.asList(indexes);
-        List<String> indexNames = indexDefinitions.stream()
+        List<String> indexNames = new ArrayList<>();
+        indexDefinitions.stream()
             .map(DirectIndexDefinition::indexName)
-            .toList();
+            .forEach(indexNames::add);
+        indexNames.addAll(additionalIndexNamesToDrop);
         return new CleanupFixture(entityClass, indexNames, false, true, indexDefinitions);
     }
 

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.config.AbstractAerospikeDataConfiguration;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.examples.blocking.querymethods.BlockingRepositoryDerivedIdAndBinQueryExample;
 import org.springframework.data.aerospike.examples.blocking.querymethods.BlockingRepositoryQueryMethodsExample;
 import org.springframework.data.aerospike.examples.blocking.querymethods.entity.QueryMethodsMovieDocument;
 import org.springframework.data.aerospike.examples.blocking.querymethods.repository.QueryMethodsMovieRepository;
@@ -13,11 +14,18 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 @Configuration(proxyBeanMethods = false)
 @PropertySource("classpath:application.properties")
 @EnableAerospikeRepositories(basePackageClasses = QueryMethodsMovieRepository.class)
+// Enables the repository proxy that derives query methods from method names.
 public class QueryMethodsAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
     @Bean
     BlockingRepositoryQueryMethodsExample blockingRepositoryQueryMethodsExample(QueryMethodsMovieRepository repository) {
         return new BlockingRepositoryQueryMethodsExample(repository);
+    }
+
+    @Bean
+    BlockingRepositoryDerivedIdAndBinQueryExample blockingRepositoryDerivedIdAndBinQueryExample(
+        QueryMethodsMovieRepository repository) {
+        return new BlockingRepositoryDerivedIdAndBinQueryExample(repository);
     }
 
     @Override

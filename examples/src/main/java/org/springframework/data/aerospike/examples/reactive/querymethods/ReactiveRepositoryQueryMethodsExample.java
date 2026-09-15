@@ -9,6 +9,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.examples.support.ExampleAssertions.require;
 import static org.springframework.data.aerospike.examples.support.ExampleCollections.toSortedList;
 
+// Demonstrates reactive derived repository query methods backed by indexes.
 public class ReactiveRepositoryQueryMethodsExample {
 
     private final ReactiveQueryMethodsMovieRepository repository;
@@ -28,30 +29,34 @@ public class ReactiveRepositoryQueryMethodsExample {
             .collectList()
             .block();
 
+        // tag::reactive-query-methods-usage[]
         // findByGenre(...) returns a Flux backed by the fixture-created string index
         List<ReactiveQueryMethodsMovieDocument> scienceFiction = toSortedList(repository.findByGenre("science-fiction")
             .collectList()
             .block(), Comparator.comparing(ReactiveQueryMethodsMovieDocument::getId), "Expected a list of movies");
-        require(scienceFiction.size() == 2, "Expected two science-fiction movies");
-        require("Arrival".equals(scienceFiction.get(0).getTitle()), "First genre query title did not match");
-        require("Annihilation".equals(scienceFiction.get(1).getTitle()), "Second genre query title did not match");
 
         // findByReleaseYearBetween(...) uses the numeric releaseYear index for a range query
         List<ReactiveQueryMethodsMovieDocument> midAughtsMovies =
             toSortedList(repository.findByReleaseYearBetween(2000, 2005).collectList().block(),
                 Comparator.comparing(ReactiveQueryMethodsMovieDocument::getId), "Expected a list of movies");
-        require(midAughtsMovies.size() == 1, "Expected one movie released from 2000 through 2005");
-        require("Memories of Murder".equals(midAughtsMovies.get(0).getTitle()), "Range query title did not match");
 
         // existsByGenre(...) and countByReleaseYearBetween(...) return Mono values
-        require(Boolean.TRUE.equals(repository.existsByGenre("crime").block()), "Expected a crime movie to exist");
-        require(Boolean.FALSE.equals(repository.existsByGenre("western").block()),
-            "Did not expect a western movie to exist");
-        require(Long.valueOf(2).equals(repository.countByReleaseYearBetween(2010, 2020).block()),
-            "Expected two movies from 2010 through 2020");
+        Boolean crimeMovieExists = repository.existsByGenre("crime").block();
+        Boolean westernMovieExists = repository.existsByGenre("western").block();
+        Long twentyTensMovies = repository.countByReleaseYearBetween(2010, 2020).block();
 
         // deleteByGenre(...) completes when all records matched by the derived query are deleted
         repository.deleteByGenre("crime").block();
+        // end::reactive-query-methods-usage[]
+
+        require(scienceFiction.size() == 2, "Expected two science-fiction movies");
+        require("Arrival".equals(scienceFiction.get(0).getTitle()), "First genre query title did not match");
+        require("Annihilation".equals(scienceFiction.get(1).getTitle()), "Second genre query title did not match");
+        require(midAughtsMovies.size() == 1, "Expected one movie released from 2000 through 2005");
+        require("Memories of Murder".equals(midAughtsMovies.get(0).getTitle()), "Range query title did not match");
+        require(Boolean.TRUE.equals(crimeMovieExists), "Expected a crime movie to exist");
+        require(Boolean.FALSE.equals(westernMovieExists), "Did not expect a western movie to exist");
+        require(Long.valueOf(2).equals(twentyTensMovies), "Expected two movies from 2010 through 2020");
         require(Boolean.FALSE.equals(repository.existsByGenre("crime").block()), "Crime movies should be deleted");
         require(Long.valueOf(2).equals(repository.count().block()), "Only science-fiction movies should remain");
 
