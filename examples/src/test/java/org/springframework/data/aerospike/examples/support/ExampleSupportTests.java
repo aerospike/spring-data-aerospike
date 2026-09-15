@@ -1,17 +1,23 @@
 package org.springframework.data.aerospike.examples.support;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.annotation.Query;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 import org.springframework.data.aerospike.examples.blocking.transactions.BlockingTransactionalMovieService;
 import org.springframework.data.aerospike.examples.combined.blocking.dsl.repository.BlockingDeclaredQueryRepository;
 import org.springframework.data.aerospike.examples.combined.entity.Movie;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,8 +29,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ExampleSupportTests {
 
@@ -134,6 +144,62 @@ class ExampleSupportTests {
         assertThat(indexesToCreate)
             .extracting(ExampleFixture.DirectIndexDefinition::indexType)
             .containsExactly(IndexType.STRING, IndexType.NUMERIC);
+    }
+
+    @Test
+    void cleanupFixtureIgnoresMissingBlockingIndexes() {
+        AerospikeTemplate template = mock(AerospikeTemplate.class);
+        doThrow(new IndexNotFoundException("missing index", new AerospikeException(INDEX_NOTFOUND)))
+            .when(template).deleteIndex(HookOrderDocument.class, "sda_examples_missing_idx");
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_missing_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("aerospikeTemplate", template)) {
+            fixture.cleanup(context);
+        }
+    }
+
+    @Test
+    void cleanupFixtureIgnoresMissingReactiveIndexes() {
+        ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+        when(template.deleteAll(HookOrderDocument.class)).thenReturn(Mono.empty());
+        when(template.deleteIndex(HookOrderDocument.class, "sda_examples_reactive_missing_idx"))
+            .thenReturn(Mono.error(new IndexNotFoundException("missing index", new AerospikeException(INDEX_NOTFOUND))));
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_reactive_missing_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("reactiveAerospikeTemplate", template)) {
+            fixture.cleanup(context);
+        }
+    }
+
+    @Test
+    void cleanupFixturePropagatesBlockingIndexCleanupFailures() {
+        RuntimeException cleanupFailure = new IllegalStateException("index cleanup failed");
+        AerospikeTemplate template = mock(AerospikeTemplate.class);
+        doThrow(cleanupFailure)
+            .when(template).deleteIndex(HookOrderDocument.class, "sda_examples_broken_idx");
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_broken_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("aerospikeTemplate", template)) {
+            assertThatThrownBy(() -> fixture.cleanup(context)).isSameAs(cleanupFailure);
+        }
+    }
+
+    @Test
+    void cleanupFixturePropagatesReactiveIndexCleanupFailures() {
+        RuntimeException cleanupFailure = new IllegalStateException("reactive index cleanup failed");
+        ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+        when(template.deleteAll(HookOrderDocument.class)).thenReturn(Mono.empty());
+        when(template.deleteIndex(HookOrderDocument.class, "sda_examples_reactive_broken_idx"))
+            .thenReturn(Mono.error(cleanupFailure));
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_reactive_broken_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("reactiveAerospikeTemplate", template)) {
+            assertThatThrownBy(() -> fixture.cleanup(context)).isSameAs(cleanupFailure);
+        }
     }
 
     @Test
@@ -565,6 +631,13 @@ class ExampleSupportTests {
         Field field = fixture.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         return (T) field.get(fixture);
+    }
+
+    private static AnnotationConfigApplicationContext contextWithBean(String beanName, Object bean) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getBeanFactory().registerSingleton(beanName, bean);
+        context.refresh();
+        return context;
     }
 
     private static Set<Integer> placeholders(String expression) {

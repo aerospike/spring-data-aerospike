@@ -9,6 +9,7 @@ import com.aerospike.client.task.IndexTask;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 import org.springframework.data.aerospike.mapping.Document;
 
 import java.util.ArrayList;
@@ -227,17 +228,36 @@ public interface ExampleFixture {
         private void dropBlockingIndex(AerospikeTemplate template, String indexName) {
             try {
                 template.deleteIndex(entityClass, indexName);
-            } catch (RuntimeException ignored) {
-                // Cleanup should not fail a scenario because a previous run already removed the index
+            } catch (RuntimeException failure) {
+                if (!isIndexNotFound(failure)) {
+                    throw failure;
+                }
             }
         }
 
         private void dropReactiveIndex(ReactiveAerospikeTemplate template, String indexName) {
             try {
                 template.deleteIndex(entityClass, indexName).block();
-            } catch (RuntimeException ignored) {
-                // Cleanup should not fail a scenario because a previous run already removed the index
+            } catch (RuntimeException failure) {
+                if (!isIndexNotFound(failure)) {
+                    throw failure;
+                }
             }
+        }
+
+        private boolean isIndexNotFound(Throwable failure) {
+            Throwable current = failure;
+            while (current != null) {
+                if (current instanceof IndexNotFoundException) {
+                    return true;
+                }
+                if (current instanceof AerospikeException aerospikeException
+                    && aerospikeException.getResultCode() == INDEX_NOTFOUND) {
+                    return true;
+                }
+                current = current.getCause();
+            }
+            return false;
         }
     }
 
