@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.examples.blocking.template.entity.Temp
 
 // tag::template-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 // Keeps the blocking template example focused on the mapped movie document package.
 public class TemplateAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 

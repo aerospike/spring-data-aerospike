@@ -12,7 +12,8 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::blocking-crud-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+// examples-application.properties is repo-specific; user applications can utilize application.properties.
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = MovieRepository.class)
 // Enables the blocking repository proxy used by the CRUD example bean.
 public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {

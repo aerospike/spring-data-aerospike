@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.examples.blocking.customquery.programm
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = ProgrammaticCustomQueryMovieRepository.class)
 // Enables the repository proxy that accepts programmatic Query objects.
 public class ProgrammaticCustomQueryConfiguration extends AbstractAerospikeDataConfiguration {

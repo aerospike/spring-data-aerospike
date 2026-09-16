@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::pagination-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = PaginationMovieRepository.class)
 // Enables the repository proxy that accepts Sort, Page, and Slice arguments.
 public class PaginationAerospikeConfiguration extends AbstractAerospikeDataConfiguration {

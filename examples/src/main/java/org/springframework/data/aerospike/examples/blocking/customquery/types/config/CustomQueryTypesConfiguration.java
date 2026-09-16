@@ -14,7 +14,7 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 // tag::custom-query-types-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = CustomQueryTypesMovieRepository.class)
 // Enables the repository proxy and template support used by qualifier type examples.
 public class CustomQueryTypesConfiguration extends AbstractAerospikeDataConfiguration {

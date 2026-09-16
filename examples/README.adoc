@@ -18,6 +18,10 @@ Spring supports both this JavaConfig style and component scanning: `@ComponentSc
 `@Component` and related stereotypes, while an explicit `@Bean` method registers exactly the object returned by that
 method.
 
+Runnable examples load their repository-local settings from `examples-application.properties`. This avoids colliding
+with the root test `application.properties` when the examples Maven profile is enabled.
+User applications can still use the standard `application.properties` name.
+
 This folder prefers explicit beans because the runner starts a focused Spring context for one registered scenario at a
 time. Keeping the runnable example bean in the selected configuration class makes dependencies visible and avoids
 scanning unrelated examples.

@@ -13,7 +13,7 @@ import org.springframework.data.aerospike.examples.reactive.converters.entity.Re
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 // Registers custom id converters and maps only the reactive converter example documents.
 public class ReactiveCustomConvertersAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 

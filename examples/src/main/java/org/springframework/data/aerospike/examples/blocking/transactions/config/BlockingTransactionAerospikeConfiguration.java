@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 // tag::transactions-blocking-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingTransactionalMovieRepository.class)
 @EnableTransactionManagement
 // Enables repository proxies and Spring transaction interception for blocking transaction examples.

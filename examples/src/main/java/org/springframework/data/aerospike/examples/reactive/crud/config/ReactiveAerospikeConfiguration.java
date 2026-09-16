@@ -12,7 +12,8 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 
 // tag::reactive-crud-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+// examples-application.properties is repo-specific; user applications can utilize application.properties.
+@PropertySource("classpath:examples-application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveMovieRepository.class)
 // Enables the reactive repository proxy used by the CRUD example bean.
 public class ReactiveAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {

@@ -14,7 +14,7 @@ import java.util.List;
 
 // tag::custom-converters-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 // Registers custom id converters and maps only the converter example documents.
 public class CustomConvertersAerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 

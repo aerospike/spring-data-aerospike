@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.examples.blocking.querymethods.reposit
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = QueryMethodsMovieRepository.class)
 // Enables the repository proxy that derives query methods from method names.
 public class QueryMethodsAerospikeConfiguration extends AbstractAerospikeDataConfiguration {

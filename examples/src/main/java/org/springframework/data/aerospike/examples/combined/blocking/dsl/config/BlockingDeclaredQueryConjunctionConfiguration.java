@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.examples.combined.entity.Movie;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingDeclaredQueryRepository.class)
 // Registers blocking declared-query repositories with scans disabled for indexed AND expressions.
 public class BlockingDeclaredQueryConjunctionConfiguration extends AbstractAerospikeDataConfiguration {

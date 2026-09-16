@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::projection-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = ProjectionMovieRepository.class)
 // Enables the repository proxy that returns projection interfaces and DTOs.
 public class ProjectionAerospikeConfiguration extends AbstractAerospikeDataConfiguration {

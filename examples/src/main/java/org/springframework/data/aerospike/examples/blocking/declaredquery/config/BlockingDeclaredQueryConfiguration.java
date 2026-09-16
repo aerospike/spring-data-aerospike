@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.examples.blocking.declaredquery.reposi
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = DeclaredQueryMovieRepository.class)
 // Enables the repository proxy that parses declared @Query DSL methods.
 public class BlockingDeclaredQueryConfiguration extends AbstractAerospikeDataConfiguration {

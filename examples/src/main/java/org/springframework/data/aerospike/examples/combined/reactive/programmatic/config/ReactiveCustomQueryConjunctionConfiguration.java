@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.examples.combined.reactive.programmati
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveCustomQueryRepository.class)
 // Registers reactive custom-query repositories with scans disabled for indexed AND examples.
 public class ReactiveCustomQueryConjunctionConfiguration extends AbstractReactiveAerospikeDataConfiguration {

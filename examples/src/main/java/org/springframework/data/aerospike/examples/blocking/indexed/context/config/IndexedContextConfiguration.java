@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::indexed-context-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = IndexedContextPersonRepository.class)
 // Enables the repository proxy while startup index creation reads nested context metadata.
 public class IndexedContextConfiguration extends AbstractAerospikeDataConfiguration {

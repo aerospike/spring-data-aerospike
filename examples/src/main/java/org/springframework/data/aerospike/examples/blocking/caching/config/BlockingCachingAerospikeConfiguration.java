@@ -20,7 +20,7 @@ import org.springframework.data.aerospike.examples.blocking.caching.entity.Cache
 
 // tag::caching-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableCaching
 // Enables Spring cache advice and wires an Aerospike-backed CacheManager.
 public class BlockingCachingAerospikeConfiguration extends AbstractAerospikeDataConfiguration {

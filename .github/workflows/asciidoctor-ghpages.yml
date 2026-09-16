@@ -58,6 +58,7 @@ jobs:
           git config --global user.name "GitHub Action"
           git switch --orphan gh-pages
           git rm -rf . >/dev/null 2>&1 || true
+          rm -rf build
           cp -R "${docs_dir}/". .
           touch .nojekyll
           git add .

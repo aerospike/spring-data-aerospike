@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.examples.combined.entity.Movie;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = BlockingDerivedQueryRepository.class)
 // Registers blocking derived-query repositories with scans enabled for OR and no-index examples.
 public class BlockingDerivedQueryScanConfiguration extends AbstractAerospikeDataConfiguration {

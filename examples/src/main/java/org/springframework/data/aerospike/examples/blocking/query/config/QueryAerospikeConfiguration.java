@@ -13,7 +13,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::secondary-index-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = IndexedMovieRepository.class)
 // Enables the repository proxy that runs the secondary-index query example.
 public class QueryAerospikeConfiguration extends AbstractAerospikeDataConfiguration {

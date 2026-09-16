@@ -10,7 +10,7 @@ import org.springframework.data.aerospike.examples.reactive.template.ReactiveTem
 import org.springframework.data.aerospike.examples.reactive.template.entity.ReactiveTemplateMovieDocument;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 // Keeps the reactive template example focused on the mapped movie document package.
 public class ReactiveTemplateAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {
 

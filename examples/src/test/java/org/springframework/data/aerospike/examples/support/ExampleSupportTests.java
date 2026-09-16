@@ -8,6 +8,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.aerospike.annotation.Query;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.when;
 class ExampleSupportTests {
 
     private static final Pattern QUERY_PARAMETER_PLACEHOLDER = Pattern.compile("\\?(\\d+)");
+    private static final String EXAMPLES_PROPERTY_SOURCE = "classpath:examples-application.properties";
     private static final List<String> hookOrderEvents = new ArrayList<>();
 
     @Test
@@ -224,6 +226,24 @@ class ExampleSupportTests {
                 .as(definition.name() + " run() return type")
                 .isEqualTo(void.class);
         }
+    }
+
+    @Test
+    void registeredExamplesUseExamplesPropertySource() {
+        List<ExampleDefinition> definitions = ExampleRegistry.all();
+
+        assertThat(definitions).isNotEmpty();
+        assertThat(definitions)
+            .allSatisfy(definition -> {
+                PropertySource propertySource = definition.configurationClass().getAnnotation(PropertySource.class);
+
+                assertThat(propertySource)
+                    .as(definition.name() + " should declare the examples property source")
+                    .isNotNull();
+                assertThat(propertySource.value())
+                    .as(definition.name() + " property source")
+                    .containsExactly(EXAMPLES_PROPERTY_SOURCE);
+            });
     }
 
     @Test

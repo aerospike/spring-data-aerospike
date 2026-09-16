@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.repository.config.EnableAerospikeRepos
 
 // tag::indexed-annotation-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableAerospikeRepositories(basePackageClasses = AnnotatedMovieRepository.class)
 // Enables the repository proxy while startup index creation reads @Indexed metadata.
 public class IndexedAnnotationConfiguration extends AbstractAerospikeDataConfiguration {

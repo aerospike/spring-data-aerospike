@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.examples.reactive.customquery.reposito
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveProgrammaticCustomQueryMovieRepository.class)
 // Enables the reactive repository proxy that accepts programmatic Query objects.
 public class ReactiveProgrammaticCustomQueryConfiguration extends AbstractReactiveAerospikeDataConfiguration {

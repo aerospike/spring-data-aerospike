@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.examples.reactive.querymethods.reposit
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveQueryMethodsMovieRepository.class)
 // Enables the reactive repository proxy that derives query methods from method names.
 public class ReactiveQueryMethodsAerospikeConfiguration extends AbstractReactiveAerospikeDataConfiguration {

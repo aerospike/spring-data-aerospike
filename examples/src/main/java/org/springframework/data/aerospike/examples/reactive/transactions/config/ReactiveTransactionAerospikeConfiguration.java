@@ -19,7 +19,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 // tag::transactions-reactive-configuration[]
 @Configuration(proxyBeanMethods = false)
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:examples-application.properties")
 @EnableReactiveAerospikeRepositories(basePackageClasses = ReactiveTransactionalMovieRepository.class)
 @EnableTransactionManagement
 // Enables reactive repository proxies and transaction infrastructure for reactive examples.
