@@ -34,40 +34,31 @@ To access domain entities stored in an Aerospike you can use our sophisticated r
 implementing those quite significantly. To do so, create an interface similar to your repository.
 Before you can do that, though, you need an entity, such as the entity defined in the following example:
 
-.Sample `Person` entity
+.Sample reactive movie entity
 ====
 [source,java]
 ----
-public class Person {
-
-  @Id
-  private String id;
-  private String firstname;
-  private String lastname;
-  private Address address;
-
-  // … getters and setters omitted
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/entity/ReactiveMovieDocument.java[tag=reactive-crud-entity]
 ----
 ====
 We have a quite simple domain object here. The default serialization mechanism used in `ReactiveAerospikeTemplate`
 (which is backing the repository support) regards properties named id as document ID. Currently, we support
 `String` and `long` as id-types. The following example shows how to create an interface that defines queries
-against the `Person` object from the preceding example:
+against the `ReactiveMovieDocument` object from the preceding example:
 
-.Basic repository interface to persist Person entities
+.Basic repository interface to persist reactive movie entities
 ====
 [source]
 ----
-public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Person, String> {
-
-  Flux<Person> findByFirstname(String firstname);
-
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/repository/ReactiveMovieRepository.java[tag=reactive-crud-repository]
 ----
 ====
 
 Right now this interface simply serves typing purposes but we will add additional methods to it later.
+
+For a runnable source-backed example of reactive repository CRUD operations, see
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[`ReactiveRepositoryCrudExample`].
+It can be run from the repository with `./examples/run_examples reactive-crud --hosts localhost:3000 --namespace test`.
 
 For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base
 packages attribute. These base packages are to be scanned for interfaces extending `ReactiveAerospikeRepository`
@@ -80,44 +71,12 @@ The following listing shows how to use Java configuration for a repository:
 ====
 [source,java]
 ----
-@Configuration
-@EnableReactiveAerospikeRepositories(basePackages = "org.springframework.data.aerospike.example")
-public class TestRepositoryConfig extends AbstractReactiveAerospikeDataConfiguration {
-    @Override
-    protected Collection<Host> getHosts() {
-        return Collections.singleton(new Host("52.23.205.208", 3000));
-    }
-
-    @Override
-    protected String nameSpace() {
-        return "test";
-    }
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/config/ReactiveAerospikeConfiguration.java[tag=reactive-crud-configuration]
 ----
 ====
 
-As our domain repository extends `ReactiveAerospikeRepository` it provides you with CRUD operations.
-Working with the repository instance is a matter of dependency injecting it into a client, as the following example shows:
-
-.Access to Person entities
-====
-[source,java]
-----
-@SpringBootTest
-public class PersonRepositoryTests {
-    @Autowired
-    ReactivePersonRepository repository;
-
-    @Test
-    public void findByFirstnameCorrectly() {
-      Flux<Person> persons = repository.findByFirstname("TestFirstName");
-    }
-}
-----
-====
-
-The sample creates an application context with Spring's unit test support which will perform annotation-based
-dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore.
+As our domain repository extends `ReactiveAerospikeRepository` it provides CRUD operations that return Reactor
+publishers. The source-backed examples below show repository usage with `Mono` and `Flux` return values.
 
 [[aerospike.reactive.repositories.queries]]
 == Query methods
@@ -125,90 +84,40 @@ dependency injection into test cases. Inside the test method, we simply use the 
 Most of the data access operations you usually trigger on a repository result in a query being executed against
 the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
 
-.PersonRepository with query methods
+.Reactive repository with query methods
 ====
 [source,java]
 ----
-public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Person, String> {
-
-  Flux<Person> findByFirstname(String firstname);                                   <1>
-
-  Flux<Person> findByFirstname(Publisher<String> firstname);                        <2>
-
-  Mono<Person> findByFirstnameAndLastname(String firstname, String lastname);       <3>
-
-  Mono<Person> findFirstByLastname(String lastname);                                <4>
-
-  Flux<Person> findByFirstnameStartsWith(String prefix);                            <5>
-
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/querymethods/repository/ReactiveQueryMethodsMovieRepository.java[tag=reactive-query-methods-repository]
 ----
-<1> The method shows a query for all people with the given `firstname`. The query is derived by parsing
-the method name for constraints that can be concatenated with `And` and `Or`.
-Thus, the method name results in a query expression of `{"firstname" : firstname}`.
-<2> The method shows a query for all people with the given `firstname` once the `firstname` is emitted
-by the given `Publisher`.
-<3> Find a single entity for the given criteria. It completes with `IncorrectResultSizeDataAccessException`
-on non-unique results.
-<4> Unless <3>, the first entity is always emitted even if the query yields more result documents.
-<5> The method shows a query for all people with the firstname starts from `prefix`
 ====
 
 [[aerospike.reactive.repositories.example]]
 == Examples
 
-Here's a delete, insert and query example
+The following snippets are taken from the runnable `reactive-crud` example.
+
+.Save and read one entity
 [source,java]
 ----
-@ContextConfiguration(classes = TestRepositoryConfig.class)
-public class ReactiveRepositoryExample {
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[tag=reactive-crud-save-read,indent=0]
+----
 
-    @Autowired
-    protected ReactivePersonRepository repository;
-    @Autowired
-    ReactiveAerospikeOperations aerospikeOperations;
-    @Autowired
-    IAerospikeReactorClient client;
+.Save and read several entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[tag=reactive-crud-batch-save-read,indent=0]
+----
 
-    public RepositoryExample(ApplicationContext ctx) {
-        aerospikeOperations = ctx.getBean(ReactiveAerospikeTemplate.class);
-        repository = (ReactivePersonRepository) ctx.getBean("reactivePersonRepository");
-        client = ctx.getBean(IAerospikeReactorClient.class);
-    }
+.Count and read all entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[tag=reactive-crud-count-find-all,indent=0]
+----
 
-    protected void setUp() {
-        // Insert new Person items into repository
-        Person dave = new Person("Dave-01", "Matthews", 42);
-        Person donny = new Person("Dave-02", "Macintire", 39);
-        Person oliver = new Person("Oliver-01", "Matthews", 4);
-        Person carter = new Person("Carter-01", "Beauford", 49);
-        List<Person> all = saveAll(Arrays.asList(dave, donny, oliver, carter))
-            .collectList().block();
-    }
-
-    protected void cleanUp() {
-        // Delete all Person items from repository
-        repository.findAll().flatMap(a -> repository.delete(a)).blockLast();
-    }
-
-    protected void executeRepositoryCall() {
-        System.out.println("Results for first name exact match of 'Dave-02'");
-        repository.findByFirstname("Dave-02")
-            .doOnNext(person -> System.out.println(person.toString())).blockLast();
-
-        System.out.println("Results for first name starting with letter 'D'");
-        repository.findByFirstnameStartsWith("D")
-            .doOnNext(person -> System.out.println(person.toString())).blockLast();
-    }
-
-    public static void main(String[] args) {
-        ApplicationContext ctx =
-            new AnnotationConfigApplicationContext(TestRepositoryConfig.class);
-        ReactiveRepositoryExample repositoryExample = new ReactiveRepositoryExample(ctx);
-        repositoryExample.setUp();
-        repositoryExample.executeRepositoryCall();
-        repositoryExample.cleanUp();
-    }
-}
+.Delete entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/crud/ReactiveRepositoryCrudExample.java[tag=reactive-crud-delete,indent=0]
 ----
 

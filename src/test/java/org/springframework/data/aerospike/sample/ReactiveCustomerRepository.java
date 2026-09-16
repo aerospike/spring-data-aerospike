@@ -67,6 +67,8 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByFirstNameIn(List<String> firstNames);
 
+    Mono<Void> deleteByFirstName(String firstName);
+
     Flux<Customer> findByFirstNameLike(String pattern);
 
     Flux<Customer> findByIdLike(String idPattern);

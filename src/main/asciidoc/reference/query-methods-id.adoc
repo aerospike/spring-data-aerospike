@@ -40,3 +40,45 @@ findByIdLikeAndFirstName(QueryParam id, QueryParam firstName)
 |
 
 |===
+
+== Runnable ID and Bin Criteria Examples
+
+The runnable examples include derived and custom queries where an id criterion is combined with a regular bin criterion.
+
+=== Derived Query Methods
+
+Derived query methods wrap the id part in `QueryParam`, which can carry either one id or several ids.
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/querymethods/repository/QueryMethodsMovieRepository.java[tag=blocking-derived-query-id-bin-methods,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/querymethods/BlockingRepositoryDerivedIdAndBinQueryExample.java[tag=blocking-derived-query-id-bin-usage,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/querymethods/repository/ReactiveQueryMethodsMovieRepository.java[tag=reactive-derived-query-id-bin-methods,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/querymethods/ReactiveRepositoryDerivedIdAndBinQueryExample.java[tag=reactive-derived-query-id-bin-usage,indent=0]
+----
+
+=== Custom Queries
+
+Custom queries use `Qualifier.idEquals` or `Qualifier.idIn` with a regular bin qualifier.
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/customquery/programmatic/ProgrammaticCustomQueryIdAndBinExample.java[tag=blocking-custom-query-id-bin-usage,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/reactive/customquery/ReactiveProgrammaticCustomQueryIdAndBinExample.java[tag=reactive-custom-query-id-bin-usage,indent=0]
+----

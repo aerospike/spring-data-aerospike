@@ -1,8 +1,8 @@
 [[aerospike.query-methods-preface]]
 = Query Methods
 
-Spring Data Aerospike supports defining queries by method names in the Repository interface so that the implementation
-is generated.
+Spring Data Aerospike supports derived queries: query methods declared in a repository interface where Spring Data
+creates the query from the method name.
 The format of method names is fairly flexible, comprising a verb and criteria.
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
@@ -11,9 +11,56 @@ For example, queries might look like `findByFirstName`, `countByLastName` etc.
 For more details, refer to basic Spring Data documentation:
 link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories/query-methods-details.html[Defining Query Methods].
 
+[[aerospike.query-terminology]]
+== Query Terminology
+
+[[aerospike.derived-query]]
+=== Derived Query
+
+A derived query is a repository query created using Spring query method name recognition.
+For example:
+    `List<Person> findByLastNameAndFirstNameContaining(String lastName, String firstName);`
+This query method gets created by user in the repository interface,
+and Spring Data Aerospike derives the query (operation and criteria) from it.
+
+[[aerospike.declared-query]]
+=== Declared Query
+
+A declared query is a repository query method with an explicit Spring Data Aerospike `@Query` annotation.
+The annotation supplies the DSL expression, and can also name an Aerospike secondary index with `indexToUse`.
+For example,
+    `@Query(
+        expression = "$.bin_genre == ?0 and $.bin_year == ?1",
+        indexToUse = Movie.GENRE_INDEX
+    )
+    List<Movie> findByGenreAndReleaseYear(String genre, int releaseYear);`
+
+[[aerospike.custom-query]]
+=== Custom Query
+
+A custom query is a repository query built programmatically by passing an
+`org.springframework.data.aerospike.repository.query.Query` with one or more `Qualifier` objects to
+`findUsingQuery(...)`. Use this form when the query shape needs runtime composition or qualifier types that are not
+practical as a repository method name.
+For example,
+    `Qualifier scienceFiction = Qualifier.builder()
+        .setPath("genre")
+        .setFilterOperation(FilterOperation.EQ)
+        .setValue("science-fiction")
+        .build();`
+
+[[aerospike.combined-query]]
+=== Combined Query
+
+A combined query is any derived query, declared query, or custom query that joins multiple predicates with logical
+conjunction (`AND`) or disjunction (`OR`). Spring Data Aerospike supports combined forms for all three query styles
+(only within each query style): method-name connectors such as `And` and `Or` in derived queries,
+boolean operators inside declared `@Query` DSL expressions,
+and `Qualifier.and(...)` or `Qualifier.or(...)` in custom queries.
+
 == Using Secondary Index
 
-Repository queries in Spring Data Aerospike can be divided into 3 groups:
+Derived queries in Spring Data Aerospike can be divided into 3 groups:
 
 * Queries that utilize secondary index (if at least one corresponding index is available)
 
@@ -23,11 +70,11 @@ Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
 If no corresponding secondary index is found, each query does a fallback to using scan only.
 
-For details on particular repository queries see the tables referring to queries examples below.
+For details on particular derived queries see the tables referring to query examples below.
 
 == Repository Query Keywords
 
-Here are the references to the examples of repository queries:
+Here are the references to the examples of derived query methods:
 
 <<aerospike.query_methods.simple_property, Simple property queries>>
 

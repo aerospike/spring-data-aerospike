@@ -21,8 +21,7 @@ in your context, and you can use it.
 
 [source,java]
 ----
-@Autowired
-protected AerospikeTemplate template;
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/config/TemplateAerospikeConfiguration.java[tag=template-bean,indent=0]
 ----
 
 An alternative is to instantiate it yourself, you can see the bean in `AbstractAerospikeDataConfiguration`.
@@ -41,15 +40,14 @@ and `find` methods, to delete - `delete` methods, and so on.
 
 [source,java]
 ----
-template.findById(id, Person.class)
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-find-by-ids,indent=0]
 ----
 
 For indexed documents use `find` with provided `Query` object.
 
 [source,java]
 ----
-Stream<Person> result = template.find(query, Person.class);
-assertThat(result).hasSize(6);
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-query-count-exists,indent=0]
 ----
 
 == Example
@@ -61,30 +59,34 @@ xref:#mapping-conventions-id-field[Mapping Conventions: Id Field] for more infor
 
 [source,java]
 ----
-public class Person {
-
-    @Id
-    private String id;
-    private String firstName;
-    private String lastName;
-    private int age;
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/entity/TemplateMovieDocument.java[tag=template-entity]
 ----
 
 [source,java]
 ----
-template.insert(new Person(id, "John", 50));
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-save,indent=0]
+----
 
-long count = template.count
-            (new Query
-                (new QualifierBuilder()
-                    .setFilterOperation(FilterOperation.EQ)
-                    .setPath("firstName")
-                    .setValue("John")
-                    .build()
-                ),
-            Person.class
-            );
+Template also supports projections and record-level mutations:
 
-        assertThat(count).isEqualTo(3);
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-projection,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-bin-mutations,indent=0]
+----
+
+Use `update` to write selected fields only, and `persist` when a custom `WritePolicy` is needed:
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-partial-update,indent=0]
+----
+
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/template/BlockingTemplateExample.java[tag=template-custom-write-policy,indent=0]
 ----

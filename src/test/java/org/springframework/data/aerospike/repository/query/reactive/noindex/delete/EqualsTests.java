@@ -234,6 +234,30 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     }
 
     @Test
+    public void deleteBySimplePropertyEquals_String() {
+        String firstName = "ReactiveDelete";
+        Customer firstMatch = Customer.builder().id(nextId()).firstName(firstName).lastName("Match").age(35).build();
+        Customer secondMatch = Customer.builder().id(nextId()).firstName(firstName).lastName("Match").age(36).build();
+        Customer nonMatch = Customer.builder().id(nextId()).firstName("ReactiveKeep").lastName("Control").age(37)
+            .build();
+        List<String> ids = List.of(firstMatch.getId(), secondMatch.getId(), nonMatch.getId());
+
+        StepVerifier.create(reactiveRepository.saveAll(List.of(firstMatch, secondMatch, nonMatch)).then())
+            .verifyComplete();
+
+        StepVerifier.create(reactiveRepository.deleteByFirstName(firstName))
+            .verifyComplete();
+
+        StepVerifier.create(reactiveRepository.findAllById(ids).collectList())
+            .expectNextMatches(list -> list.size() == 1 && list.contains(nonMatch))
+            .verifyComplete();
+
+        // cleanup
+        StepVerifier.create(reactiveRepository.delete(nonMatch))
+            .verifyComplete();
+    }
+
+    @Test
     public void deleteById_AND_SimpleProperty() {
         StepVerifier.create(reactiveRepository.findAllById(List.of(bart.getId())).collectList())
             .expectNextMatches(list -> list.size() == 1 && list.contains(bart))

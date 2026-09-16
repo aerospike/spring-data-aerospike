@@ -3,6 +3,7 @@
 :doctype: book
 :revnumber: 6.2.1
 :revdate: {localdate}
+ifndef::examples-java[:examples-java: {docdir}/../../../examples/src/main/java]
 
 :leveloffset: -1
 
@@ -85,12 +86,13 @@ h1#spring-data-aerospike-documentation {
     <li><a href="#aerospike.reactive.repositories">Reactive Repositories</a></li>
     <li><a href="#aerospike.projections">Projections</a></li>
     <li><a href="#aerospike.query-methods-preface">Query Methods</a></li>
+    <li><a href="#aerospike.query-terminology">Query Terminology</a></li>
     <li><a href="#aerospike.query_methods.simple_property">Simple Property Queries</a></li>
     <li><a href="#aerospike.query_methods.collection">Collection Queries</a></li>
     <li><a href="#aerospike.query_methods.map">Map Queries</a></li>
     <li><a href="#aerospike.query_methods.pojo">POJO Queries</a></li>
     <li><a href="#aerospike.query_methods.id">Id Queries</a></li>
-    <li><a href="#aerospike.query-methods-combined">Combined Query Methods</a></li>
+    <li><a href="#aerospike.query-methods-combined">Combined Derived Queries</a></li>
     <li><a href="#query-methods-modification">Query Modification</a></li>
     <li><a href="#custom-queries">Custom Queries</a></li>
     <li><a href="#dsl.expressions">DSL Expressions</a></li>

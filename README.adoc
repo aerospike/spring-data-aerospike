@@ -26,8 +26,17 @@ about https://projects.spring.io/[Spring Projects]
 
 == Examples
 
-Demo repository with detailed guides is located
-https://github.com/aerospike-community/spring-data-aerospike-demo[here]
+Framework-owned runnable reference examples are available in
+link:examples/README.adoc[`examples/`]. They compile against the current repository sources through the opt-in Maven
+`examples` profile and can be listed with:
+
+[source,bash]
+----
+./examples/run_examples list
+----
+
+Demo applications and more detailed guides remain in the
+https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
 
 == Getting Started
 
@@ -55,7 +64,7 @@ Data Aerospike 5.0.0: Important Updates]
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
-|6.2.x  |4.0.x |10.4.x |10.4.x |6.1.x.x +
+|6.2.x  |4.1.x |10.4.x |10.4.x |6.1.x.x +
 
 |6.1.x  |4.0.x |10.2.x |10.2.x |6.1.x.x +
 

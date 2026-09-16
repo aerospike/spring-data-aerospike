@@ -5,17 +5,25 @@ on:
     branches:
       - main
     paths:
-      - '**.adoc'
+      - 'src/main/asciidoc/**'
+      - 'examples/src/main/java/**'
+      - 'examples/src/main/resources/**'
+      - '.github/workflows/asciidoctor-ghpages.yml'
   push:
     branches:
       - main
     paths:
-      - '**.adoc'
+      - 'src/main/asciidoc/**'
+      - 'examples/src/main/java/**'
+      - 'examples/src/main/resources/**'
+      - '.github/workflows/asciidoctor-ghpages.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -26,9 +34,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: asciidoctor-ghpages
-        uses: manoelcampos/asciidoctor-ghpages-action@9527ff583929b1000c23c209123bba4e98a21f08 # v2
-        with:
-          asciidoctor_params: --attribute=nofooter
-          source_dir: ./src/main/asciidoc
-          ebook_main_adoc_file: index
+      - name: Install Asciidoctor
+        run: |
+          gem install asciidoctor -v 2.0.23 --no-document --user-install
+          echo "$(ruby -e 'print Gem.user_dir')/bin" >> "$GITHUB_PATH"
+
+      - name: Build documentation
+        run: |
+          mkdir -p build/docs
+          asciidoctor \
+            --failure-level=WARN \
+            -a nofooter \
+            -a examples-java="$PWD/examples/src/main/java" \
+            -D build/docs \
+            src/main/asciidoc/index.adoc
+
+      - name: Publish documentation
+        if: github.event_name != 'pull_request'
+        run: |
+          docs_dir="$(mktemp -d)"
+          cp -R build/docs/. "${docs_dir}/"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git switch --orphan gh-pages
+          git rm -rf . >/dev/null 2>&1 || true
+          rm -rf build
+          cp -R "${docs_dir}/". .
+          touch .nojekyll
+          git add .
+          git commit -m "Build documentation from ${GITHUB_SHA}"
+          git push -f origin gh-pages

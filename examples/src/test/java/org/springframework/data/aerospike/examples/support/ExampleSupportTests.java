@@ -1,0 +1,681 @@
+package org.springframework.data.aerospike.examples.support;
+
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.aerospike.annotation.Query;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
+import org.springframework.data.aerospike.examples.blocking.transactions.BlockingTransactionalMovieService;
+import org.springframework.data.aerospike.examples.combined.blocking.dsl.repository.BlockingDeclaredQueryRepository;
+import org.springframework.data.aerospike.examples.combined.entity.Movie;
+import org.springframework.data.aerospike.mapping.Document;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class ExampleSupportTests {
+
+    private static final Pattern QUERY_PARAMETER_PLACEHOLDER = Pattern.compile("\\?(\\d+)");
+    private static final String EXAMPLES_PROPERTY_SOURCE = "classpath:examples-application.properties";
+    private static final List<String> hookOrderEvents = new ArrayList<>();
+
+    @Test
+    void argsParseSelectionAndConnectionOptions() {
+        Args args = Args.parse(new String[]{
+            "blocking-crud,projection",
+            "--hosts", "127.0.0.1:3000",
+            "--namespace=dev",
+            "--allow-non-test-namespace",
+            "--fail-fast"
+        });
+
+        assertThat(args.listOnly()).isFalse();
+        assertThat(args.examples()).containsExactly("blocking-crud", "projection");
+        assertThat(args.hosts()).isEqualTo("127.0.0.1:3000");
+        assertThat(args.namespace()).isEqualTo("dev");
+        assertThat(args.allowNonTestNamespace()).isTrue();
+        assertThat(args.failFast()).isTrue();
+        assertThat(args.springProperties())
+            .containsEntry("spring.aerospike.hosts", "127.0.0.1:3000")
+            .containsEntry("spring.data.aerospike.namespace", "dev");
+    }
+
+    @Test
+    void noArgsDefaultToListingExamples() {
+        Args args = Args.parse(new String[0]);
+
+        assertThat(args.listOnly()).isTrue();
+        assertThat(args.examples()).isEmpty();
+    }
+
+    @Test
+    void registryNamesAreUniqueAndOrdered() {
+        List<String> names = ExampleRegistry.all().stream()
+            .map(ExampleDefinition::name)
+            .toList();
+
+        assertThat(names)
+            .doesNotHaveDuplicates()
+            .containsExactly(
+                "blocking-crud",
+                "reactive-crud",
+                "indexed-query",
+                "projection",
+                "indexed-annotation",
+                "indexed-context",
+                "blocking-declared-query",
+                "blocking-custom-query-types",
+                "blocking-query-methods",
+                "blocking-derived-query-id-bin",
+                "reactive-query-methods",
+                "reactive-derived-query-id-bin",
+                "pagination-sorting",
+                "blocking-custom-query-programmatic",
+                "blocking-custom-query-id-bin",
+                "reactive-custom-query-programmatic",
+                "reactive-custom-query-id-bin",
+                "blocking-derived-query-conjunction",
+                "reactive-derived-query-conjunction",
+                "blocking-derived-query-disjunction",
+                "reactive-derived-query-disjunction",
+                "blocking-derived-query-no-index",
+                "reactive-derived-query-no-index",
+                "blocking-custom-query-conjunction",
+                "reactive-custom-query-conjunction",
+                "blocking-custom-query-disjunction",
+                "reactive-custom-query-disjunction",
+                "blocking-custom-query-no-index",
+                "reactive-custom-query-no-index",
+                "blocking-declared-query-conjunction",
+                "blocking-declared-query-disjunction",
+                "blocking-declared-query-no-index",
+                "blocking-template",
+                "reactive-template",
+                "blocking-custom-converters",
+                "reactive-custom-converters",
+                "blocking-transactions",
+                "reactive-transactions",
+                "caching"
+            );
+    }
+
+    @Test
+    void multiIndexFixtureFactoryStoresEveryDirectIndexDefinition() throws Exception {
+        ExampleFixture fixture = ExampleFixture.cleanSetAndCreateIndexesBeforeContextRefresh(
+            HookOrderDocument.class,
+            ExampleFixture.index("sda_examples_test_genre_idx", "genre", IndexType.STRING),
+            ExampleFixture.index("sda_examples_test_year_idx", "releaseYear", IndexType.NUMERIC)
+        );
+
+        List<String> indexNames = fixtureField(fixture, "indexNames");
+        List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+            fixtureField(fixture, "indexesToCreateBeforeContextRefresh");
+
+        assertThat(indexNames)
+            .containsExactly("sda_examples_test_genre_idx", "sda_examples_test_year_idx");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::indexName)
+            .containsExactly("sda_examples_test_genre_idx", "sda_examples_test_year_idx");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::binName)
+            .containsExactly("genre", "releaseYear");
+        assertThat(indexesToCreate)
+            .extracting(ExampleFixture.DirectIndexDefinition::indexType)
+            .containsExactly(IndexType.STRING, IndexType.NUMERIC);
+    }
+
+    @Test
+    void cleanupFixtureIgnoresMissingBlockingIndexes() {
+        AerospikeTemplate template = mock(AerospikeTemplate.class);
+        doThrow(new IndexNotFoundException("missing index", new AerospikeException(INDEX_NOTFOUND)))
+            .when(template).deleteIndex(HookOrderDocument.class, "sda_examples_missing_idx");
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_missing_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("aerospikeTemplate", template)) {
+            fixture.cleanup(context);
+        }
+    }
+
+    @Test
+    void cleanupFixtureIgnoresMissingReactiveIndexes() {
+        ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+        when(template.deleteAll(HookOrderDocument.class)).thenReturn(Mono.empty());
+        when(template.deleteIndex(HookOrderDocument.class, "sda_examples_reactive_missing_idx"))
+            .thenReturn(Mono.error(new IndexNotFoundException("missing index", new AerospikeException(INDEX_NOTFOUND))));
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_reactive_missing_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("reactiveAerospikeTemplate", template)) {
+            fixture.cleanup(context);
+        }
+    }
+
+    @Test
+    void cleanupFixturePropagatesBlockingIndexCleanupFailures() {
+        RuntimeException cleanupFailure = new IllegalStateException("index cleanup failed");
+        AerospikeTemplate template = mock(AerospikeTemplate.class);
+        doThrow(cleanupFailure)
+            .when(template).deleteIndex(HookOrderDocument.class, "sda_examples_broken_idx");
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_broken_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("aerospikeTemplate", template)) {
+            assertThatThrownBy(() -> fixture.cleanup(context)).isSameAs(cleanupFailure);
+        }
+    }
+
+    @Test
+    void cleanupFixturePropagatesReactiveIndexCleanupFailures() {
+        RuntimeException cleanupFailure = new IllegalStateException("reactive index cleanup failed");
+        ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+        when(template.deleteAll(HookOrderDocument.class)).thenReturn(Mono.empty());
+        when(template.deleteIndex(HookOrderDocument.class, "sda_examples_reactive_broken_idx"))
+            .thenReturn(Mono.error(cleanupFailure));
+        ExampleFixture fixture = ExampleFixture.cleanSetAndIndexes(
+            HookOrderDocument.class, "sda_examples_reactive_broken_idx");
+
+        try (AnnotationConfigApplicationContext context = contextWithBean("reactiveAerospikeTemplate", template)) {
+            assertThatThrownBy(() -> fixture.cleanup(context)).isSameAs(cleanupFailure);
+        }
+    }
+
+    @Test
+    void combinedQueryExampleNamesAndTagsUsePublicTerminology() {
+        List<ExampleDefinition> combinedQueryDefinitions = combinedQueryDefinitions();
+
+        assertThat(combinedQueryDefinitions).isNotEmpty();
+        assertThat(combinedQueryDefinitions)
+            .allSatisfy(definition -> {
+                assertThat(definition.name()).doesNotContain("logical", "indexed-and", "indexed-scan");
+                assertThat(definition.tags()).doesNotContain("logical");
+                assertThat(definition.tags()).contains("combined-query");
+            });
+    }
+
+    @Test
+    void registeredExamplesDeclarePublicRunMethod() throws Exception {
+        for (ExampleDefinition definition : ExampleRegistry.all()) {
+            Method runMethod = definition.exampleClass().getMethod("run");
+
+            assertThat(runMethod.getReturnType())
+                .as(definition.name() + " run() return type")
+                .isEqualTo(void.class);
+        }
+    }
+
+    @Test
+    void registeredExamplesUseExamplesPropertySource() {
+        List<ExampleDefinition> definitions = ExampleRegistry.all();
+
+        assertThat(definitions).isNotEmpty();
+        assertThat(definitions)
+            .allSatisfy(definition -> {
+                PropertySource propertySource = definition.configurationClass().getAnnotation(PropertySource.class);
+
+                assertThat(propertySource)
+                    .as(definition.name() + " should declare the examples property source")
+                    .isNotNull();
+                assertThat(propertySource.value())
+                    .as(definition.name() + " property source")
+                    .containsExactly(EXAMPLES_PROPERTY_SOURCE);
+            });
+    }
+
+    @Test
+    void registryCleanupFixturesOwnOnlyExampleResources() throws Exception {
+        for (ExampleDefinition definition : ExampleRegistry.all()) {
+            Class<?> entityClass = fixtureField(definition.fixture(), "entityClass");
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            Document document = entityClass.getAnnotation(Document.class);
+
+            assertThat(document)
+                .as(definition.name() + " cleanup entity should be a mapped document")
+                .isNotNull();
+            assertThat(document.collection())
+                .as(definition.name() + " collection should stay inside the example namespace")
+                .startsWith("sda_examples_");
+            assertThat(indexNames)
+                .as(definition.name() + " indexes should stay inside the example namespace")
+                .allSatisfy(indexName -> assertThat(indexName).startsWith("sda_examples_"));
+        }
+    }
+
+    @Test
+    void registeredExamplesUseExplicitBeanRegistration() {
+        List<ExampleDefinition> definitions = ExampleRegistry.all();
+
+        assertThat(definitions).isNotEmpty();
+        assertThat(definitions)
+            .allSatisfy(definition -> {
+                assertThat(definition.configurationClass().getAnnotation(ComponentScan.class))
+                    .as(definition.name() + " should use explicit beans instead of component scanning")
+                    .isNull();
+                assertThat(definition.exampleClass().getAnnotation(Component.class))
+                    .as(definition.name() + " example should be registered by its configuration class")
+                    .isNull();
+            });
+        assertThat(BlockingTransactionalMovieService.class.getAnnotation(Component.class))
+            .as("blocking transaction service should be registered by its configuration class")
+            .isNull();
+    }
+
+    @Test
+    void combinedQueryIndexedExamplesCreateExpectedIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> indexedDefinitions = combinedQueryDefinitions().stream()
+            .filter(definition -> definition.tags().contains("indexed"))
+            .toList();
+
+        assertThat(indexedDefinitions).isNotEmpty();
+        for (ExampleDefinition definition : indexedDefinitions) {
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+                fixtureField(definition.fixture(), "indexesToCreateBeforeContextRefresh");
+
+            if (definition.name().contains("derived-query-conjunction")) {
+                assertThat(indexNames)
+                    .as(definition.name() + " index names")
+                    .containsExactly(Movie.GENRE_INDEX, Movie.TITLE_INDEX);
+                assertThat(indexesToCreate)
+                    .as(definition.name() + " indexes to create")
+                    .extracting(ExampleFixture.DirectIndexDefinition::binName)
+                    .containsExactly(Movie.GENRE_BIN, Movie.TITLE_BIN);
+            } else {
+                assertThat(indexNames)
+                    .as(definition.name() + " index names")
+                    .containsExactly(Movie.GENRE_INDEX);
+                assertThat(indexesToCreate)
+                    .as(definition.name() + " indexes to create")
+                    .extracting(ExampleFixture.DirectIndexDefinition::binName)
+                    .containsExactly(Movie.GENRE_BIN);
+            }
+            assertThat(indexesToCreate)
+                .as(definition.name() + " index types")
+                .extracting(ExampleFixture.DirectIndexDefinition::indexType)
+                .containsOnly(IndexType.STRING);
+        }
+    }
+
+    @Test
+    void combinedQueryNoIndexExamplesDropIndexesBeforeContextRefresh() throws Exception {
+        List<ExampleDefinition> noIndexDefinitions = combinedQueryDefinitions().stream()
+            .filter(definition -> definition.tags().contains("no-index"))
+            .toList();
+
+        assertThat(noIndexDefinitions).isNotEmpty();
+        for (ExampleDefinition definition : noIndexDefinitions) {
+            List<String> indexNames = fixtureField(definition.fixture(), "indexNames");
+            boolean dropIndexesBeforeContextRefresh =
+                fixtureField(definition.fixture(), "dropIndexesBeforeContextRefresh");
+            List<ExampleFixture.DirectIndexDefinition> indexesToCreate =
+                fixtureField(definition.fixture(), "indexesToCreateBeforeContextRefresh");
+
+            assertThat(indexNames)
+                .as(definition.name() + " index names")
+                .containsExactly(Movie.GENRE_INDEX, Movie.TITLE_INDEX);
+            assertThat(dropIndexesBeforeContextRefresh)
+                .as(definition.name() + " drops indexes before context refresh")
+                .isTrue();
+            assertThat(indexesToCreate)
+                .as(definition.name() + " should not create indexes")
+                .isEmpty();
+        }
+    }
+
+    @Test
+    void declaredQueryMethodsDeclareParametersOnlyForBoundPlaceholders() {
+        for (Method method : BlockingDeclaredQueryRepository.class.getDeclaredMethods()) {
+            Query query = method.getAnnotation(Query.class);
+
+            assertThat(query)
+                .as(method.getName() + " should declare @Query")
+                .isNotNull();
+            assertThat(placeholders(query.expression()))
+                .as(method.getName() + " should align declared parameters with @Query placeholders")
+                .containsExactlyElementsOf(expectedPlaceholders(method));
+        }
+    }
+
+    @Test
+    void runnerRejectsUnknownExampleNamesBeforeOpeningContext() {
+        ExampleRunner runner = new ExampleRunner(ExampleRegistry.all());
+
+        assertThatThrownBy(() -> runner.definitionsToRun(Args.parse(new String[]{"missing-example"})))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Unknown example: missing-example");
+    }
+
+    @Test
+    void runnerAllowsAllOnlySelection() {
+        List<ExampleDefinition> definitions = List.of(
+            ExampleDefinition.of("first-example", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none()),
+            ExampleDefinition.of("second-example", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none())
+        );
+        ExampleRunner runner = new ExampleRunner(definitions);
+
+        assertThat(runner.definitionsToRun(Args.parse(new String[]{"all"})))
+            .containsExactlyElementsOf(definitions);
+    }
+
+    @Test
+    void runnerRejectsAllMixedWithNamedExamples() {
+        ExampleRunner runner = new ExampleRunner(ExampleRegistry.all());
+
+        assertThatThrownBy(() -> runner.definitionsToRun(Args.parse(new String[]{"all", "blocking-crud"})))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("'all' cannot be combined with named examples");
+
+        assertThatThrownBy(() -> runner.definitionsToRun(Args.parse(new String[]{"blocking-crud,all"})))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("'all' cannot be combined with named examples");
+    }
+
+    @Test
+    void runnerSkipsNonTestNamespaceWithoutExplicitOverride() {
+        ExampleRunner runner = new ExampleRunner(ExampleRegistry.all());
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"blocking-crud", "--namespace", "prod"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.SKIPPED);
+            assertThat(result.message()).contains("--allow-non-test-namespace");
+        });
+    }
+
+    @Test
+    void runnerReportsExampleSkippedExceptionAndStillCleansUp() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void setup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("setup");
+            }
+
+            @Override
+            public void verify(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("verify");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "skip-contract",
+            "test",
+            SkippingConfiguration.class,
+            SkippingExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"skip-contract"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.SKIPPED);
+            assertThat(result.message()).contains("Server 8.0.0+");
+        });
+        assertThat(hookOrderEvents).containsExactly("setup", "run", "cleanup");
+    }
+
+    @Test
+    void runnerInvokesPreContextHookBeforeRefreshingContext() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void beforeContextRefresh(Args args) {
+                hookOrderEvents.add("beforeContextRefresh");
+            }
+
+            @Override
+            public void setup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("setup");
+            }
+
+            @Override
+            public void verify(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("verify");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "hook-order",
+            "test",
+            HookOrderConfiguration.class,
+            HookOrderExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"hook-order"}));
+
+        assertThat(results).singleElement()
+            .satisfies(result -> assertThat(result.status()).isEqualTo(ExampleStatus.PASSED));
+        assertThat(hookOrderEvents)
+            .containsExactly("beforeContextRefresh", "setup", "run", "verify", "cleanup");
+    }
+
+    @Test
+    void runnerReportsCleanupFailureAsFailedResultAndFailFastStops() {
+        hookOrderEvents.clear();
+        RuntimeException cleanupFailure = new IllegalStateException("cleanup failed");
+        ExampleFixture cleanupFailingFixture = new ExampleFixture() {
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+                throw cleanupFailure;
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(
+            ExampleDefinition.of("cleanup-failure", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                cleanupFailingFixture),
+            ExampleDefinition.of("should-not-run", "test", HookOrderConfiguration.class, HookOrderExample.class,
+                ExampleFixture.none())
+        ));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"all", "--fail-fast"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.message()).contains("cleanup failed");
+            assertThat(result.cause()).isSameAs(cleanupFailure);
+        });
+        assertThat(hookOrderEvents).containsExactly("run", "cleanup");
+    }
+
+    @Test
+    void runnerSuppressesCleanupFailureWhenExampleAlreadyFailed() {
+        hookOrderEvents.clear();
+        RuntimeException cleanupFailure = new IllegalStateException("cleanup failed");
+        ExampleFixture cleanupFailingFixture = new ExampleFixture() {
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+                throw cleanupFailure;
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "primary-failure",
+            "test",
+            FailingConfiguration.class,
+            FailingExample.class,
+            cleanupFailingFixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"primary-failure"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.message()).contains("primary failure");
+            assertThat(result.cause()).isInstanceOf(IllegalStateException.class);
+            assertThat(result.cause().getSuppressed()).containsExactly(cleanupFailure);
+        });
+        assertThat(hookOrderEvents).containsExactly("run", "cleanup");
+    }
+
+    @Test
+    void runnerInvokesPreContextCleanupWhenRefreshFails() {
+        hookOrderEvents.clear();
+        ExampleFixture fixture = new ExampleFixture() {
+
+            @Override
+            public void beforeContextRefresh(Args args) {
+                hookOrderEvents.add("beforeContextRefresh");
+            }
+
+            @Override
+            public void cleanupAfterContextRefreshFailure(Args args) {
+                hookOrderEvents.add("cleanupAfterContextRefreshFailure");
+            }
+
+            @Override
+            public void cleanup(ConfigurableApplicationContext context) {
+                hookOrderEvents.add("cleanup");
+            }
+        };
+        ExampleRunner runner = new ExampleRunner(List.of(ExampleDefinition.of(
+            "refresh-failure",
+            "test",
+            RefreshFailureConfiguration.class,
+            HookOrderExample.class,
+            fixture
+        )));
+
+        List<ExampleResult> results = runner.run(Args.parse(new String[]{"refresh-failure"}));
+
+        assertThat(results).singleElement().satisfies(result -> {
+            assertThat(result.status()).isEqualTo(ExampleStatus.FAILED);
+            assertThat(result.cause()).hasRootCauseMessage("refresh failure");
+        });
+        assertThat(hookOrderEvents).containsExactly("beforeContextRefresh", "cleanupAfterContextRefreshFailure");
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class HookOrderConfiguration {
+
+        @Bean
+        HookOrderExample hookOrderExample() {
+            return new HookOrderExample();
+        }
+    }
+
+    static class HookOrderExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class SkippingConfiguration {
+
+        @Bean
+        SkippingExample skippingExample() {
+            return new SkippingExample();
+        }
+    }
+
+    static class SkippingExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+            throw new ExampleSkippedException("Server 8.0.0+ is required");
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class FailingConfiguration {
+
+        @Bean
+        FailingExample failingExample() {
+            return new FailingExample();
+        }
+    }
+
+    static class FailingExample {
+
+        public void run() {
+            hookOrderEvents.add("run");
+            throw new IllegalStateException("primary failure");
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class RefreshFailureConfiguration {
+
+        @Bean
+        HookOrderExample hookOrderExample() {
+            throw new IllegalStateException("refresh failure");
+        }
+    }
+
+    @Document(collection = "sda_examples_hook_order")
+    static class HookOrderDocument {
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T fixtureField(ExampleFixture fixture, String fieldName) throws Exception {
+        Field field = fixture.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(fixture);
+    }
+
+    private static AnnotationConfigApplicationContext contextWithBean(String beanName, Object bean) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getBeanFactory().registerSingleton(beanName, bean);
+        context.refresh();
+        return context;
+    }
+
+    private static Set<Integer> placeholders(String expression) {
+        return QUERY_PARAMETER_PLACEHOLDER.matcher(expression)
+            .results()
+            .map(result -> Integer.parseInt(result.group(1)))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static Set<Integer> expectedPlaceholders(Method method) {
+        return IntStream.range(0, method.getParameterCount())
+            .boxed()
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static List<ExampleDefinition> combinedQueryDefinitions() {
+        return ExampleRegistry.all().stream()
+            .filter(definition -> definition.tags().contains("combined-query"))
+            .toList();
+    }
+}

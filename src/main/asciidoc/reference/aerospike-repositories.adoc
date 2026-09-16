@@ -20,46 +20,35 @@ so make sure you've got a sound understanding of this concept.
 == Usage
 
 To access entities stored in Aerospike you can leverage repository support that eases implementing those quite
-significantly. To do so, simply create an interface for your repository:
+significantly. To do so, define a mapped entity and a repository interface.
 
-.Sample Person entity
+.Sample movie entity
 ====
 [source,java]
 ----
-public class Person {
-
-	@Id
-	private String id;
-	private String name;
-	private int age;
-	public Person(String id, String name, int age) {
-		this.id = id;
-		this.name = name;
-		this.age = age;
-	}
-  // … getters and setters omitted
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/entity/MovieDocument.java[tag=blocking-crud-entity]
 ----
 ====
 We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate`
-(which is backing the repository support) regards properties named "id" as document id.
+(which is backing the repository support) regards properties named `id` as document id.
 Currently we support `String` and `long` as id-types.
 
-.Basic repository interface to persist Person entities
+.Basic repository interface to persist movie entities
 ====
 [source]
 ----
-public interface PersonRepository extends AerospikeRepository<Person, String> {
-
-	List<Person> findByName(String name);
-
-	List<Person> findByNameStartsWith(String prefix);
-
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/repository/MovieRepository.java[tag=blocking-crud-repository]
 ----
 ====
 
 Right now this interface simply serves typing purposes, but we will add additional methods to it later.
+
+Runnable framework-owned source examples are available for
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[blocking repository CRUD],
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/query/SecondaryIndexQueryExample.java[indexed derived queries],
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/indexed/IndexedAnnotationExample.java[`@Indexed` startup index creation], and
+link:https://github.com/aerospike/spring-data-aerospike/blob/main/examples/src/main/java/org/springframework/data/aerospike/examples/blocking/declaredquery/BlockingDeclaredQueryExample.java[declared DSL queries].
+They can be run from the repository with `./examples/run_examples all --hosts localhost:3000 --namespace test`.
 
 We are going to use the `@EnableAerospikeRepositories` annotation. If no base package is configured the infrastructure
 will scan the package of the annotated configuration class.
@@ -68,50 +57,13 @@ will scan the package of the annotated configuration class.
 ====
 [source,java]
 ----
-@Configuration
-@EnableAerospikeRepositories(basePackages = "org.springframework.data.aerospike.example")
-public class TestRepositoryConfig extends AbstractAerospikeDataConfiguration {
-
-	@Override
-	protected Collection<Host> getHosts() {
-		return Collections.singleton(new Host("localhost", 3000));
-	}
-
-	@Override
-	protected String nameSpace() {
-		return "test";
-	}
-}
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/config/AerospikeConfiguration.java[tag=blocking-crud-configuration]
 ----
 ====
 
-As our domain repository extends `PagingAndSortingRepository` it provides you with CRUD operations as well as methods
-for paginated and sorted access to the entities. Working with the repository instance is just a matter of dependency
-injecting it into a client. So accessing the second page of `Person`s at a page size of 10 would simply look something
-like this:
-
-.Paging access to Person entities
-====
-[source,java]
-----
-@SpringBootTest
-public class PersonRepositoryTests {
-
-    @Autowired PersonRepository repository;
-
-    @Test
-    public void readsFirstPageCorrectly() {
-
-      Page<Person> persons = repository.findAll(PageRequest.of(0, 10));
-      assertThat(persons.isFirst()).isTrue();
-    }
-}
-----
-====
-
-The sample creates an application context with Spring's unit test support which will perform annotation-based
-dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore.
-We hand the repository a `PageRequest` instance that requests the first page of persons at a page size of 10.
+`MovieRepository` extends `AerospikeRepository`, which itself extends `PagingAndSortingRepository` and
+`CrudRepository`. That gives repository instances inherited CRUD operations as well as paginated and sorted access
+methods. For source-backed pagination and sorting examples, see <<pagination_and_sorting>>.
 
 [[aerospike.repositories.queries]]
 == Query methods
@@ -119,89 +71,39 @@ We hand the repository a `PageRequest` instance that requests the first page of 
 Most of the data access operations you usually trigger on a repository result in a query being executed against
 the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
 
-.PersonRepository with query methods
+.Repository with query methods
 ====
 [source,java]
 ----
-public interface PersonRepository extends PagingAndSortingRepository<Person, String> {
-
-    List<Person> findByName(String name);                              <1>
-
-    Page<Person> findByName(String name, Pageable pageable);           <2>
-
-    List<Person> findByNameStartsWith(String prefix);                  <3>
- 
- }
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/querymethods/repository/QueryMethodsMovieRepository.java[tag=blocking-query-methods-repository]
 ----
-<1> The method shows a query for all people with the given name. The query will be derived by parsing the method name
-for constraints that can be concatenated with `And` and `Or`.
-<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method
-return a `Page` instance, and it will automatically page the query accordingly (i.e. return the required part of results).
-<3> Uses query-based partial name search.
 ====
 [[aerospike.repositories.example]]
+== Examples
 
-Here's a delete insert and query example
+The following snippets are taken from the runnable `blocking-crud` example.
+
+.Save and read one entity
 [source,java]
 ----
-@ContextConfiguration(classes = TestRepositoryConfig.class)
-public class RepositoryExample {
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[tag=blocking-crud-save-read,indent=0]
+----
 
-	@Autowired
-	protected PersonRepository repository;
-	@Autowired
-	AerospikeOperations aerospikeOperations;
-	@Autowired
-	AerospikeClient client;
+.Save and read several entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[tag=blocking-crud-batch-save-read,indent=0]
+----
 
-	public RepositoryExample(ApplicationContext ctx) {
-		aerospikeOperations = ctx.getBean(AerospikeTemplate.class);
-		repository = (PersonRepository) ctx.getBean("personRepository");
-		client = ctx.getBean(AerospikeClient.class);
-	}
+.Count and read all entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[tag=blocking-crud-count-find-all,indent=0]
+----
 
-	protected void setUp() {
-		repository.deleteAll();
-		Person dave = new Person("Dave-01", "Matthews", 42);
-		Person donny = new Person("Dave-02", "Macintire", 39);
-		Person oliver = new Person("Oliver-01", "Matthews", 4);
-		Person carter = new Person("Carter-01", "Beauford", 49);
-		Person boyd = new Person("Boyd-01", "Tinsley", 45);
-		Person stefan = new Person("Stefan-01", "Lessard", 34);
-		Person leroi = new Person("Leroi-01", "Moore", 41);
-		Person leroi2 = new Person("Leroi-02", "Moore", 25);
-		Person alicia = new Person("Alicia-01", "Keys", 30);
-		repository.createIndex(Person.class, "person_name_index", "name",
-				IndexType.STRING);
-		List<Person> all = (List<Person>) repository.saveAll(Arrays.asList(oliver,
-				dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
-	}
-
-	protected void cleanUp() {
-		repository.deleteAll();
-	}
-
-	protected void executeRepositoryCall() {
-		List<Person> result = repository.findByName("Beauford");
-		System.out.println("Results for exact match of 'Beauford'");
-		for (Person person : result) {
-			System.out.println(person.toString());
-		}
-		System.out.println("Results for name starting with letter 'M'");
-		List<Person> resultPartial = repository.findByNameStartsWith("M");
-		for (Person person : resultPartial) {
-			System.out.println(person.toString());
-		}
-	}
-
-	public static void main(String[] args) {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(
-				TestRepositoryConfig.class);
-		RepositoryExample repositoryExample = new RepositoryExample(ctx);
-		repositoryExample.setUp();
-		repositoryExample.executeRepositoryCall();
-		repositoryExample.cleanUp();
-	}
-}
+.Delete entities
+[source,java]
+----
+include::{examples-java}/org/springframework/data/aerospike/examples/blocking/crud/BlockingRepositoryCrudExample.java[tag=blocking-crud-delete,indent=0]
 ----
 
