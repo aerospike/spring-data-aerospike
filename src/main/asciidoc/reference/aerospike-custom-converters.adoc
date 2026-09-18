@@ -37,4 +37,4 @@ The converted id can then be used with regular template operations:
 include::{examples-java}/org/springframework/data/aerospike/examples/blocking/converters/BlockingCustomConvertersExample.java[tag=custom-converters-usage,indent=0]
 ----
 
-For more examples see the link:https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.
+For more examples see the link:https://github.com/aerospike/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.

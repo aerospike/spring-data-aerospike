@@ -9,7 +9,7 @@ the published library artifact. The examples are not independently versioned; th
 dependencies declared by the current root `pom.xml`.
 
 For application walkthroughes, use the
-https://github.com/aerospike-community/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
+https://github.com/aerospike/spring-data-aerospike-demo[spring-data-aerospike-demo] repository.
 
 == Configuration Style
 
