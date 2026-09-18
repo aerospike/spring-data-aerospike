@@ -64,6 +64,8 @@ Data Aerospike 5.0.0: Important Updates]
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|6.3.x  |4.1.x |10.4.x |10.5.x |6.1.x.x +
+
 |6.2.x  |4.1.x |10.4.x |10.4.x |6.1.x.x +
 
 |6.1.x  |4.0.x |10.2.x |10.2.x |6.1.x.x +
@@ -107,14 +109,6 @@ Data Aerospike 5.0.0: Important Updates]
 |3.0.x, 3.1.x  |2.5.x |5.1.x |5.0.x |
 
 |2.5.x         |2.5.x |4.4.x |4.4.x |
-
-|2.4.2.RELEASE |2.3.x |4.4.x |4.4.x |
-
-|2.3.5.RELEASE |2.2.x |4.4.x |4.4.x |
-
-|2.1.1.RELEASE |2.1.x, 2.0.x |4.4.x |3.2.x |
-
-|1.2.1.RELEASE |1.5.x |4.1.x | |
 |===
 
 == Quick Start
