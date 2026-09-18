@@ -1,7 +1,7 @@
 [[aerospike.index]]
 
 :doctype: book
-:revnumber: 6.2.1
+:revnumber: 6.3.0
 :revdate: {localdate}
 ifndef::examples-java[:examples-java: {docdir}/../../../examples/src/main/java]
 
